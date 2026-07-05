@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>萩ジオパーク マップ</title>
+  <meta name="description" content="萩ジオパークのジオサイト・地質・見どころをまとめたWeb地図" />
+  <link rel="icon" type="image/png" sizes="32x32" href="img/favicon-32.png" />
+  <link rel="icon" type="image/png" sizes="48x48" href="img/favicon-48.png" />
+  <link rel="apple-touch-icon" href="img/apple-touch-icon.png" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <meta name="theme-color" content="#c30d23" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="萩ジオマップ" />
+  <link rel="stylesheet"
+        href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+        crossorigin="" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+          integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+          crossorigin=""></script>
+  <link rel="stylesheet" href="css/style.css?v=55" />
+</head>
+<body>
+  <header id="appbar">
+    <button id="sidebarToggle" aria-label="主な見どころ" title="主な見どころ">☰</button>
+    <span id="brand" title="萩ジオパーク">
+      <img id="brandLogo" src="img/logo-badge.png" alt="萩ジオパーク" draggable="false" />
+    </span>
+    <h1>萩ジオパーク マップ</h1>
+    <button id="resetView" title="萩ジオパーク全体を見る">全体</button>
+  </header>
+
+  <aside id="sidebar">
+    <div id="sheetHandle" aria-label="引き上げ／下げ" role="button" tabindex="0"></div>
+    <div class="sidebar-head">
+      <strong>主な見どころ一覧</strong>
+      <button id="sidebarClose" aria-label="閉じる">×</button>
+    </div>
+    <input type="search" id="poiSearch" placeholder="名前で検索…" />
+    <div id="sheetExtra"></div>
+    <div id="poiList"><p class="loading">読み込み中…</p></div>
+    <p class="credit">
+      地形（陰影・傾斜）・地質・植生・海底地形の合成：萩ジオパーク推進協議会（QGIS）<br>
+      地質：産総研 20万分の1日本シームレス地質図V2<br>
+      植生：環境省 自然環境保全基礎調査<br>
+      行政界・交通：国土数値情報／基盤地図情報<br>
+      作成：萩ジオパーク推進協議会
+    </p>
+  </aside>
+
+  <div id="map"></div>
+
+  <script src="js/qrcode.min.js?v=55"></script>
+  <script src="js/map.js?v=55"></script>
+  <script>
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(()=>{}));
+    }
+  </script>
+</body>
+</html>

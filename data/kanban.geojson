@@ -1,0 +1,140 @@
+{
+ "type": "FeatureCollection",
+ "features": [
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "道の駅「ゆとりパーク田万川」",
+    "category": "案内板",
+    "area": null
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.665349,
+     34.648388
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "道の駅「あさひ」",
+    "category": "案内板",
+    "area": null
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.459919,
+     34.286344
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "北長門海岸国定公園／笠山",
+    "category": "案内板",
+    "area": "hagi"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.40245,
+     34.449978
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "北長門海岸国定公園／畳岩・海苔石園地",
+    "category": "案内板",
+    "area": "susa"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.594721,
+     34.645025
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "龍が通った道",
+    "category": "案内板",
+    "area": "ryu"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.620132,
+     34.552012
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "須佐駅",
+    "category": "案内板",
+    "area": null
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.605305,
+     34.621914
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "小川公民館",
+    "category": "案内板",
+    "area": "ryu"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.678267,
+     34.589874
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "道の駅「ハピネスふくえ」",
+    "category": "案内板",
+    "area": null
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.483077,
+     34.433817
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "道の駅「願成就温泉」",
+    "category": "案内板",
+    "area": "tokusa"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.770309,
+     34.434421
+    ]
+   }
+  }
+ ]
+}

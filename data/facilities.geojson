@@ -1,0 +1,1640 @@
+{
+ "type": "FeatureCollection",
+ "features": [
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "道の駅「萩しーまーと」",
+    "category": "公共施設",
+    "area": "hagi"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.4145023,
+     34.42611659
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "道の駅「萩・さんさん三見」",
+    "category": "公共施設",
+    "area": null
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.3223972,
+     34.38896911
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "道の駅「ハピネスふくえ」",
+    "category": "公共施設",
+    "area": null
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.4829387,
+     34.43385107
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "道の駅「ゆとりパークたまがわ」",
+    "category": "公共施設",
+    "area": null
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.6659405,
+     34.64801119
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "道の駅「うり坊の郷Katamata」",
+    "category": "公共施設",
+    "area": null
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.6326842,
+     34.48361933
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "道の駅「あさひ」",
+    "category": "公共施設",
+    "area": null
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.459571,
+     34.2863044
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "道の駅「萩往還」",
+    "category": "公共施設",
+    "area": null
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.4123441,
+     34.36947527
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "道の駅「阿武町」",
+    "category": "公共施設",
+    "area": null
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.4683279,
+     34.49770595
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "道の駅「長門峡」",
+    "category": "公共施設",
+    "area": "tokusa"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.5762882,
+     34.30297128
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "道の駅「願成就温泉」",
+    "category": "公共施設",
+    "area": "tokusa"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.7701451,
+     34.43435358
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "道の駅「津和野温泉なごみの里」",
+    "category": "公共施設",
+    "area": null
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.7601756,
+     34.4503424
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "いかマルシェ・スサノモノミトコ館",
+    "category": "公共施設",
+    "area": null
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.6052209,
+     34.6219139
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "須佐海苔石休憩所つわぶきの館",
+    "category": "公共施設",
+    "area": "susa"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.5943933,
+     34.6449546
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "福の里直売所",
+    "category": "公共施設",
+    "area": "ryu"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.6112175,
+     34.51755924
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "農産物加工販売所つつじ",
+    "category": "公共施設",
+    "area": null
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.410811,
+     34.33572734
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "萩・明倫学舎／萩ジオパーク・ビジターセンター",
+    "category": "公共施設",
+    "area": "hagi"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.3997855,
+     34.40924887
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "萩博物館",
+    "category": "公共施設",
+    "area": "hagi"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.3907989,
+     34.41307019
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "山口県立萩美術館・浦上記念館",
+    "category": "公共施設",
+    "area": "hagi"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.3943551,
+     34.40934745
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "須佐歴史民俗資料館みこと館",
+    "category": "公共施設",
+    "area": null
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.5993798,
+     34.61952414
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "大板山たたら館",
+    "category": "公共施設",
+    "area": null
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.5384122,
+     34.50530782
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "萩往還交流施設 乳母の茶屋",
+    "category": "公共施設",
+    "area": null
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.4154989,
+     34.34565859
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "萩往還おもてなし茶屋（旧小林家住宅）",
+    "category": "公共施設",
+    "area": null
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.4640052,
+     34.28673358
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "阿武町町民グラウンド",
+    "category": "公共施設",
+    "area": null
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.49843,
+     34.507732
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "萩市立萩図書館",
+    "category": "公共施設",
+    "area": "hagi"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.397053,
+     34.40991
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "萩市立須佐図書館",
+    "category": "公共施設",
+    "area": null
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.604495,
+     34.615122
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "萩セミナーハウス",
+    "category": "公共施設",
+    "area": "hagi"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.386313,
+     34.414894
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "萩市民館",
+    "category": "公共施設",
+    "area": "hagi"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.39818,
+     34.408547
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "サンライフ萩",
+    "category": "公共施設",
+    "area": "hagi"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.406344,
+     34.410667
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "萩市民体育館",
+    "category": "公共施設",
+    "area": "hagi"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.3998,
+     34.396898
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "萩市土原体育館",
+    "category": "公共施設",
+    "area": "hagi"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.40672,
+     34.410968
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "萩市田万川体育館",
+    "category": "公共施設",
+    "area": null
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.654534,
+     34.641726
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "萩市むつみB&G海洋センター",
+    "category": "公共施設",
+    "area": null
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.599882,
+     34.445716
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "萩市福栄体育館",
+    "category": "公共施設",
+    "area": null
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.481639,
+     34.433257
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "萩市高俣グラウンド",
+    "category": "公共施設",
+    "area": null
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.610729,
+     34.469955
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "萩市須佐グラウンド",
+    "category": "公共施設",
+    "area": null
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.616908,
+     34.607162
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "萩ウェルネスパーク",
+    "category": "公共施設",
+    "area": null
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.421483,
+     34.386141
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "阿武町町民センター",
+    "category": "公共施設",
+    "area": null
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.475465,
+     34.505924
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "山口県萩総合庁舎",
+    "category": "公共施設",
+    "area": "hagi"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.396205,
+     34.408578
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "萩市役所",
+    "category": "公共施設",
+    "area": "hagi"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.399091,
+     34.408162
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "阿武町役場",
+    "category": "公共施設",
+    "area": null
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.471436,
+     34.503374
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "山口市阿東総合支所",
+    "category": "公共施設",
+    "area": "tokusa"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.720812,
+     34.397212
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "阿東地域交流センター",
+    "category": "公共施設",
+    "area": "tokusa"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.721268,
+     34.398602
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "阿東地域交流センター篠生分館",
+    "category": "公共施設",
+    "area": "tokusa"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.577217,
+     34.304277
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "阿東地域交流センター生雲分館",
+    "category": "公共施設",
+    "area": "tokusa"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.601909,
+     34.381758
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "阿東地域交流センター地福分館",
+    "category": "公共施設",
+    "area": "tokusa"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.668975,
+     34.36186
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "阿東地域交流センター嘉年分館",
+    "category": "公共施設",
+    "area": null
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.67405,
+     34.464555
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "川上総合事務所",
+    "category": "公共施設",
+    "area": null
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.459849,
+     34.357631
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "田万川総合事務所",
+    "category": "公共施設",
+    "area": null
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.660929,
+     34.637569
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "むつみ総合事務所",
+    "category": "公共施設",
+    "area": "tokusa"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.577694,
+     34.437434
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "須佐総合事務所",
+    "category": "公共施設",
+    "area": null
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.602167,
+     34.618429
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "旭総合事務所",
+    "category": "公共施設",
+    "area": null
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.414348,
+     34.344769
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "福栄総合事務所",
+    "category": "公共施設",
+    "area": null
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.484171,
+     34.432806
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "見島支所・公民館",
+    "category": "公共施設",
+    "area": null
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.152055,
+     34.763729
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "三見公民館",
+    "category": "公共施設",
+    "area": null
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.334676,
+     34.392201
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "大井公民館",
+    "category": "公共施設",
+    "area": null
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.451942,
+     34.468177
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "大島公民館",
+    "category": "公共施設",
+    "area": null
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.408587,
+     34.490796
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "川上公民館",
+    "category": "公共施設",
+    "area": null
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.461608,
+     34.357418
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "江崎公民館",
+    "category": "公共施設",
+    "area": null
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.654963,
+     34.642547
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "小川支所・公民館",
+    "category": "公共施設",
+    "area": "ryu"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.678267,
+     34.589693
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "高俣支所・公民館",
+    "category": "公共施設",
+    "area": null
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.610975,
+     34.471565
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "須佐公民館",
+    "category": "公共施設",
+    "area": null
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.602253,
+     34.617948
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "弥富支所・公民館",
+    "category": "公共施設",
+    "area": "ryu"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.640962,
+     34.549231
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "明木公民館",
+    "category": "公共施設",
+    "area": null
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.41143,
+     34.339317
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "佐々並公民館",
+    "category": "公共施設",
+    "area": null
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.462671,
+     34.286333
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "紫福公民館",
+    "category": "公共施設",
+    "area": null
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.534103,
+     34.461202
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "宇田郷公民館",
+    "category": "公共施設",
+    "area": null
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.546441,
+     34.566505
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "阿武町役場福賀支所",
+    "category": "公共施設",
+    "area": "ryu"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.597618,
+     34.517042
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "航空自衛隊見島分屯基地",
+    "category": "公共施設",
+    "area": null
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.133209,
+     34.772076
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "陸上自衛隊むつみ演習場",
+    "category": "公共施設",
+    "area": "ryu"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.602864,
+     34.493647
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "明倫小学校",
+    "category": "公共施設",
+    "area": "hagi"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.3988509,
+     34.41059123
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "椿東小学校",
+    "category": "公共施設",
+    "area": "hagi"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.4173931,
+     34.41398531
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "越ヶ浜小学校",
+    "category": "公共施設",
+    "area": "hagi"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.4219374,
+     34.4440861
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "椿西小学校",
+    "category": "公共施設",
+    "area": "hagi"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.3983113,
+     34.39720292
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "白水小学校",
+    "category": "公共施設",
+    "area": "hagi"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.376357,
+     34.39737168
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "三見小中学校",
+    "category": "公共施設",
+    "area": null
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.3334412,
+     34.39187217
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "大井小中学校",
+    "category": "公共施設",
+    "area": null
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.4569741,
+     34.46803063
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "大島小中学校",
+    "category": "公共施設",
+    "area": null
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.404906,
+     34.4930053
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "相島小中学校",
+    "category": "公共施設",
+    "area": null
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.2816469,
+     34.50342715
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "見島小・中学校",
+    "category": "公共施設",
+    "area": null
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.1517281,
+     34.76477372
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "川上小学校",
+    "category": "公共施設",
+    "area": null
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.457019,
+     34.3592024
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "小川小学校",
+    "category": "公共施設",
+    "area": "ryu"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.6857582,
+     34.5916517
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "多磨小学校",
+    "category": "公共施設",
+    "area": null
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.6566174,
+     34.63854766
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "むつみ小学校",
+    "category": "公共施設",
+    "area": "tokusa"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.5784453,
+     34.43785578
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "育英小学校",
+    "category": "公共施設",
+    "area": null
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.6007612,
+     34.61668592
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "弥富小学校（休校中）",
+    "category": "公共施設",
+    "area": "ryu"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.638911,
+     34.55136564
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "明木小学校・旭中学校",
+    "category": "公共施設",
+    "area": null
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.4136272,
+     34.34074449
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "佐々並小学校",
+    "category": "公共施設",
+    "area": null
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.4591295,
+     34.28516377
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "福栄小中学校",
+    "category": "公共施設",
+    "area": null
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.4867751,
+     34.43631939
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "阿武小学校",
+    "category": "公共施設",
+    "area": null
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.4741789,
+     34.50512336
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "福賀小学校",
+    "category": "公共施設",
+    "area": "ryu"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.6008784,
+     34.51763985
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "徳佐小学校",
+    "category": "公共施設",
+    "area": "tokusa"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.7244755,
+     34.39651112
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "さくら小学校",
+    "category": "公共施設",
+    "area": "tokusa"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.6611742,
+     34.35842099
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "生雲小学校",
+    "category": "公共施設",
+    "area": "tokusa"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.5998361,
+     34.38483573
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "萩東中学校",
+    "category": "公共施設",
+    "area": "hagi"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.405888,
+     34.41258799
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "萩西中学校",
+    "category": "公共施設",
+    "area": "hagi"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.3877061,
+     34.41274079
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "越ヶ浜中学校",
+    "category": "公共施設",
+    "area": "hagi"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.4222542,
+     34.44313794
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "川上中学校",
+    "category": "公共施設",
+    "area": null
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.4637634,
+     34.35783697
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "田万川中学校",
+    "category": "公共施設",
+    "area": null
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.6581697,
+     34.63824805
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "むつみ中学校",
+    "category": "公共施設",
+    "area": null
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.6023579,
+     34.44785937
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "須佐中学校",
+    "category": "公共施設",
+    "area": null
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.6101878,
+     34.61704543
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "萩光塩学院中学校・高校",
+    "category": "公共施設",
+    "area": "hagi"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.4042794,
+     34.41188336
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "阿東中学校",
+    "category": "公共施設",
+    "area": "tokusa"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.6657231,
+     34.36051917
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "阿東東中学校",
+    "category": "公共施設",
+    "area": "tokusa"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.7253788,
+     34.39533792
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "阿武中学校",
+    "category": "公共施設",
+    "area": null
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.4738449,
+     34.50589054
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "萩高校",
+    "category": "公共施設",
+    "area": "hagi"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.3858628,
+     34.41283613
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "萩商工高校",
+    "category": "公共施設",
+    "area": "hagi"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.3936774,
+     34.40696294
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "萩高校奈古分校",
+    "category": "公共施設",
+    "area": null
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.4732105,
+     34.50462578
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "山口高校徳佐分校",
+    "category": "公共施設",
+    "area": "tokusa"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.7241,
+     34.401005
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "至誠館大学",
+    "category": "公共施設",
+    "area": "hagi"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.4219878,
+     34.43085853
+    ]
+   }
+  }
+ ]
+}

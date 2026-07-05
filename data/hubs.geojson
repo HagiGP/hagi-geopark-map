@@ -1,0 +1,133 @@
+{
+ "type": "FeatureCollection",
+ "features": [
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "萩・明倫学舎／萩ジオパークビジターセンター",
+    "category": "拠点施設",
+    "説明": "萩ジオパークの楽しみ方を紹介",
+    "area": "hagi"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.399891,
+     34.409165
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "笠山山頂展望台「鳶ノ巣」",
+    "category": "拠点施設",
+    "説明": "トビの目線で萩の大地と人のつながりを俯瞰できる",
+    "area": "hagi"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.401693,
+     34.449836
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "須佐ホルンフェルス休憩所「つわぶきの館」",
+    "category": "拠点施設",
+    "説明": "須佐ホルンフェルス見学の拠点",
+    "area": "susa"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.59441,
+     34.644937
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "そば処 龍の里やどみ",
+    "category": "拠点施設",
+    "説明": "龍が通った道に関する展示コーナー",
+    "area": "ryu"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.638967,
+     34.551359
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "弥富公民館",
+    "category": "拠点施設",
+    "説明": "龍が通った道見学の拠点",
+    "area": "ryu"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.640893,
+     34.549105
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "道の駅「長門峡」",
+    "category": "拠点施設",
+    "説明": "長門峡の成り立ち展示コーナー",
+    "area": "tokusa"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.576326,
+     34.303158
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "佐々並公民館",
+    "category": "拠点施設",
+    "説明": "佐々並カルデラに関する展示コーナー",
+    "area": null
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.462204,
+     34.286282
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "イラオ火山灰層観察施設",
+    "category": "拠点施設",
+    "説明": "40万年前の噴火の記憶をたどれる",
+    "area": "ryu"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.623764,
+     34.530475
+    ]
+   }
+  }
+ ]
+}

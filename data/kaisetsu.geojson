@@ -1,0 +1,245 @@
+{
+ "type": "FeatureCollection",
+ "features": [
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "北長門海岸国定公園／笠山山頂",
+    "category": "解説板",
+    "area": "hagi"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.402058,
+     34.449876
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "笠山椿群生林",
+    "category": "解説板",
+    "area": "hagi"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.39811,
+     34.45921
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "笠山椿群生林",
+    "category": "解説板",
+    "area": "hagi"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.396715,
+     34.45763
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "長門峡・丁字川出合淵",
+    "category": "解説板",
+    "area": "tokusa"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.577212,
+     34.305108
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "エビ池",
+    "category": "解説板",
+    "area": "hagi"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.398314,
+     34.458104
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "萌芽更新",
+    "category": "解説板",
+    "area": "hagi"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.39981,
+     34.457896
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "風穴",
+    "category": "解説板",
+    "area": "hagi"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.400374,
+     34.45706
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "溶岩堤防",
+    "category": "解説板",
+    "area": "hagi"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.401801,
+     34.458524
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "アア溶岩",
+    "category": "解説板",
+    "area": "hagi"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.402106,
+     34.458298
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "石切り場",
+    "category": "解説板",
+    "area": "hagi"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.397852,
+     34.459103
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "素潜り漁",
+    "category": "解説板",
+    "area": "hagi"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.397852,
+     34.459103
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "畳ヶ淵",
+    "category": "解説板",
+    "area": "ryu"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.672913,
+     34.545513
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "猿谷の瀧",
+    "category": "解説板",
+    "area": "ryu"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.676727,
+     34.554787
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "龍鱗郷",
+    "category": "解説板",
+    "area": "ryu"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.678009,
+     34.569895
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "龍の鱗",
+    "category": "解説板",
+    "area": "ryu"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.641123,
+     34.547638
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "高山と須佐ホルンフェルス",
+    "category": "解説板",
+    "area": "susa"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.594147,
+     34.645581
+    ]
+   }
+  }
+ ]
+}

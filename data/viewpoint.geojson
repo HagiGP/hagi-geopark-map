@@ -1,0 +1,308 @@
+{
+ "type": "FeatureCollection",
+ "features": [
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.388903,
+     34.416003
+    ]
+   },
+   "properties": {
+    "name": "菊ヶ浜",
+    "category": "展望地",
+    "駐車場": "Y",
+    "現地解説": "N",
+    "ランク": "A",
+    "説明": "指月山や萩六島（阿武火山群）を一望できる",
+    "area": "hagi"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.381146,
+     34.421675
+    ]
+   },
+   "properties": {
+    "name": "指月山山頂",
+    "category": "展望地",
+    "駐車場": "N",
+    "現地解説": "N",
+    "ランク": "B",
+    "説明": "萩城下町が築かれた三角州を一望できる",
+    "area": "hagi"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.429679,
+     34.402811
+    ]
+   },
+   "properties": {
+    "name": "田床山展望台",
+    "category": "展望地",
+    "駐車場": "Y",
+    "現地解説": "N",
+    "ランク": "A",
+    "説明": "萩城下町が築かれた三角州を一望できる",
+    "area": "hagi"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.424486,
+     34.407248
+    ]
+   },
+   "properties": {
+    "name": "陶芸の村広場展望台",
+    "category": "展望地",
+    "駐車場": "Y",
+    "現地解説": "N",
+    "ランク": "A",
+    "説明": "萩城下町が築かれた三角州を一望できる",
+    "area": "hagi"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.499475,
+     34.53197
+    ]
+   },
+   "properties": {
+    "name": "清ヶ浜海水浴場駐車場",
+    "category": "展望地",
+    "駐車場": "Y",
+    "現地解説": "N",
+    "ランク": "A",
+    "説明": "モドロ岬を始め大陸の巨大火山の痕跡を眺められる",
+    "area": null
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.614307,
+     34.651238
+    ]
+   },
+   "properties": {
+    "name": "高山展望台",
+    "category": "展望地",
+    "駐車場": "Y",
+    "現地解説": "N",
+    "ランク": "A",
+    "説明": "入り組んだ須佐湾の地形を一望できる",
+    "area": "susa"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.594219,
+     34.645579
+    ]
+   },
+   "properties": {
+    "name": "つながり発見の広場「高山と須佐ホルンフェルス」",
+    "category": "展望地",
+    "駐車場": "Y",
+    "現地解説": "Y",
+    "ランク": "AA",
+    "説明": "1500万年前の地層とそれを貫いたマグマを一望できる",
+    "area": "susa"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.616903,
+     34.524585
+    ]
+   },
+   "properties": {
+    "name": "伊良尾山山頂",
+    "category": "展望地",
+    "駐車場": "N",
+    "現地解説": "N",
+    "ランク": "B",
+    "説明": "西台などの阿武火山群の溶岩台地を眺められる",
+    "area": "ryu"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.678438,
+     34.579332
+    ]
+   },
+   "properties": {
+    "name": "上の原台地",
+    "category": "展望地",
+    "駐車場": "Y",
+    "現地解説": "N",
+    "ランク": "A",
+    "説明": "溶岩流の終点の地から出発点である伊良尾山を望む",
+    "area": "ryu"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.599254,
+     34.504346
+    ]
+   },
+   "properties": {
+    "name": "西台放牧場",
+    "category": "展望地",
+    "駐車場": "Y",
+    "現地解説": "N",
+    "ランク": "A",
+    "説明": "阿武火山群の溶岩台地の平らな地形を実感できる",
+    "area": "ryu"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.737673,
+     34.426193
+    ]
+   },
+   "properties": {
+    "name": "船平山展望台",
+    "category": "展望地",
+    "駐車場": "Y",
+    "現地解説": "N",
+    "ランク": "A",
+    "説明": "かつて湖だった徳佐盆地を一望できる",
+    "area": "tokusa"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.695415,
+     34.438538
+    ]
+   },
+   "properties": {
+    "name": "十種ヶ峰山頂",
+    "category": "展望地",
+    "駐車場": "N",
+    "現地解説": "N",
+    "ランク": "B",
+    "説明": "かつて湖だった徳佐盆地を一望できる",
+    "area": "tokusa"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.59975,
+     34.450359
+    ]
+   },
+   "properties": {
+    "name": "伏馬山ネムの丘キャンプ場",
+    "category": "展望地",
+    "駐車場": "Y",
+    "現地解説": "N",
+    "ランク": "A",
+    "説明": "伏馬山の溶岩流の平らな地形を使った農地を一望できる",
+    "area": null
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.52698,
+     34.39838
+    ]
+   },
+   "properties": {
+    "name": "福栄るーらる雲海",
+    "category": "展望地",
+    "駐車場": "Y",
+    "現地解説": "N",
+    "ランク": "A",
+    "説明": "阿武火山群の溶岩台地の平らな地形を実感できる",
+    "area": null
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.154122,
+     34.769968
+    ]
+   },
+   "properties": {
+    "name": "見島ダム",
+    "category": "展望地",
+    "駐車場": "Y",
+    "現地解説": "N",
+    "ランク": "A",
+    "area": null
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.46448,
+     34.285653
+    ]
+   },
+   "properties": {
+    "name": "台山展望所",
+    "category": "展望地",
+    "駐車場": "Y",
+    "現地解説": "N",
+    "ランク": "A",
+    "説明": "古いカルデラの中央に位置する宿場町を一望できる",
+    "area": null
+   }
+  }
+ ]
+}

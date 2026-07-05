@@ -1,0 +1,499 @@
+{
+ "type": "FeatureCollection",
+ "features": [
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "防府市"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.57150299117788,
+     34.06899461038459
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "田布施町"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     132.03056771302838,
+     33.95196615152295
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "周南市"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.8266409710886,
+     34.1489719907413
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "美祢市"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.25254054005865,
+     34.209505469940304
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "長門市"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.14603596541252,
+     34.34957007285851
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "光市"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.9777332326374,
+     33.98021630810143
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "和木町"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     132.2116064387276,
+     34.195640317842035
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "山陽小野田市"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.15758344815794,
+     34.04039011374088
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "上関町"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     132.07052706884036,
+     33.806374348737855
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "萩市"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.50951310228896,
+     34.43198671944593
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "柳井市"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     132.13701167694728,
+     33.95722458892744
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "下松市"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.8843917959808,
+     34.03002449323357
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "下関市"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     130.9909593109841,
+     34.16870630475563
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "平生町"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     132.0879016474435,
+     33.91639311712732
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "岩国市"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     132.06677728503496,
+     34.205779671065194
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "山口市"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.57627291495703,
+     34.23362744938569
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "周防大島町"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     132.28250889549932,
+     33.91477870258336
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "宇部市"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.27528322614975,
+     34.04444031614906
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "阿武町"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.5528917419772,
+     34.53080655154927
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "西ノ島町"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     133.01584640479078,
+     36.0964149431821
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "美郷町"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     132.59913837959647,
+     35.0295821746121
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "安来市"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     133.19954119960545,
+     35.33394253061081
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "知夫村"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     133.03211855276334,
+     36.01419918750425
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "隠岐の島町"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     133.2780583615783,
+     36.252139980079555
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "浜田市"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     132.14117930264862,
+     34.821798522801245
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "益田市"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.9441753823516,
+     34.624248198351836
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "出雲市"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     132.754618233429,
+     35.345464600527635
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "奥出雲町"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     133.04162712477287,
+     35.15788490567474
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "松江市"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     133.0688370429155,
+     35.46794667278124
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "雲南市"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     132.8954606889223,
+     35.24359426403045
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "大田市"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     132.49426594222493,
+     35.13566084563652
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "江津市"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     132.29568536096954,
+     34.97487938347721
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "吉賀町"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.89187288445692,
+     34.39445724335743
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "邑南町"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     132.50169734960994,
+     34.87679821842774
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "川本町"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     132.47818444349844,
+     34.99041120410054
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "飯南町"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     132.73711859401908,
+     35.06105195211833
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "津和野町"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.80834235093667,
+     34.51257603072531
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "海士町"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     133.10036059354414,
+     36.08465277847756
+    ]
+   }
+  }
+ ]
+}

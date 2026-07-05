@@ -1,0 +1,628 @@
+{
+ "type": "FeatureCollection",
+ "features": [
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.402058,
+     34.449876
+    ]
+   },
+   "properties": {
+    "name": "北長門海岸国定公園／笠山山頂",
+    "category": "解説・案内板",
+    "area": "hagi"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.39811,
+     34.45921
+    ]
+   },
+   "properties": {
+    "name": "笠山椿群生林",
+    "category": "解説・案内板",
+    "area": "hagi"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.396715,
+     34.45763
+    ]
+   },
+   "properties": {
+    "name": "笠山椿群生林",
+    "category": "解説・案内板",
+    "area": "hagi"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.577212,
+     34.305108
+    ]
+   },
+   "properties": {
+    "name": "長門峡・丁字川出合淵",
+    "category": "解説・案内板",
+    "area": "tokusa"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.398314,
+     34.458104
+    ]
+   },
+   "properties": {
+    "name": "エビ池",
+    "category": "解説・案内板",
+    "area": "hagi"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.39981,
+     34.457896
+    ]
+   },
+   "properties": {
+    "name": "萌芽更新",
+    "category": "解説・案内板",
+    "area": "hagi"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.400374,
+     34.45706
+    ]
+   },
+   "properties": {
+    "name": "風穴",
+    "category": "解説・案内板",
+    "area": "hagi"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.401801,
+     34.458524
+    ]
+   },
+   "properties": {
+    "name": "溶岩堤防",
+    "category": "解説・案内板",
+    "area": "hagi"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.402106,
+     34.458298
+    ]
+   },
+   "properties": {
+    "name": "アア溶岩",
+    "category": "解説・案内板",
+    "area": "hagi"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.397852,
+     34.459103
+    ]
+   },
+   "properties": {
+    "name": "石切り場",
+    "category": "解説・案内板",
+    "area": "hagi"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.397852,
+     34.459103
+    ]
+   },
+   "properties": {
+    "name": "素潜り漁",
+    "category": "解説・案内板",
+    "area": "hagi"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.672913,
+     34.545513
+    ]
+   },
+   "properties": {
+    "name": "畳ヶ淵",
+    "category": "解説・案内板",
+    "area": "ryu"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.676727,
+     34.554787
+    ]
+   },
+   "properties": {
+    "name": "猿谷の瀧",
+    "category": "解説・案内板",
+    "area": "ryu"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.678009,
+     34.569895
+    ]
+   },
+   "properties": {
+    "name": "龍鱗郷",
+    "category": "解説・案内板",
+    "area": "ryu"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.641123,
+     34.547638
+    ]
+   },
+   "properties": {
+    "name": "龍の鱗",
+    "category": "解説・案内板",
+    "area": "ryu"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.594147,
+     34.645581
+    ]
+   },
+   "properties": {
+    "name": "高山と須佐ホルンフェルス",
+    "category": "解説・案内板",
+    "area": "susa"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.402058,
+     34.449876
+    ]
+   },
+   "properties": {
+    "name": "北長門海岸国定公園／笠山山頂",
+    "category": "解説・案内板",
+    "area": "hagi"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.39811,
+     34.45921
+    ]
+   },
+   "properties": {
+    "name": "笠山椿群生林",
+    "category": "解説・案内板",
+    "area": "hagi"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.672913,
+     34.545513
+    ]
+   },
+   "properties": {
+    "name": "畳ヶ淵",
+    "category": "解説・案内板",
+    "area": "ryu"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.676727,
+     34.554787
+    ]
+   },
+   "properties": {
+    "name": "猿谷の瀧",
+    "category": "解説・案内板",
+    "area": "ryu"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.678009,
+     34.569895
+    ]
+   },
+   "properties": {
+    "name": "龍鱗郷",
+    "category": "解説・案内板",
+    "area": "ryu"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.641123,
+     34.547638
+    ]
+   },
+   "properties": {
+    "name": "龍の鱗",
+    "category": "解説・案内板",
+    "area": "ryu"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.577212,
+     34.305108
+    ]
+   },
+   "properties": {
+    "name": "長門峡・丁字川出合淵",
+    "category": "解説・案内板",
+    "area": "tokusa"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.594147,
+     34.645581
+    ]
+   },
+   "properties": {
+    "name": "高山と須佐ホルンフェルス",
+    "category": "解説・案内板",
+    "area": "susa"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.399891,
+     34.409165
+    ]
+   },
+   "properties": {
+    "name": "萩・明倫学舎／萩ジオパークビジターセンター",
+    "category": "解説・案内板",
+    "説明": "萩ジオパークの楽しみ方を紹介",
+    "area": "hagi"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.401693,
+     34.449836
+    ]
+   },
+   "properties": {
+    "name": "笠山山頂展望台「鳶ノ巣」",
+    "category": "解説・案内板",
+    "説明": "トビの目線で萩の大地と人のつながりを俯瞰できる",
+    "area": "hagi"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.59441,
+     34.644937
+    ]
+   },
+   "properties": {
+    "name": "須佐ホルンフェルス休憩所「つわぶきの館」",
+    "category": "解説・案内板",
+    "説明": "須佐ホルンフェルス見学の拠点",
+    "area": "susa"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.638967,
+     34.551359
+    ]
+   },
+   "properties": {
+    "name": "そば処 龍の里やどみ",
+    "category": "解説・案内板",
+    "説明": "龍が通った道に関する展示コーナー",
+    "area": "ryu"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.640893,
+     34.549105
+    ]
+   },
+   "properties": {
+    "name": "弥富公民館",
+    "category": "解説・案内板",
+    "説明": "龍が通った道見学の拠点",
+    "area": "ryu"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.576326,
+     34.303158
+    ]
+   },
+   "properties": {
+    "name": "道の駅「長門峡」",
+    "category": "解説・案内板",
+    "説明": "長門峡の成り立ち展示コーナー",
+    "area": "tokusa"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.462204,
+     34.286282
+    ]
+   },
+   "properties": {
+    "name": "佐々並公民館",
+    "category": "解説・案内板",
+    "説明": "佐々並カルデラに関する展示コーナー",
+    "area": null
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.623764,
+     34.530475
+    ]
+   },
+   "properties": {
+    "name": "イラオ火山灰層観察施設",
+    "category": "解説・案内板",
+    "説明": "40万年前の噴火の記憶をたどれる",
+    "area": "ryu"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.665349,
+     34.648388
+    ]
+   },
+   "properties": {
+    "name": "道の駅「ゆとりパーク田万川」",
+    "category": "解説・案内板",
+    "area": null
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.459919,
+     34.286344
+    ]
+   },
+   "properties": {
+    "name": "道の駅「あさひ」",
+    "category": "解説・案内板",
+    "area": null
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.40245,
+     34.449978
+    ]
+   },
+   "properties": {
+    "name": "北長門海岸国定公園／笠山",
+    "category": "解説・案内板",
+    "area": "hagi"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.594721,
+     34.645025
+    ]
+   },
+   "properties": {
+    "name": "北長門海岸国定公園／畳岩・海苔石園地",
+    "category": "解説・案内板",
+    "area": "susa"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.620132,
+     34.552012
+    ]
+   },
+   "properties": {
+    "name": "龍が通った道",
+    "category": "解説・案内板",
+    "area": "ryu"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.605305,
+     34.621914
+    ]
+   },
+   "properties": {
+    "name": "須佐駅",
+    "category": "解説・案内板",
+    "area": null
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.678267,
+     34.589874
+    ]
+   },
+   "properties": {
+    "name": "小川公民館",
+    "category": "解説・案内板",
+    "area": "ryu"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.483077,
+     34.433817
+    ]
+   },
+   "properties": {
+    "name": "道の駅「ハピネスふくえ」",
+    "category": "解説・案内板",
+    "area": null
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.770309,
+     34.434421
+    ]
+   },
+   "properties": {
+    "name": "道の駅「願成就温泉」",
+    "category": "解説・案内板",
+    "area": "tokusa"
+   }
+  }
+ ]
+}

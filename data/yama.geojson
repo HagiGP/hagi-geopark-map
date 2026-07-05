@@ -1,0 +1,545 @@
+{
+ "type": "FeatureCollection",
+ "features": [
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.381464,
+     34.421372
+    ]
+   },
+   "properties": {
+    "name": "指月山",
+    "category": "山",
+    "area": "hagi"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.435881,
+     34.405405
+    ]
+   },
+   "properties": {
+    "name": "田床山",
+    "category": "山",
+    "area": "hagi"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.401999,
+     34.449502
+    ]
+   },
+   "properties": {
+    "name": "笠山",
+    "category": "山",
+    "area": "hagi"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.365285,
+     34.383449
+    ]
+   },
+   "properties": {
+    "name": "白水山",
+    "category": "山",
+    "area": null
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.319237,
+     34.427921
+    ]
+   },
+   "properties": {
+    "name": "鯖島",
+    "category": "山",
+    "area": null
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.41026,
+     34.501022
+    ]
+   },
+   "properties": {
+    "name": "大島",
+    "category": "山",
+    "area": null
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.27821,
+     34.508183
+    ]
+   },
+   "properties": {
+    "name": "相島",
+    "category": "山",
+    "area": null
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.138992,
+     34.771159
+    ]
+   },
+   "properties": {
+    "name": "見島",
+    "category": "山",
+    "area": null
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.677494,
+     34.58003
+    ]
+   },
+   "properties": {
+    "name": "上の原",
+    "category": "山",
+    "area": "ryu"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.640759,
+     34.565436
+    ]
+   },
+   "properties": {
+    "name": "平山台",
+    "category": "山",
+    "area": "ryu"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.613464,
+     34.652097
+    ]
+   },
+   "properties": {
+    "name": "高山",
+    "category": "山",
+    "area": "susa"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.600204,
+     34.451351
+    ]
+   },
+   "properties": {
+    "name": "伏馬山",
+    "category": "山",
+    "area": null
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.617198,
+     34.524715
+    ]
+   },
+   "properties": {
+    "name": "伊良尾山",
+    "category": "山",
+    "area": "ryu"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.408029,
+     34.351213
+    ]
+   },
+   "properties": {
+    "name": "石ノ巷山",
+    "category": "山",
+    "area": null
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.503601,
+     34.465293
+    ]
+   },
+   "properties": {
+    "name": "紫雲山",
+    "category": "山",
+    "area": null
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.470599,
+     34.449476
+    ]
+   },
+   "properties": {
+    "name": "羽賀台",
+    "category": "山",
+    "area": null
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.493473,
+     34.461472
+    ]
+   },
+   "properties": {
+    "name": "平原台",
+    "category": "山",
+    "area": null
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.510897,
+     34.441407
+    ]
+   },
+   "properties": {
+    "name": "長沢台",
+    "category": "山",
+    "area": null
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.521218,
+     34.393162
+    ]
+   },
+   "properties": {
+    "name": "平蕨台",
+    "category": "山",
+    "area": null
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.519265,
+     34.481178
+    ]
+   },
+   "properties": {
+    "name": "鍋山",
+    "category": "山",
+    "area": null
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.695175,
+     34.439
+    ]
+   },
+   "properties": {
+    "name": "十種ヶ峰",
+    "category": "山",
+    "area": "tokusa"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.758475,
+     34.434611
+    ]
+   },
+   "properties": {
+    "name": "野坂山",
+    "category": "山",
+    "area": "tokusa"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.565185,
+     34.320277
+    ]
+   },
+   "properties": {
+    "name": "長門峡",
+    "category": "山",
+    "area": "tokusa"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.598873,
+     34.498299
+    ]
+   },
+   "properties": {
+    "name": "西台",
+    "category": "山",
+    "area": "ryu"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.611876,
+     34.504948
+    ]
+   },
+   "properties": {
+    "name": "東台",
+    "category": "山",
+    "area": "ryu"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.214867,
+     34.422841
+    ]
+   },
+   "properties": {
+    "name": "青海島",
+    "category": "山",
+    "area": null
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.797829,
+     34.462197
+    ]
+   },
+   "properties": {
+    "name": "青野山",
+    "category": "山",
+    "area": null
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.592436,
+     34.410061
+    ]
+   },
+   "properties": {
+    "name": "大将山",
+    "category": "山",
+    "area": "tokusa"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.409788,
+     34.210915
+    ]
+   },
+   "properties": {
+    "name": "西鳳翩山",
+    "category": "山",
+    "area": null
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.526432,
+     34.238238
+    ]
+   },
+   "properties": {
+    "name": "木戸山",
+    "category": "山",
+    "area": null
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.446781,
+     34.482063
+    ]
+   },
+   "properties": {
+    "name": "鵜山",
+    "category": "山",
+    "area": null
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.479139,
+     34.573687
+    ]
+   },
+   "properties": {
+    "name": "宇田島",
+    "category": "山",
+    "area": null
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.514931,
+     34.565772
+    ]
+   },
+   "properties": {
+    "name": "姫島",
+    "category": "山",
+    "area": null
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.301985,
+     34.256897
+    ]
+   },
+   "properties": {
+    "name": "秋吉台",
+    "category": "山",
+    "area": null
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.303444,
+     34.227735
+    ]
+   },
+   "properties": {
+    "name": "秋芳洞",
+    "category": "山",
+    "area": null
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     131.445022,
+     34.417089
+    ]
+   },
+   "properties": {
+    "name": "唐人山",
+    "category": "山",
+    "area": null
+   }
+  }
+ ]
+}
