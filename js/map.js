@@ -15,6 +15,7 @@ const map = L.map("map", {
   zoomSnap: 0,                       // 連続ズーム＝初期に地形を画面いっぱいに詰められる
   maxBounds: WIDE_BOUNDS,
   maxBoundsViscosity: 0,             // 枠は柔らかく＝広域でも自由にパンできる
+  zoomControl: false,                // ＋－は右下（GPSボタンの下）に自前で置く
 });
 // 「全体を見る」＝初期表示の基準：横長＝本土(見島を除く)の中心／縦長＝萩城下町の中心
 const MAINLAND_BOUNDS = L.latLngBounds([34.2103, 131.2706], [34.6810, 131.7955]);
@@ -32,45 +33,34 @@ function homeTarget(){
 
 // ---- 画面外の見島の方角を、地図の縁に矢印＋「見島」で示す（タップで見島へ移動） ----
 const MISHIMA = L.latLng(34.7750, 131.1455);
-// 陸ポリゴン（geopark_area.geojson）の全リング [lng,lat]。海岸線判定に使う（読込後に格納）
-let landRings = null;
-let mishimaRefresh = null;   // 陸ポリゴン読込後に見島ポインタを再評価するため
-function extractRings(geojson){
-  const rings = [];
-  const push = coords => { for (const ring of coords) rings.push(ring); };   // coords=[外周, 穴...]
-  (geojson.features || [geojson]).forEach(f=>{
-    const g = f.geometry || f; if (!g) return;
-    if (g.type === "Polygon") push(g.coordinates);
-    else if (g.type === "MultiPolygon") g.coordinates.forEach(push);
-  });
-  return rings;
-}
-// 点が陸の上か（全リングをまとめてeven-odd判定＝穴も正しく扱う）。x=lng, y=lat
-function pointOnLand(lat, lng){
-  let inside = false;
-  for (const ring of landRings){
-    for (let i=0, j=ring.length-1; i<ring.length; j=i++){
-      const xi=ring[i][0], yi=ring[i][1], xj=ring[j][0], yj=ring[j][1];
-      if (((yi>lat)!==(yj>lat)) && (lng < (xj-xi)*(lat-yi)/(yj-yi)+xi)) inside = !inside;
-    }
-  }
-  return inside;
-}
-// 表示範囲の「上半分」をグリッドでサンプリングし、1点でも陸の外＝海が画面に入っている。
-// 海は必ず海岸線より北なので上半分だけ見る（南の非ジオパーク陸を海と誤判定しないため）。
-// 上半分にすることで、湾（須佐湾など＝上端は陸でも湾内の海が画面内）も拾える。
-function seaInView(){
-  if (!landRings) return true;   // 未読込時は従来どおり（見島が画面外なら出す）
-  const b = map.getBounds(), north = b.getNorth(), south = b.getSouth(), west = b.getWest(), east = b.getEast();
-  const midLat = (north + south) / 2;
-  const LAT = 6, LON = 16;
-  for (let j = 0; j <= LAT; j++){
-    const lat = north - (north - midLat) * j / LAT;   // north 〜 中央
-    for (let i = 0; i <= LON; i++){
-      const lng = west + (east - west) * i / LON;
-      if (!pointOnLand(lat, lng)) return true;
-    }
-  }
+// 見島ポインタの表示条件：ズーム13以下（引いた状態）で、かつ「見島・相島・大島」を
+// 結ぶ三角形（＝見島まわりの海域）が表示範囲に一部でも入っているときだけ出す。
+const MISHIMA_MAX_ZOOM = 13;                 // 14以上は非表示
+const MISHIMA_TRI = [                         // [lng, lat]
+  [131.1455,   34.7750  ],   // 見島
+  [131.27821,  34.508183],   // 相島
+  [131.41026,  34.501022],   // 大島
+];
+// 三角形と現在の表示範囲（矩形）が一部でも重なっているか
+function mishimaTriInView(){
+  const b = map.getBounds();
+  const W = b.getWest(), E = b.getEast(), S = b.getSouth(), N = b.getNorth();
+  const rc = [[W,S],[E,S],[E,N],[W,N]];      // 矩形の4隅 [lng,lat]
+  const cross = (o,a,c)=> (a[0]-o[0])*(c[1]-o[1]) - (a[1]-o[1])*(c[0]-o[0]);
+  const inTri = p => {                        // 点が三角形内か（符号一致）
+    const d1=cross(MISHIMA_TRI[0],MISHIMA_TRI[1],p), d2=cross(MISHIMA_TRI[1],MISHIMA_TRI[2],p), d3=cross(MISHIMA_TRI[2],MISHIMA_TRI[0],p);
+    const neg=(d1<0)||(d2<0)||(d3<0), pos=(d1>0)||(d2>0)||(d3>0);
+    return !(neg && pos);
+  };
+  const segInt = (a,b2,c,d)=>{                // 線分ab と cd が交差するか
+    const s=(p,q,r)=> (q[0]-p[0])*(r[1]-p[1]) - (q[1]-p[1])*(r[0]-p[0]);
+    return ((s(c,d,a)>0)!==(s(c,d,b2)>0)) && ((s(a,b2,c)>0)!==(s(a,b2,d)>0));
+  };
+  for (const v of MISHIMA_TRI){ if (v[0]>=W && v[0]<=E && v[1]>=S && v[1]<=N) return true; }   // 三角形頂点が矩形内
+  for (const c of rc){ if (inTri(c)) return true; }                                            // 矩形隅が三角形内
+  const te=[[MISHIMA_TRI[0],MISHIMA_TRI[1]],[MISHIMA_TRI[1],MISHIMA_TRI[2]],[MISHIMA_TRI[2],MISHIMA_TRI[0]]];
+  const re=[[rc[0],rc[1]],[rc[1],rc[2]],[rc[2],rc[3]],[rc[3],rc[0]]];
+  for (const [a,b2] of te) for (const [c,d] of re){ if (segInt(a,b2,c,d)) return true; }        // 辺の交差
   return false;
 }
 (function mishimaPointer(){
@@ -86,7 +76,8 @@ function seaInView(){
   function update(){
     const size = map.getSize();
     if (map.getBounds().contains(MISHIMA)){ el.style.display = "none"; return; }   // 画面内なら出さない
-    if (!seaInView()){ el.style.display = "none"; return; }   // 海が画面に入っていない（内陸）なら出さない
+    if (map.getZoom() > MISHIMA_MAX_ZOOM){ el.style.display = "none"; return; }   // 14以上（寄り）は出さない
+    if (!mishimaTriInView()){ el.style.display = "none"; return; }                // 見島・相島・高山の三角形が画面外なら出さない
     const p = map.latLngToContainerPoint(MISHIMA);
     const cx = size.x/2, cy = size.y/2;
     const dx = p.x - cx, dy = p.y - cy;
@@ -100,7 +91,6 @@ function seaInView(){
     el.querySelector(".mp-arrow").style.transform = "rotate(" + (Math.atan2(dy,dx)*180/Math.PI) + "deg)";
   }
   map.on("move zoom viewreset moveend", update);
-  mishimaRefresh = update;   // 陸ポリゴン読込後に再評価できるよう公開
   update();
 })();
 
@@ -569,12 +559,8 @@ Promise.all([
   fetch("data/geopark_area.geojson"+DATAV).then(r=>r.json()).catch(()=>null),
 ]).then(([areaGj, sites, refs, placesGj, areaPolyGj])=>{
   injectLabelStyles();
-  if (areaPolyGj){
-    rangeLayer = L.geoJSON(areaPolyGj, { interactive:false,
-      style:{ color:"#c0392b", weight:2.5, opacity:.9, fillColor:"#1b6a4b", fillOpacity:.12 } });
-    landRings = extractRings(areaPolyGj);   // 海岸線判定用
-    if (mishimaRefresh) mishimaRefresh();   // 読込後に見島ポインタを再評価
-  }
+  if (areaPolyGj) rangeLayer = L.geoJSON(areaPolyGj, { interactive:false,
+    style:{ color:"#c0392b", weight:2.5, opacity:.9, fillColor:"#1b6a4b", fillOpacity:.12 } });
   // 広域モードで範囲の中央に置く萩ジオパークのロゴ（タップで範囲へズームイン）
   rangeLogo = L.marker(MAINLAND_BOUNDS.getCenter(), { interactive:true, keyboard:false, zIndexOffset:700,
     icon: L.divIcon({ className:"", iconSize:[58,58], iconAnchor:[29,29],
@@ -787,6 +773,8 @@ function buildControls(){
     L.DomEvent.disableScrollPropagation(d);
     return d;
   };
+  // ＋－ズームを先に右下へ（右下スタックは後から追加した方が上に来る＝GPSが上・＋－が下）
+  L.control.zoom({ position:"bottomright", zoomInTitle:"拡大", zoomOutTitle:"縮小" }).addTo(map);
   fab.addTo(map);
   document.getElementById("fab-locate").addEventListener("click", locateMe);
 }
