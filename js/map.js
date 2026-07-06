@@ -171,6 +171,8 @@ const SITE_CATS = {
   "案内地図": { file:"kanban.geojson",     key:"kan",  fill:"#2b8525", outline:"#ffffff", outmm:0.4, msize:2.4, lbl:"#2b8525", desc:false, buf:"#ffffff", bufmm:0.8, pt:11, bold:true,  minZoom:11.7, prio:6, z:6, always:true },
   // 解説板＝サイト種別（一般は常時表示・トグルなし。運営のみトグル）
   "解説板":   { file:"kaisetsu.geojson",   key:"kai",  fill:"#e31a1c", outline:"#fff980", outmm:0.4, msize:3.0, lbl:"#e31a1c", desc:false, buf:"#fff980", bufmm:0.8, pt:11, bold:true,  minZoom:15.6, prio:7, z:7, always:true },
+  // 神社＝サイト種別。マーカー/ラベル/優先度は文化サイト同等（茶#714B34）。主要(名前あり)=一般表示／その他=運営のみ
+  "神社":     { file:"shrines.geojson",    key:"shrine",fill:"#714B34", outline:"#ffffff", outmm:0.4, msize:3.0, lbl:"#714B34", desc:false, buf:"#ffffff", bufmm:0.8, pt:10, bold:true,  minZoom:12.3, prio:2, z:3 },
 };
 // 地図の目印＝参照表示（山名・公共施設のみ）。見た目もQGIS通り（山=小さい白丸黒縁, 公共施設=小さい濃灰丸）
 const REF_CATS = {
@@ -218,6 +220,7 @@ function pointPopup(o){
   let h = "";
   if (p.name) h += `<img class="popup-photo" src="${photoSrc(p.name)}" alt="" onerror="this.style.display='none'">`;
   if (staff && p["ランク"]) h += `<span class="popup-badge" style="background:${rankColor(p["ランク"])}">${esc(p["ランク"])}</span>`;
+  if (staff && p["主要"]==="Y") h += `<span class="popup-badge" style="background:#714B34">主要</span>`;
   h += `<h3>${esc(p.name)}</h3>`;
   if (p["説明"]) h += `<p class="popup-desc">${esc(p["説明"])}</p>`;
   const pics = [];
@@ -363,7 +366,7 @@ const siteLayer = L.layerGroup().addTo(map);   // サイト（ピン）
 const refLayer  = L.layerGroup().addTo(map);   // 地図の目印（参照）
 const allMarkers = [];                 // サイト: {marker, cat, rank, area, name, props, label, viewpoint, hub}
 const refMarkers = [];                 // 参照:   {marker, cat}
-const catOn = { "ジオサイト":true, "文化サイト":true, "展望地":true, "拠点施設":true, "案内地図":true, "解説板":true };
+const catOn = { "ジオサイト":true, "文化サイト":true, "展望地":true, "拠点施設":true, "案内地図":true, "解説板":true, "神社":true };
 const refOn = { "山名":true, "公共施設":true };
 let AREAS = [];                        // areas.geojson features' properties + bounds
 const areaById = {};
@@ -375,6 +378,7 @@ let hereMarker = null, hereCircle = null;  // 現在地の青点・精度円
 function siteEligible(o){
   if (o.hub || o.def.always) return true; // 拠点施設・文化サイトは常に全採用
   if (staff) return true;
+  if (o.cat === "神社") return o.props["主要"] === "Y";  // 一般は主要(名前あり)のみ、運営は全部(上のstaffで解禁)
   if (o.cat === "ジオサイト") return o.rank==="AA" || o.rank==="A" || o.rank==="B"; // Bランクまで表示（C以下は隠す）
   if (o.rank === "AA") return true;       // AAはエリア内外問わず
   if (o.rank === "A")  return !!o.area;   // Aはエリア内のみ
@@ -508,7 +512,7 @@ function injectLabelStyles(){
 }
 
 // ---- 読み込み ----
-const DATAV = "?d=8";   // geojson更新時にbump（ブラウザキャッシュ回避）
+const DATAV = "?d=11";   // geojson更新時にbump（ブラウザキャッシュ回避）
 const fetchGj = def => fetch("data/"+def.file+DATAV).then(r=>r.json());
 Promise.all([
   fetch("data/areas.geojson"+DATAV).then(r=>r.json()),
@@ -816,6 +820,7 @@ const SITE_GROUPS = [
   { label:"解説板",       cats:["解説板"] },
   { label:"ジオサイト",    cats:["ジオサイト"] },
   { label:"文化サイト",    cats:["文化サイト"] },
+  { label:"神社",         cats:["神社"] },
 ];
 // 一覧の1項目（距離はGPS取得後のみ表示）
 function makePoiItem(o){
