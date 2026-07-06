@@ -152,13 +152,15 @@ body.sb-hidden #map { left: 0; }
 /* 地図上の丸ボタン（現在地・全体に戻す）＝右下。親指が届く位置・44px */
 .map-fab { display: flex; flex-direction: column; gap: 10px; margin: 0 4px 4px 0; }
 .map-fab button {
-  width: 46px; height: 46px; border-radius: 50%; border: 0; background: #fff;
+  width: 40px; height: 40px; border-radius: 50%; border: 0; background: #fff;
   box-shadow: 0 1px 6px rgba(0,0,0,.35); cursor: pointer; font-size: 21px; line-height: 1;
   display: flex; align-items: center; justify-content: center; color: #333;
 }
 .map-fab button:hover { background: #f2f2f2; }
 .map-fab button:active { transform: scale(.94); }
 .map-fab button.locating { color: var(--brand-red); }
+/* ＋−ズームを現在地ボタンと横中央そろえ（右下スタック。GPS40px幅・ズーム34px幅の差の半分だけ右余白を増やす） */
+.leaflet-bottom.leaflet-right .leaflet-control-zoom { margin-right: 13px; }
 
 /* 運営モードのトースト通知 */
 .map-toast {
@@ -319,7 +321,8 @@ body.sb-hidden #map { left: 0; }
   #sheetExtra { display: block; }
   #sidebarClose { display: block; }
   #appbar h1 { font-size: 15px; }
-  .map-fab button { width: 50px; height: 50px; font-size: 23px; }  /* 屋外・指で押しやすく */
+  .map-fab button { width: 44px; height: 44px; font-size: 21px; }  /* 屋外・指で押しやすく */
+  .leaflet-bottom.leaflet-right .leaflet-control-zoom { margin-right: 15px; }  /* GPS44px幅に合わせ中央そろえ */
   /* 表示・凡例パネルはシート内に移設（JSで移動）。地図に重ねず、カードとして表示 */
   #sheetExtra .layers-panel {
     position: static; max-width: none; box-shadow: none; background: #f7f7f7;
