@@ -180,16 +180,16 @@ body.sb-hidden #map { left: 0; }
 #mishimaPointer {
   position: absolute; z-index: 800; transform: translate(-50%,-50%);
   display: none; align-items: center; gap: 4px;
-  background: rgba(255,255,255,.95); color: #15507a;
-  border: 1px solid rgba(0,0,0,.15); border-radius: 20px;
-  padding: 5px 11px 5px 8px; font-size: 13px; font-weight: 700; line-height: 1;
-  box-shadow: 0 1px 5px rgba(0,0,0,.3); cursor: pointer; white-space: nowrap;
+  color: #fff;
+  padding: 5px 8px; font-size: 13px; font-weight: 700; line-height: 1;
+  text-shadow: 0 0 2px rgba(0,0,0,.95), 0 1px 3px rgba(0,0,0,.7);
+  cursor: pointer; white-space: nowrap;
   -webkit-tap-highlight-color: transparent;
 }
-#mishimaPointer:hover { background: #fff; }
 #mishimaPointer:active { transform: translate(-50%,-50%) scale(.94); }
 #mishimaPointer .mp-arrow { display: inline-flex; }
-#mishimaPointer .mp-arrow svg { width: 15px; height: 15px; display: block; }
+#mishimaPointer .mp-arrow svg { width: 15px; height: 15px; display: block;
+  filter: drop-shadow(0 0 1.5px rgba(0,0,0,.95)); }
 
 /* 現在地マーカー（青い点＋精度円はLeaflet circle） */
 .here-dot {
