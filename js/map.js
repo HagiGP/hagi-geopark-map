@@ -32,6 +32,7 @@ function homeTarget(){
 
 // ---- 画面外の見島の方角を、地図の縁に矢印＋「見島」で示す（タップで見島へ移動） ----
 const MISHIMA = L.latLng(34.7750, 131.1455);
+const COAST_LAT = 34.42;   // 萩の海岸線（菊ヶ浜あたり）。表示範囲の北端がこれより北＝海が画面に入っている
 (function mishimaPointer(){
   const el = document.createElement("div");
   el.id = "mishimaPointer";
@@ -45,6 +46,7 @@ const MISHIMA = L.latLng(34.7750, 131.1455);
   function update(){
     const size = map.getSize();
     if (map.getBounds().contains(MISHIMA)){ el.style.display = "none"; return; }   // 画面内なら出さない
+    if (map.getBounds().getNorth() <= COAST_LAT){ el.style.display = "none"; return; }   // 海が画面に入っていない（内陸）なら出さない
     const p = map.latLngToContainerPoint(MISHIMA);
     const cx = size.x/2, cy = size.y/2;
     const dx = p.x - cx, dy = p.y - cy;
