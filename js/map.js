@@ -630,7 +630,7 @@ function buildSiteCategory(name, def, gj){
     const m = L.marker([c[1], c[0]], { icon: markerIcon(name, rank), title: p.name, pane: catPane(def) });
     const o = { marker:m, cat:name, def, rank, area:p.area||null, name:p.name||"", props:p,
                 hub:!!def.hub, viewpoint:null };
-    m.bindPopup(()=> pointPopup(o), { maxWidth:280 });
+    m.bindPopup(()=> pointPopup(o), { maxWidth:340, minWidth:300 });
     if (p.name) o.labelEl = makeLabel(def, p, m);   // ラベルタップでもポップアップ
     allMarkers.push(o);
   });
