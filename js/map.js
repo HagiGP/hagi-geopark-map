@@ -176,8 +176,8 @@ const SITE_CATS = {
 };
 // 地図の目印＝参照表示（山名・公共施設のみ）。見た目もQGIS通り（山=小さい白丸黒縁, 公共施設=小さい濃灰丸）
 const REF_CATS = {
-  "山名":     { file:"yama.geojson",       key:"yama", fill:"#ffffff", outline:"#000000", outmm:0.2, msize:1.6, lbl:"#ffffff", desc:false, buf:"#000000", bufmm:0.4, pt:10, bold:true,  minZoom:11.3, prio:1, z:1 },
-  "公共施設": { file:"facilities.geojson", key:"fac",  fill:"#323232", outline:"#ffffff", outmm:0.4, msize:1.4, lbl:"#4c4c4c", desc:false, buf:"#ffffff", bufmm:0.8, pt:10, bold:false, minZoom:13.3, prio:1, z:2 },
+  "山名":     { file:"yama.geojson",       key:"yama", fill:"#ffffff", outline:"#000000", outmm:0.2, msize:2.4, lbl:"#ffffff", desc:false, buf:"#000000", bufmm:0.4, pt:10, bold:true,  minZoom:11.3, prio:1, z:1, shape:"triangle" },
+  "公共施設": { file:"facilities.geojson", key:"fac",  fill:"#ffffff", outline:"#595857", outmm:0.4, msize:1.4, lbl:"#ffffff", desc:false, buf:"#595857", bufmm:0.8, pt:10, bold:false, minZoom:13.3, prio:1, z:2 },
 };
 
 // 丸マーカー（QGIS: circle）。径・塗り・縁色・縁幅をmmからpx換算して反映
@@ -187,9 +187,13 @@ function dotIcon(def, aa){
   const sw = def.outmm * PX_MM;         // 縁幅(px)
   const stroke = aa ? "#f4c430" : def.outline;
   const box = d + sw*2 + 2, c = box/2, r = d/2;
+  const shapeSvg = def.shape === "triangle"
+    ? `<polygon points="${c},${(c-r).toFixed(2)} ${(c-r*0.866).toFixed(2)},${(c+r*0.5).toFixed(2)} ${(c+r*0.866).toFixed(2)},${(c+r*0.5).toFixed(2)}" `+
+      `fill="${def.fill}" stroke="${stroke}" stroke-width="${sw}" stroke-linejoin="round"/>`
+    : `<circle cx="${c}" cy="${c}" r="${r}" fill="${def.fill}" stroke="${stroke}" stroke-width="${sw}"/>`;
   const html =
     `<svg width="${box}" height="${box}" viewBox="0 0 ${box} ${box}" style="display:block;overflow:visible">`+
-    `<circle cx="${c}" cy="${c}" r="${r}" fill="${def.fill}" stroke="${stroke}" stroke-width="${sw}"/></svg>`;
+    `${shapeSvg}</svg>`;
   return L.divIcon({ className:"", html, iconSize:[box,box], iconAnchor:[c,c],
                      popupAnchor:[0,-c], tooltipAnchor:[r+3, 0] });  // ラベルは丸の右へ（Google流）
 }
