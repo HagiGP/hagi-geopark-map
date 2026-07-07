@@ -302,6 +302,7 @@ body.sb-hidden #map { left: 0; }
   text-align: center; white-space: nowrap; pointer-events: auto; cursor: pointer;
   transform: translateX(-50%); transition: opacity .25s; text-shadow: 0 0 3px #fff, 0 0 3px #fff, 0 0 6px #fff;
 }
+.area-label.area-label-l { transform: none; text-align: left; }   /* 左アンカー＝labelLonから右へ伸ばす */
 .area-label b { display: block; font-size: 16px; font-weight: 800; color: var(--ac, #333); letter-spacing: .5px; }
 .area-label span { display: block; font-size: 11px; font-weight: 600; color: #444; margin-top: 1px; }
 

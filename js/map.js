@@ -575,7 +575,7 @@ function injectLabelStyles(){
 }
 
 // ---- 読み込み ----
-const DATAV = "?d=17";   // geojson更新時にbump（ブラウザキャッシュ回避）
+const DATAV = "?d=19";   // geojson更新時にbump（ブラウザキャッシュ回避）
 const fetchGj = def => fetch("data/"+def.file+DATAV).then(r=>r.json());
 Promise.all([
   fetch("data/areas.geojson"+DATAV).then(r=>r.json()),
@@ -638,11 +638,12 @@ function buildAreas(gj){
     AREAS.push(rec); areaById[pr.id] = rec;
 
     // エリア名＋物語タイトルのラベル（クリックでそのエリアへ）
+    const leftAnchored = pr.anchor === "left";   // 左アンカー＝labelLonから右方向に伸ばす（ズームに依らず右に固定）
     const label = L.marker([pr.labelLat, pr.labelLon], {
       pane:"pane-arealabel", interactive:true,
       icon: L.divIcon({ className:"",
-        html:`<div class="area-label" style="--ac:${pr.color}"><b>${esc(pr.name)}</b><span>${esc(pr.theme)}</span></div>`,
-        iconSize:[160,0], iconAnchor:[80,10] })
+        html:`<div class="area-label${leftAnchored?" area-label-l":""}" style="--ac:${pr.color}"><b>${esc(pr.name)}</b><span>${esc(pr.theme)}</span></div>`,
+        iconSize:[160,0], iconAnchor: leftAnchored ? [0,10] : [80,10] })
     }).addTo(map);
     label.on("click", ()=> enterArea(pr.id));
     rec.label = label;
