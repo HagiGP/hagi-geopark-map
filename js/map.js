@@ -17,19 +17,11 @@ const map = L.map("map", {
   maxBoundsViscosity: 0,             // 枠は柔らかく＝広域でも自由にパンできる
   zoomControl: false,                // ＋－は右下（GPSボタンの下）に自前で置く
 });
-// 「全体を見る」＝初期表示の基準：横長＝本土(見島を除く)の中心／縦長＝萩城下町の中心
+// 「全体を見る」＝見島を除く萩ジオパークの範囲全体を画面に収める。
+// fitBounds が画面の縦横比を見て、自動で縦合わせ／横合わせを選ぶ（範囲がすべて入り切れない）。
 const MAINLAND_BOUNDS = L.latLngBounds([34.2103, 131.2706], [34.6810, 131.7955]);
-const HAGI_CASTLE_TOWN = L.latLng(34.4134, 131.3912);   // 萩城〜明倫学舎の中央
-function homeTarget(){
-  const portrait = window.matchMedia("(orientation: portrait)").matches;
-  if (portrait) return { center: HAGI_CASTLE_TOWN, zoom: 11 };   // 縦長＝萩城下町（歩き回り倍率）
-  // 横長＝見島を除くジオパーク（陸）の東西幅を画面幅いっぱいに（上下は切れてよい）。中央に
-  const W = map.getSize().x || 1280;
-  const lonSpan = (MAINLAND_BOUNDS.getEast() - MAINLAND_BOUNDS.getWest()) * 1.06;  // わずかに余白
-  const z = Math.max(Math.min(Math.log2(W * 360 / (lonSpan * 256)), 16), WIDE_Z);
-  return { center: MAINLAND_BOUNDS.getCenter(), zoom: z };
-}
-{ const h = homeTarget(); map.setView(h.center, h.zoom); }   // 初期表示
+const HOME_PADDING = [16, 16];   // 縁が切れないよう少し余白
+map.fitBounds(MAINLAND_BOUNDS, { padding: HOME_PADDING });   // 初期表示
 
 // ---- 画面外の見島の方角を、地図の縁に矢印＋「見島」で示す（タップで見島へ移動） ----
 const MISHIMA = L.latLng(34.7750, 131.1455);
@@ -686,9 +678,8 @@ function enterArea(id){
   if (window.innerWidth<=760) document.getElementById("sidebar").classList.add("open");
 }
 function resetView(){
-  // 初期表示と同じ基準（横長＝本土(見島除く)の中心／縦長＝萩城下町）。画像タイルで見せる
-  const h = homeTarget();
-  map.flyTo(h.center, h.zoom, { duration:.8 });
+  // 見島を除く範囲全体を画面に収める（縦横比に応じて縦/横合わせを自動選択）
+  map.flyToBounds(MAINLAND_BOUNDS, { padding: HOME_PADDING, duration:.8 });
   document.querySelectorAll(".area-card").forEach(el=> el.classList.remove("open"));
 }
 
