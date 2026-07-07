@@ -480,7 +480,7 @@ function placeLabels(){
     if (!layer.hasLayer(o.marker)) { o.labelEl.style.display = "none"; return; }
     const lp = map.latLngToLayerPoint(o.marker.getLatLng());
     const rad = o.def.msize*PX_MM/2 + o.def.outmm*PX_MM;
-    vis.push({ el:o.labelEl, prio:o.def.prio, x:lp.x, y:lp.y, r:rad });
+    vis.push({ el:o.labelEl, prio:o.def.prio, x:lp.x, y:lp.y, r:rad, side:o.labelSide });
   };
   allMarkers.forEach(o => collect(o, siteLayer));
   refMarkers.forEach(o => collect(o, refLayer));
@@ -525,10 +525,9 @@ function placeLabels(){
     const w=v.w, h=v.h, r=v.r, cx=v.x, cy=v.y;
     // マーカーのすぐ近く（右・左・上・下・斜め）だけを候補に。どこも置けなければ非表示
     const dx = r+gap+w/2, dy = r+gap+h/2;
-    const cand = [
-      [dx,0], [-dx,0], [0,-dy], [0,dy],
-      [dx,-dy], [dx,dy], [-dx,-dy], [-dx,dy]
-    ];
+    const cand = v.side === "left"
+      ? [ [-dx,0], [-dx,-dy], [-dx,dy], [0,-dy], [0,dy], [dx,0], [dx,-dy], [dx,dy] ]   // 左優先
+      : [ [dx,0], [-dx,0], [0,-dy], [0,dy], [dx,-dy], [dx,dy], [-dx,-dy], [-dx,dy] ];
     let chosen = null;
     for (const [ox,oy] of cand){
       const R = { left:cx+ox-w/2, top:cy+oy-h/2, right:cx+ox+w/2, bottom:cy+oy+h/2 };
@@ -576,7 +575,7 @@ function injectLabelStyles(){
 }
 
 // ---- 読み込み ----
-const DATAV = "?d=16";   // geojson更新時にbump（ブラウザキャッシュ回避）
+const DATAV = "?d=17";   // geojson更新時にbump（ブラウザキャッシュ回避）
 const fetchGj = def => fetch("data/"+def.file+DATAV).then(r=>r.json());
 Promise.all([
   fetch("data/areas.geojson"+DATAV).then(r=>r.json()),
@@ -650,13 +649,14 @@ function buildAreas(gj){
   });
 }
 
+const LABEL_LEFT = new Set(["イラオ火山灰層観察施設"]);   // ラベルをマーカーの左に出すサイト
 function buildSiteCategory(name, def, gj){
   gj.features.forEach(f=>{
     const c = f.geometry.coordinates, p = f.properties;
     const rank = p["ランク"] || "";
     const m = L.marker([c[1], c[0]], { icon: markerIcon(name, rank), title: p.name, pane: catPane(def) });
     const o = { marker:m, cat:name, def, rank, area:p.area||null, name:p.name||"", props:p,
-                hub:!!def.hub, viewpoint:null };
+                hub:!!def.hub, viewpoint:null, labelSide: LABEL_LEFT.has(p.name) ? "left" : null };
     const small = name === "ジオサイト" && !GEO_BIG_RANKS.includes(rank);
     m.bindPopup(()=> pointPopup(o), { maxWidth:340, minWidth:300 });
     if (p.name) o.labelEl = makeLabel(def, p, m, small);   // ラベルタップでもポップアップ
