@@ -14,6 +14,7 @@ html, body { margin: 0; padding: 0; height: 100%; font-family: "Hiragino Kaku Go
   display: flex; align-items: center; gap: 10px; padding: 0 12px;
   box-shadow: 0 1px 4px rgba(0,0,0,.3);
 }
+body.staff #appbar { background: #595857; }   /* 運営モード＝墨色でひと目で分かるように */
 #appbar h1 { font-size: 17px; margin: 0; font-weight: 600; white-space: nowrap; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
 /* ロゴ＝白丸チップの上にフルカラーで載せる（赤帯に同化させない）。長押しで運営モード */
 #brand {

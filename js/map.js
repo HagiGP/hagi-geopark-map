@@ -108,6 +108,7 @@ function mishimaTriInView(){
 
 // 運営モード（B・無ランク・施設なども解禁）: URLに ?all=1 か、控えめな隠しボタンで
 let staff = /[?&]all=1\b/.test(location.search);
+document.body.classList.toggle("staff", staff);   // 運営モードは上部バーを墨色に
 
 // ---- 背景の4合成（QGISで乗算適用済み） ----
 const TILE = "data/tiles";
@@ -217,7 +218,7 @@ const SITE_CATS = {
   // 解説板＝サイト種別（一般は常時表示・トグルなし。運営のみトグル）
   "解説板":   { file:"kaisetsu.geojson",   key:"kai",  fill:"#e31a1c", outline:"#fff980", outmm:0.4, msize:3.0, lbl:"#e31a1c", desc:false, buf:"#fff980", bufmm:0.8, pt:11, bold:true,  minZoom:15.6, prio:7, z:7, always:true },
   // 神社＝サイト種別。マーカー/ラベル/優先度は文化サイト同等（茶#714B34）。主要(名前あり)=一般表示／その他=運営のみ
-  "神社":     { file:"shrines.geojson",    key:"shrine",fill:"#714B34", outline:"#ffffff", outmm:0.4, msize:3.0, lbl:"#714B34", desc:false, buf:"#ffffff", bufmm:0.8, pt:10, bold:true,  minZoom:12.3, prio:2, z:3 },
+  "神社":     { file:"shrines.geojson",    key:"shrine",fill:"#714B34", outline:"#ffffff", outmm:0.4, msize:3.0, lbl:"#714B34", desc:false, buf:"#ffffff", bufmm:0.8, pt:10, bold:true,  minZoom:13.3, prio:2, z:3 },
 };
 // 地図の目印＝参照表示（山名・公共施設のみ）。見た目もQGIS通り（山=小さい白丸黒縁, 公共施設=小さい濃灰丸）
 const REF_CATS = {
