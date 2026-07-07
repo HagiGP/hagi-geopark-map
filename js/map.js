@@ -6,7 +6,7 @@ const GEOPARK_BOUNDS = L.latLngBounds([34.16667, 131.0], [34.83333, 131.875]);
 // 広域(地理院)モードで動ける範囲。z8でも画面より広いよう西日本規模に取り、
 // 中心へ引き戻されないようにする（遠方の海まで飛ばない程度の枠は残す）
 const WIDE_BOUNDS = L.latLngBounds([30.5, 127.0], [37.5, 135.0]);
-const WIDE_Z = 10;                   // これ未満のズーム＝広域(地理院のみ)。地理院を下地にしたので画像タイルはz10から重ねてよい
+const WIDE_Z = 10.3;                 // これ未満のズーム＝広域(地理院のみ＝赤枠表示)。PCの「全体」(≈11.06)から1段階引くと赤枠になる値
 // 初期表示は見どころ一覧を隠す（PCのみ。スマホは下部シートで元々非表示）。
 // 地図生成の前に付けることで、地図が最初から全幅で測られ、中心がずれない
 if (!window.matchMedia("(max-width: 760px)").matches) document.body.classList.add("sb-hidden");
@@ -576,7 +576,7 @@ function injectLabelStyles(){
 }
 
 // ---- 読み込み ----
-const DATAV = "?d=14";   // geojson更新時にbump（ブラウザキャッシュ回避）
+const DATAV = "?d=15";   // geojson更新時にbump（ブラウザキャッシュ回避）
 const fetchGj = def => fetch("data/"+def.file+DATAV).then(r=>r.json());
 Promise.all([
   fetch("data/areas.geojson"+DATAV).then(r=>r.json()),
