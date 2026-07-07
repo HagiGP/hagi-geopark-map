@@ -17,16 +17,21 @@ const map = L.map("map", {
   maxBoundsViscosity: 0,             // 枠は柔らかく＝広域でも自由にパンできる
   zoomControl: false,                // ＋－は右下（GPSボタンの下）に自前で置く
 });
-// 「全体を見る」＝見島を除く萩ジオパークの範囲を中央に。ただし陰影図(GEOPARK_BOUNDS)の
-// 外は見せない。範囲全体が入るズームと、陰影図の外を出さない最小ズームの大きい方を採用し、
-// 中心を陰影図内へクランプする（縦長で範囲が縦に余る場合も陰影図の外が出ない）。
+// 「全体を見る」＝見島を除く萩ジオパークの範囲を中央に。
+// 縦長画面＝範囲全体を収める（引くと広域＝赤枠オーバービューになる。それでよい）。
+// 横長画面＝陰影図(GEOPARK_BOUNDS)の外は見せない（寄せて中心を陰影図内へクランプ）。
 const MAINLAND_BOUNDS = L.latLngBounds([34.2103, 131.2706], [34.6810, 131.7955]);
 const HOME_PADDING = [16, 16];   // 範囲まわりの余白（縁が切れないよう）
 function homeView(){
-  const zRange  = map.getBoundsZoom(MAINLAND_BOUNDS, false, L.point(HOME_PADDING[0], HOME_PADDING[1]));
-  const zInside = map.getBoundsZoom(GEOPARK_BOUNDS, true);   // 陰影図の外を出さない最小ズーム
+  const sz = map.getSize();
+  const zRange = map.getBoundsZoom(MAINLAND_BOUNDS, false, L.point(HOME_PADDING[0], HOME_PADDING[1]));
+  if (sz.y >= sz.x){   // 縦長＝範囲全体を中央に（広域＝赤枠オーバービューでOK）
+    return { center: MAINLAND_BOUNDS.getCenter(), zoom: zRange };
+  }
+  // 横長＝陰影図の外を出さない。範囲全体が入るズームと外を出さない最小ズームの大きい方を採用
+  const zInside = map.getBoundsZoom(GEOPARK_BOUNDS, true);
   const z = Math.max(zRange, zInside) + 0.05;   // わずかに寄せて陰影図の縁が画面外へ（丸め対策）
-  const half = map.getSize().divideBy(2);
+  const half = sz.divideBy(2);
   const PAD = 2;   // クランプの安全余白（px）＝陰影図の縁を確実に画面外へ
   const nw = map.project(GEOPARK_BOUNDS.getNorthWest(), z);
   const se = map.project(GEOPARK_BOUNDS.getSouthEast(), z);
