@@ -17,11 +17,26 @@ const map = L.map("map", {
   maxBoundsViscosity: 0,             // 枠は柔らかく＝広域でも自由にパンできる
   zoomControl: false,                // ＋－は右下（GPSボタンの下）に自前で置く
 });
-// 「全体を見る」＝見島を除く萩ジオパークの範囲全体を画面に収める。
-// fitBounds が画面の縦横比を見て、自動で縦合わせ／横合わせを選ぶ（範囲がすべて入り切れない）。
+// 「全体を見る」＝見島を除く萩ジオパークの範囲を中央に。ただし陰影図(GEOPARK_BOUNDS)の
+// 外は見せない。範囲全体が入るズームと、陰影図の外を出さない最小ズームの大きい方を採用し、
+// 中心を陰影図内へクランプする（縦長で範囲が縦に余る場合も陰影図の外が出ない）。
 const MAINLAND_BOUNDS = L.latLngBounds([34.2103, 131.2706], [34.6810, 131.7955]);
-const HOME_PADDING = [16, 16];   // 縁が切れないよう少し余白
-map.fitBounds(MAINLAND_BOUNDS, { padding: HOME_PADDING });   // 初期表示
+const HOME_PADDING = [16, 16];   // 範囲まわりの余白（縁が切れないよう）
+function homeView(){
+  const zRange  = map.getBoundsZoom(MAINLAND_BOUNDS, false, L.point(HOME_PADDING[0], HOME_PADDING[1]));
+  const zInside = map.getBoundsZoom(GEOPARK_BOUNDS, true);   // 陰影図の外を出さない最小ズーム
+  const z = Math.max(zRange, zInside) + 0.05;   // わずかに寄せて陰影図の縁が画面外へ（丸め対策）
+  const half = map.getSize().divideBy(2);
+  const PAD = 2;   // クランプの安全余白（px）＝陰影図の縁を確実に画面外へ
+  const nw = map.project(GEOPARK_BOUNDS.getNorthWest(), z);
+  const se = map.project(GEOPARK_BOUNDS.getSouthEast(), z);
+  const c  = map.project(MAINLAND_BOUNDS.getCenter(), z);
+  const cl = (v, lo, hi)=> lo > hi ? (lo + hi) / 2 : Math.max(lo, Math.min(hi, v));   // 陰影図内へクランプ
+  c.x = cl(c.x, nw.x + half.x + PAD, se.x - half.x - PAD);
+  c.y = cl(c.y, nw.y + half.y + PAD, se.y - half.y - PAD);
+  return { center: map.unproject(c, z), zoom: z };
+}
+{ const h = homeView(); map.setView(h.center, h.zoom); }   // 初期表示
 
 // ---- 画面外の見島の方角を、地図の縁に矢印＋「見島」で示す（タップで見島へ移動） ----
 const MISHIMA = L.latLng(34.7750, 131.1455);
@@ -678,8 +693,9 @@ function enterArea(id){
   if (window.innerWidth<=760) document.getElementById("sidebar").classList.add("open");
 }
 function resetView(){
-  // 見島を除く範囲全体を画面に収める（縦横比に応じて縦/横合わせを自動選択）
-  map.flyToBounds(MAINLAND_BOUNDS, { padding: HOME_PADDING, duration:.8 });
+  // 範囲を中央に。陰影図の外は見せない（homeView がズーム・中心を決める）
+  const h = homeView();
+  map.flyTo(h.center, h.zoom, { duration:.8 });
   document.querySelectorAll(".area-card").forEach(el=> el.classList.remove("open"));
 }
 
