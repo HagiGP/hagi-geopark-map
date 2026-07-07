@@ -243,16 +243,25 @@ function dotIcon(def, aa){
   return L.divIcon({ className:"", html, iconSize:[box,box], iconAnchor:[c,c],
                      popupAnchor:[0,-c], tooltipAnchor:[r+3, 0] });  // ラベルは丸の右へ（Google流）
 }
-function markerIcon(cat, rank){ return dotIcon(SITE_CATS[cat], staff && rank==="AA"); }
+// C以下のジオサイト＝小さめ表示（B以上と区別）。神社・公共施設と同じ13.3で出現。
+const GEO_BIG_RANKS = ["AA","A","B"];
+const GEO_SMALL = { minZoom: 13.3, msize: 2.2, pt: 9 };
+function isGeoSmall(o){ return o.cat === "ジオサイト" && !GEO_BIG_RANKS.includes(o.rank); }
+function markerIcon(cat, rank){
+  const def = SITE_CATS[cat];
+  if (cat === "ジオサイト" && !GEO_BIG_RANKS.includes(rank))
+    return dotIcon({ ...def, msize: GEO_SMALL.msize }, false);   // C以下＝小
+  return dotIcon(def, staff && rank==="AA");
+}
 function refIcon(cat){ return dotIcon(REF_CATS[cat], false); }
 
 // ラベルHTML（Googleマップ流：地図には名前だけ。説明はクリックでポップアップに）
 function labelHtml(def, p){ return `<span class="ln">${esc(p.name)}</span>`; }
 // 自前ラベルDOMを作成（位置は placeLabels() が衝突回避して決める）
 // clickMarker を渡すと、ラベルのタップでそのマーカーのポップアップを開く
-function makeLabel(def, p, clickMarker){
+function makeLabel(def, p, clickMarker, smallGeo){
   const el = document.createElement("div");
-  el.className = "poi-label lbl-" + def.key;
+  el.className = "poi-label lbl-" + (smallGeo ? "geosm" : def.key);
   el.innerHTML = labelHtml(def, p);
   el.style.cssText = "position:absolute;display:none;left:0;top:0;";
   if (clickMarker){
@@ -429,7 +438,7 @@ function siteEligible(o){
   if (o.hub || o.def.always) return true; // 拠点施設・文化サイトは常に全採用
   if (staff) return true;
   if (o.cat === "神社") return o.props["主要"] === "Y";  // 一般は主要(名前あり)のみ、運営は全部(上のstaffで解禁)
-  if (o.cat === "ジオサイト") return o.rank==="AA" || o.rank==="A" || o.rank==="B"; // Bランクまで表示（C以下は隠す）
+  if (o.cat === "ジオサイト") return true;   // 全ランク表示（C以下は小さく・13.3で出現）
   if (o.rank === "AA") return true;       // AAはエリア内外問わず
   if (o.rank === "A")  return !!o.area;   // Aはエリア内のみ
   return false;                           // 展望のB/無は一般モードで隠す
@@ -444,7 +453,8 @@ function refresh(){
   if (wideMode) return;   // 広域モードは詳細（マーカー・ラベル）を出さない
   // サイト：ランク等で「見せる対象」を絞り、QGISの表示ズーム(def.minZoom)で「出現」を制御
   allMarkers.forEach(o=>{
-    const vis = catOn[o.cat] && siteEligible(o) && z >= o.def.minZoom;
+    const mz = isGeoSmall(o) ? GEO_SMALL.minZoom : o.def.minZoom;   // C以下ジオサイトは13.3
+    const vis = catOn[o.cat] && siteEligible(o) && z >= mz;
     if (vis && !siteLayer.hasLayer(o.marker)) siteLayer.addLayer(o.marker);
     else if (!vis && siteLayer.hasLayer(o.marker)) siteLayer.removeLayer(o.marker);
   });
@@ -558,11 +568,15 @@ function injectLabelStyles(){
            `.lbl-${d.key} .ln{color:${d.lbl};font-size:${(d.pt*96/72).toFixed(1)}px;font-weight:${d.bold?700:400};}\n`+
            `.lbl-${d.key} .ld{color:#333333;font-size:${(8*96/72).toFixed(1)}px;font-weight:400;}\n`;
   });
+  // C以下のジオサイト＝ジオと同じ色・縁取りで文字だけ小さく（B以上と区別）
+  const geo = SITE_CATS["ジオサイト"];
+  css += `.lbl-geosm{text-shadow:${halo(geo.buf, geo.bufmm*0.5)};}\n`+
+         `.lbl-geosm .ln{color:${geo.lbl};font-size:${(GEO_SMALL.pt*96/72).toFixed(1)}px;font-weight:${geo.bold?700:400};}\n`;
   const st = document.createElement("style"); st.textContent = css; document.head.appendChild(st);
 }
 
 // ---- 読み込み ----
-const DATAV = "?d=13";   // geojson更新時にbump（ブラウザキャッシュ回避）
+const DATAV = "?d=14";   // geojson更新時にbump（ブラウザキャッシュ回避）
 const fetchGj = def => fetch("data/"+def.file+DATAV).then(r=>r.json());
 Promise.all([
   fetch("data/areas.geojson"+DATAV).then(r=>r.json()),
@@ -643,8 +657,9 @@ function buildSiteCategory(name, def, gj){
     const m = L.marker([c[1], c[0]], { icon: markerIcon(name, rank), title: p.name, pane: catPane(def) });
     const o = { marker:m, cat:name, def, rank, area:p.area||null, name:p.name||"", props:p,
                 hub:!!def.hub, viewpoint:null };
+    const small = name === "ジオサイト" && !GEO_BIG_RANKS.includes(rank);
     m.bindPopup(()=> pointPopup(o), { maxWidth:340, minWidth:300 });
-    if (p.name) o.labelEl = makeLabel(def, p, m);   // ラベルタップでもポップアップ
+    if (p.name) o.labelEl = makeLabel(def, p, m, small);   // ラベルタップでもポップアップ
     allMarkers.push(o);
   });
 }
