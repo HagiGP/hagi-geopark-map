@@ -575,7 +575,7 @@ function injectLabelStyles(){
 }
 
 // ---- 読み込み ----
-const DATAV = "?d=20";   // geojson更新時にbump（ブラウザキャッシュ回避）
+const DATAV = "?d=24";   // geojson更新時にbump（ブラウザキャッシュ回避）
 const fetchGj = def => fetch("data/"+def.file+DATAV).then(r=>r.json());
 Promise.all([
   fetch("data/areas.geojson"+DATAV).then(r=>r.json()),
@@ -601,12 +601,8 @@ Promise.all([
   spreadOverlaps();
   buildControls();
   buildSidebar();
-  // スマホ：表示・凡例パネルをボトムシート内へ移設（同じDOMなので配線はそのまま）
-  if (window.matchMedia("(max-width: 760px)").matches){
-    const panel = document.querySelector(".layers-panel");
-    const host = document.getElementById("sheetExtra");
-    if (panel && host){ panel.classList.remove("collapsed"); host.appendChild(panel); }
-  }
+  // 「表示・凡例」は見どころ一覧ではないので、スマホでも地図右上の開閉パネルのまま
+  // （以前はボトムシート内へ移設していたが、見どころ一覧と混ざるため廃止）
   refresh();
   // ロゴ長押しで運営モードを切り替えた直後は、再読込後にトーストで状態を知らせる
   const st = sessionStorage.getItem("staffToast");
@@ -651,6 +647,7 @@ function buildAreas(gj){
 }
 
 const LABEL_LEFT = new Set(["イラオ火山灰層観察施設"]);   // ラベルをマーカーの左に出すサイト
+const LIST_EXCLUDE = new Set(["西台放牧場"]);   // 地図には残すが、エリアの見どころ一覧からは外すサイト
 function buildSiteCategory(name, def, gj){
   gj.features.forEach(f=>{
     const c = f.geometry.coordinates, p = f.properties;
@@ -940,8 +937,31 @@ function buildSidebar(){
     const body = document.createElement("div"); body.className="area-card-body";
     if (a.lead) body.innerHTML = `<p class="area-lead">${esc(a.lead)}</p>`;
 
-    // サイト一覧を「分類ごと」に見出し付きで整理
-    const inArea = allMarkers.filter(o=> o.area===a.id && siteEligible(o));
+    // 視点（見わたす／さかのぼる）＝紙版マップと同じ見せ方。タップで対象サイトへ
+    if (a.viewpoints && a.viewpoints.length){
+      const vpWrap = document.createElement("div"); vpWrap.className="area-vps";
+      vpWrap.style.setProperty("--ac", a.color);
+      a.viewpoints.forEach(vp=>{
+        const o = allMarkers.find(x=> x.name===vp.site);
+        const el = document.createElement("div"); el.className="vp-card"+(o?" vp-link":"");
+        el.innerHTML = `<span class="vp-kind">${esc(vp.vp)}</span>`+
+                       `<span class="vp-notice">${esc(vp.notice)}</span>`+
+                       `<span class="vp-site">📍 ${esc(vp.site)}</span>`;
+        if (o){
+          el.onclick = ()=>{
+            const z = Math.min(map.getMaxZoom(), Math.max(14, Math.ceil(o.def.minZoom)));
+            if (window.innerWidth<=760) document.getElementById("sidebar").classList.remove("open");
+            map.flyTo(o.marker.getLatLng(), z, {duration:.7});
+            map.once("moveend", ()=> o.marker.openPopup());
+          };
+        }
+        vpWrap.appendChild(el);
+      });
+      body.appendChild(vpWrap);
+    }
+
+    // サイト一覧を「分類ごと」に見出し付きで整理（LIST_EXCLUDEは地図には残すが一覧から外す）
+    const inArea = allMarkers.filter(o=> o.area===a.id && !LIST_EXCLUDE.has(o.name) && siteEligible(o));
     SITE_GROUPS.forEach(g=>{
       const items = inArea.filter(o=> g.cats.includes(o.cat))
                           .sort((x,y)=> rankWeight(x.rank)-rankWeight(y.rank) || x.name.localeCompare(y.name,"ja"));

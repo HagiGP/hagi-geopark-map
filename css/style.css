@@ -75,14 +75,17 @@ body.staff #appbar { background: #595857; }   /* 運営モード＝墨色でひ�
 .area-card.open .area-card-body { display: block; }
 .area-lead { font-size: 11.5px; line-height: 1.55; color: #444; margin: 4px 0 8px; }
 
+.area-vps { margin: 2px 0 6px; }
 .vp-card {
-  display: flex; flex-direction: column; gap: 2px; cursor: pointer;
-  padding: 6px 8px; margin: 4px 0; border-radius: 6px;
-  background: #f6f2ec; border: 1px solid #ece3d6;
+  display: flex; flex-direction: column; gap: 1px;
+  padding: 6px 9px; margin: 4px 0; border-radius: 6px;
+  background: #f5f8f6; border-left: 3px solid var(--ac, #999);
 }
-.vp-card:hover { background: #efe7d8; }
-.vp-name { font-size: 11px; font-weight: 700; color: #9a6b1f; }
-.vp-notice { font-size: 12px; color: #333; line-height: 1.35; }
+.vp-card.vp-link { cursor: pointer; }
+.vp-card.vp-link:hover { background: #ebf1ee; }
+.vp-kind { font-size: 10.5px; font-weight: 700; color: var(--ac, #666); }
+.vp-notice { font-size: 12px; color: #333; line-height: 1.4; margin: 1px 0; }
+.vp-site { font-size: 11px; color: #15683e; font-weight: 600; }
 
 .site-group-head {
   display: flex; align-items: center; gap: 6px;
