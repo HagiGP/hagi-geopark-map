@@ -7,9 +7,8 @@ const GEOPARK_BOUNDS = L.latLngBounds([34.16667, 131.0], [34.83333, 131.875]);
 // 中心へ引き戻されないようにする（遠方の海まで飛ばない程度の枠は残す）
 const WIDE_BOUNDS = L.latLngBounds([30.5, 127.0], [37.5, 135.0]);
 const WIDE_Z = 10.6;                 // これ未満のズーム＝広域(地理院のみ＝赤枠表示)。全体(≈11.06)から少し引くと赤枠／重なる低倍率帯も非表示に
-// 初期表示は見どころ一覧を隠す（PCのみ。スマホは下部シートで元々非表示）。
-// 地図生成の前に付けることで、地図が最初から全幅で測られ、中心がずれない
-if (!window.matchMedia("(max-width: 760px)").matches) document.body.classList.add("sb-hidden");
+// 初期表示は見どころ一覧を開いておく（PC＝左サイドバー、スマホ＝下部シートを少しだけ出す）。
+// 「エリア→見どころ」の入口が最初から目に入るように。☰で閉じれば地図が全幅になる
 const map = L.map("map", {
   minZoom: 8, maxZoom: 16,           // z8まで引ける＝広域モード
   zoomSnap: 0,                       // 連続ズーム＝初期に地形を画面いっぱいに詰められる
@@ -580,7 +579,7 @@ function injectLabelStyles(){
 }
 
 // ---- 読み込み ----
-const DATAV = "?d=28";   // geojson更新時にbump（ブラウザキャッシュ回避）
+const DATAV = "?d=29";   // geojson更新時にbump（ブラウザキャッシュ回避）
 const fetchGj = def => fetch("data/"+def.file+DATAV).then(r=>r.json());
 Promise.all([
   fetch("data/areas.geojson"+DATAV).then(r=>r.json()),
@@ -715,6 +714,9 @@ function enterArea(id){
   map.flyToBounds(a.bounds.pad(0.15), { maxZoom:13, duration:.8 });
   openAreaCard(id);
   if (window.innerWidth<=760) document.getElementById("sidebar").classList.add("open");
+  else if (document.body.classList.contains("sb-hidden")){   // PCで一覧を閉じていても、エリアを選んだら開く
+    document.body.classList.remove("sb-hidden"); setTimeout(()=> map.invalidateSize(), 220);
+  }
 }
 function resetView(){
   // 範囲を中央に。陰影図の外は見せない（homeView がズーム・中心を決める）
@@ -908,8 +910,31 @@ function makePoiItem(o){
   };
   return li;
 }
+// エリア説明の項目（areas.geojson のキー → 見出し）。改行で段落を分けられる
+const AREA_STORY = [
+  { key:"daichi", label:"大地の成り立ち" },
+  { key:"hito",   label:"人の暮らしとのつながり" },
+  { key:"meguri", label:"めぐり方" },
+];
+function appendStory(body, a, s){
+  const text = (a[s.key] || "").trim();
+  if (!text && !staff) return;
+  const sec = document.createElement("div"); sec.className = "area-story" + (text ? "" : " empty");
+  sec.style.setProperty("--ac", a.color);
+  const paras = text ? text.split(/\n+/).map(t=> `<p>${esc(t)}</p>`).join("") : `<p>（未記入：areas.geojson の "${s.key}"）</p>`;
+  sec.innerHTML = `<h4>${esc(s.label)}</h4>${paras}`;
+  body.appendChild(sec);
+}
+const creditEl = document.querySelector("#sidebar .credit");   // 出典は一覧の末尾（スクロール内）に置く
 function buildSidebar(){
   const listEl = document.getElementById("poiList"); listEl.innerHTML = "";
+  queueMicrotask(()=> creditEl && listEl.appendChild(creditEl));
+  // 地図のコンセプト（一覧の冒頭）
+  if (!nearSort){
+    const intro = document.createElement("p"); intro.className = "list-intro";
+    intro.textContent = "萩ジオパークの4つのエリアを「大地と人のつながり」で紹介しています。エリアを選ぶと、地図がそのエリアへ寄ります。";
+    listEl.appendChild(intro);
+  }
 
   // 現在地取得後：近い順トグル
   if (myLatLng){
@@ -941,6 +966,8 @@ function buildSidebar(){
 
     const body = document.createElement("div"); body.className="area-card-body";
     if (a.lead) body.innerHTML = `<p class="area-lead">${esc(a.lead)}</p>`;
+    // 大地 → 人 のつながり（文章は areas.geojson に記入。空欄の項目は出さない／運営モードは「未記入」で枠を見せる）
+    AREA_STORY.slice(0,2).forEach(s=> appendStory(body, a, s));
 
     // 視点（見わたす／さかのぼる）＝紙版マップと同じ見せ方。タップで対象サイトへ
     if (a.viewpoints && a.viewpoints.length){
@@ -964,6 +991,7 @@ function buildSidebar(){
       });
       body.appendChild(vpWrap);
     }
+    AREA_STORY.slice(2).forEach(s=> appendStory(body, a, s));   // めぐり方（視点の後）
 
     // サイト一覧を「分類ごと」に見出し付きで整理（LIST_EXCLUDEは地図には残すが一覧から外す）
     const inArea = allMarkers.filter(o=> o.area===a.id && !LIST_EXCLUDE.has(o.name) && siteEligible(o));
@@ -1007,5 +1035,9 @@ document.getElementById("sidebarToggle").onclick = ()=>{
 document.getElementById("sidebarClose").onclick = ()=> sidebar.classList.remove("open");
 const sheetHandle = document.getElementById("sheetHandle");
 if (sheetHandle) sheetHandle.onclick = ()=> sidebar.classList.toggle("open");
+// スマホ：少しだけ出ているシートの見出しをタップしても引き上げる（×ボタンは除く）
+document.querySelector(".sidebar-head").addEventListener("click", e=>{
+  if (isMobile() && e.target.id !== "sidebarClose") sidebar.classList.toggle("open");
+});
 document.getElementById("resetView").onclick = resetView;   // 上部帯「全体」ボタン
 map.on("click", ()=>{ if (isMobile()) sidebar.classList.remove("open"); });   // 地図タップでシートを閉じる

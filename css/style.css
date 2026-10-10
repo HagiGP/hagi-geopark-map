@@ -74,6 +74,17 @@ body.staff #appbar { background: #595857; }   /* 運営モード＝墨色でひ�
 .area-card-body { display: none; padding: 4px 10px 8px; }
 .area-card.open .area-card-body { display: block; }
 .area-lead { font-size: 11.5px; line-height: 1.55; color: #444; margin: 4px 0 8px; }
+.list-intro { font-size: 11.5px; line-height: 1.55; color: #555; margin: 0 10px 8px; }
+
+/* エリア説明：大地の成り立ち／人の暮らしとのつながり／めぐり方 */
+.area-story { margin: 8px 0; }
+.area-story h4 {
+  margin: 0 0 3px; font-size: 11.5px; font-weight: 700; color: var(--ac, #555);
+  display: flex; align-items: center; gap: 6px;
+}
+.area-story h4::after { content: ""; flex: 1; height: 1px; background: #e6e6e6; }
+.area-story p { font-size: 12px; line-height: 1.65; color: #333; margin: 0 0 5px; }
+.area-story.empty p { color: #aaa; font-style: italic; }
 
 .area-vps { margin: 2px 0 6px; }
 .vp-card {
@@ -123,7 +134,7 @@ body.staff #appbar { background: #595857; }   /* 運営モード＝墨色でひ�
 body.sb-hidden #sidebar { transform: translateX(-100%); }
 body.sb-hidden #map { left: 0; }
 
-.credit { font-size: 10.5px; color: #888; padding: 8px 14px; border-top: 1px solid #eee; margin: 0; line-height: 1.5; }
+.credit { font-size: 10.5px; color: #888; padding: 8px 8px; border-top: 1px solid #eee; margin: 12px 4px 0; line-height: 1.5; }
 
 /* layers panel */
 .layers-panel {
@@ -311,13 +322,18 @@ body.sb-hidden #map { left: 0; }
 
 /* mobile：見どころ一覧・凡例は「下から出るボトムシート」に */
 @media (max-width: 760px) {
-  #map { left: 0; }
+  /* シートは閉じても上端(--peek)だけ見せる＝一覧の存在が分かる。地図はその上までにして中心・ボタンがずれないように */
+  :root { --peek: 190px; }
+  #map { left: 0; bottom: var(--peek); }
   #sidebar {
     top: auto; left: 0; right: 0; bottom: 0; width: 100%; max-width: none; height: 58vh;
     border-right: 0; border-top-left-radius: 16px; border-top-right-radius: 16px;
-    box-shadow: 0 -3px 16px rgba(0,0,0,.28); transform: translateY(100%);
+    box-shadow: 0 -3px 16px rgba(0,0,0,.28); transform: translateY(calc(100% - var(--peek)));
   }
   #sidebar.open { transform: translateY(0); }
+  #sidebar:not(.open) #poiSearch { display: none; }   /* 少し出ているときは検索欄を省いてエリア名を見せる */
+  #sidebar:not(.open) #poiList { overflow: hidden; }
+  .sidebar-head { cursor: pointer; }
   #sheetHandle { display: block; height: 22px; cursor: grab; position: relative; flex-shrink: 0; }
   #sheetHandle::before {
     content: ""; position: absolute; left: 50%; top: 9px; transform: translateX(-50%);
@@ -342,6 +358,7 @@ body.sb-hidden #map { left: 0; }
 }
 /* 横向き・低い画面：ボトムシートを高めに、ボタンは控えめに */
 @media (orientation: landscape) and (max-height: 500px) and (max-width: 760px) {
+  :root { --peek: 96px; }
   #sidebar { height: 82vh; }   /* 横向きは画面が低いので少し高め */
   .map-fab button { width: 44px; height: 44px; font-size: 20px; }
 }
