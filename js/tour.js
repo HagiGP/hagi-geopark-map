@@ -179,14 +179,30 @@ function drawSceneMarks(sc){
   });
   if (sc.line && tour.shapes[sc.line]){
     const ln = L.geoJSON(tour.shapes[sc.line], { interactive:false, pane:"tourShapePane",
-      style:{ color:"#b3200f", weight:5, opacity:.95, lineCap:"round", className:"tour-line" } }).addTo(tour.layer);
-    ln.eachLayer(l=>{   // 線を始点から描いていく
+      style:{ color:"#b3200f", weight:6, opacity:.95, lineCap:"round", className:"tour-line" } }).addTo(tour.layer);
+    ln.eachLayer(l=>{   // 線を始点から描き、先端の矢じりを一緒に進める
       const p = l.getElement(); if (!p) return;
+      const along = lineSampler(l.getLatLngs());
+      const head = arrowMarker(along(0), 44).addTo(tour.layer);
       const len = p.getTotalLength(); p.style.strokeDasharray = len; p.style.strokeDashoffset = len;
-      p.getBoundingClientRect();
-      p.style.transition = "stroke-dashoffset 3.2s ease-in-out"; p.style.strokeDashoffset = 0;
-      // 描き終えたら破線指定を外す（途中でズームされて長さが変わっても、確実に全体が見えるように）
-      setTimeout(()=>{ p.style.transition = "none"; p.style.strokeDasharray = ""; p.style.strokeDashoffset = ""; }, 3400);
+      const D = 3200, t0 = performance.now(), sceneNo = tour.i;
+      const ease = t=> t<.5 ? 2*t*t : 1-Math.pow(-2*t+2,2)/2;
+      const finish = ()=>{
+        if (!tour || tour.i !== sceneNo || head._done) return; head._done = true;
+        // 描き終えたら破線指定を外す（途中でズームされて長さが変わっても、確実に全体が見えるように）
+        p.style.strokeDasharray = ""; p.style.strokeDashoffset = "";
+        setArrow(head, along(1));
+        [.25,.5,.75].forEach(f=> arrowMarker(along(f), 30).addTo(tour.layer));   // 途中にも向きを示す矢じり
+      };
+      const step = now=>{
+        if (!tour || tour.i !== sceneNo || head._done) return;
+        const e = ease(Math.min(1, (now - t0) / D));
+        p.style.strokeDashoffset = len * (1 - e);
+        setArrow(head, along(e));
+        if (e < 1) requestAnimationFrame(step); else finish();
+      };
+      requestAnimationFrame(step);
+      setTimeout(finish, D + 300);   // 画面が裏にある等で描画が止まっても最後は必ず完成形に
     });
   }
   (sc.ring||[]).forEach(n=>{
@@ -199,6 +215,33 @@ function drawSceneMarks(sc){
     if (o) L.marker(o.marker.getLatLng(), { interactive:false, pane:"tourPane", keyboard:false,
       icon:L.divIcon({ className:"", iconSize:[36,36], iconAnchor:[18,46], html:`<div class="tour-point">${POINTER_SVG}</div>` }) }).addTo(tour.layer);
   }
+}
+
+// 線上の位置（0〜1）→ { latlng, deg（進行方向。画面上の角度） }
+function lineSampler(lls){
+  lls = lls.flat ? lls.flat(Infinity) : lls;
+  const z = map.getZoom(), pts = lls.map(ll=> map.project(ll, z));
+  const cum = [0]; for (let k=1; k<pts.length; k++) cum.push(cum[k-1] + pts[k].distanceTo(pts[k-1]));
+  const total = cum[cum.length-1] || 1;
+  return f=>{
+    const d = Math.max(0, Math.min(1, f)) * total;
+    let k = 1; while (k < pts.length-1 && cum[k] < d) k++;
+    const a = pts[k-1], b = pts[k], seg = (cum[k]-cum[k-1]) || 1, r = (d - cum[k-1]) / seg;
+    const pt = L.point(a.x + (b.x-a.x)*r, a.y + (b.y-a.y)*r);
+    return { latlng: map.unproject(pt, z), deg: Math.atan2(b.y-a.y, b.x-a.x) * 180 / Math.PI };
+  };
+}
+// 矢じり（右向きの三角を進行方向へ回す。白縁で地図の上でも見える）
+function arrowMarker(pos, size){
+  const m = L.marker(pos.latlng, { interactive:false, pane:"tourPane", keyboard:false,
+    icon: L.divIcon({ className:"", iconSize:[size,size], iconAnchor:[size/2,size/2],
+      html:`<div class="tour-arrow" style="transform:rotate(${pos.deg}deg)"><svg viewBox="0 0 20 20" width="${size}" height="${size}">`+
+           `<path d="M3 3 L18 10 L3 17 L7 10 Z" fill="#b3200f" stroke="#fff" stroke-width="2.2" stroke-linejoin="round"/></svg></div>` }) });
+  return m;
+}
+function setArrow(m, pos){
+  m.setLatLng(pos.latlng);
+  const el = m.getElement()?.querySelector(".tour-arrow"); if (el) el.style.transform = `rotate(${pos.deg}deg)`;
 }
 
 // ドット絵の▼カーソル（8×8マスを拡大。にじまないよう crispEdges）
