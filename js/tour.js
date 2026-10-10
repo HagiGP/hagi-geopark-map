@@ -42,6 +42,10 @@ function startTour(id){
     sidebar.classList.remove("open");
     setTimeout(()=> map.invalidateSize(), 220);
     buildTourBox();
+    // 写真を先読み（表示が速くなり、写真のある場面は地図をその分ずらして収められる）
+    tour.photoOk = {};
+    tour.scenes.forEach((sc,k)=>{ const ph = scenePhoto(sc); if (!ph) return;
+      const im = new Image(); im.onload = ()=>{ if (tour) tour.photoOk[k] = true; }; im.src = ph.src; });
     setTimeout(()=> showScene(0), 240);
   });
 }
@@ -51,6 +55,7 @@ function endTour(){
   stopTyping();
   tour.layer.remove();
   document.getElementById("tourBox")?.remove();
+  hidePhoto();
   document.body.classList.remove("touring");
   if (!isMobile() && !tour.sbWasHidden){ document.body.classList.remove("sb-hidden"); setTimeout(()=> map.invalidateSize(), 220); }
   tour = null;
@@ -103,7 +108,7 @@ function showScene(i){
   box.querySelector(".tb-count").textContent = `${i+1}／${tour.scenes.length}`;
   box.querySelector(".tb-prev").style.visibility = i ? "visible" : "hidden";
   box.classList.toggle("last", i === tour.scenes.length-1);
-  tour.layer.clearLayers();
+  tour.layer.clearLayers(); tour._drawn = -1;
 
   // 地図の表示（字幕の窓の高さぶん下を空ける）
   if (sc.fit && sc.fit.length){
@@ -111,16 +116,61 @@ function showScene(i){
     sc.fit.forEach(n=>{ const t = tourTarget(n); if (t) b.extend(t); });
     if (b.isValid()){
       const padB = box.offsetHeight + 24;
-      map.flyToBounds(b, { paddingTopLeft:[40,40], paddingBottomRight:[40,padB], maxZoom:14, duration:1.0 });
+      // 写真の窓のぶんも空ける（PC＝右下、スマホ＝字幕の上）
+      const padR = tour.photoOk[i] && !isMobile() ? 340 : 40;
+      const padB2 = tour.photoOk[i] && isMobile() ? padB + 170 : padB;
+      tour.target = [b, { paddingTopLeft:[40,40], paddingBottomRight:[padR,padB2], maxZoom:14 }];
+      map.flyToBounds(b, { ...tour.target[1], duration:1.0 });
     }
   }
-  const draw = ()=>{ if (tour && tour.i === i) drawSceneMarks(sc); };
+  else tour.target = null;
+  hidePhoto();
+  const t0 = Date.now();
+  const draw = ()=>{
+    if (!tour || tour.i !== i) return;
+    // 移動・ズームの途中なら止まってから描く。2.5秒たっても終わらなければ打ち切って描く
+    if (map._animatingZoom || map._flyToFrame){
+      if (Date.now() - t0 < 2500){ setTimeout(draw, 150); return; }
+      map.stop();   // 飛行が終わらない（端末が重い・画面が裏にある等）→ 目的の表示へ一気に移す
+      if (tour.target) map.fitBounds(tour.target[0], { ...tour.target[1], animate:false });
+    }
+    if (tour._drawn === i) return;   // moveend と保険のタイマーの二重実行を防ぐ
+    drawSceneMarks(sc); showPhoto(sc, i);
+    tour._drawn = i;
+  };
   map.once("moveend", draw); setTimeout(draw, 1150);   // 移動後に描く（移動しない場面の保険）
   typeText(sc.text || "");
 }
 
+// ---- 写真の窓 ----
+// "photo"：サイト名（img/sites/<名前>.jpg）か画像のパス。false で出さない。
+// 省略時は指差し(point)のサイトに写真があれば自動で出す。写真が無ければ何も出さない
+function scenePhoto(sc){
+  if (sc.photo === false) return null;
+  const p = sc.photo || sc.point; if (!p) return null;
+  const isPath = /[\/.]/.test(p) && /\.(jpe?g|png|webp)$/i.test(p);
+  return { src: isPath ? p : photoSrc(p), caption: sc.photoCaption || (isPath ? "" : p) };
+}
+function hidePhoto(){ document.querySelectorAll("#tourPhoto").forEach(el=> el.remove()); }
+function showPhoto(sc, i){
+  const ph = scenePhoto(sc); if (!ph) return;
+  const img = new Image();
+  img.onload = ()=>{
+    if (!tour || tour.i !== i) return;
+    hidePhoto();
+    const w = document.createElement("figure"); w.id = "tourPhoto";
+    w.innerHTML = `<img alt="">`+(ph.caption ? `<figcaption></figcaption>` : "");
+    w.querySelector("img").src = ph.src;
+    if (ph.caption) w.querySelector("figcaption").textContent = ph.caption;
+    w.style.bottom = (document.getElementById("tourBox").offsetHeight + 30) + "px";
+    w.onclick = e=>{ e.stopPropagation(); w.classList.toggle("big"); };   // タップで拡大／戻す
+    L.DomEvent.disableClickPropagation(w);
+    document.body.appendChild(w);
+  };
+  img.src = ph.src;   // 読めなければ（写真未登録）何も出さない
+}
+
 function drawSceneMarks(sc){
-  if (tour._drawn === tour.i) return; tour._drawn = tour.i;
   (sc.shape||[]).forEach(id=>{
     const f = tour.shapes[id]; if (!f) return;
     const color = f.properties.color || "#d9481c";   // 既定は溶岩の赤橙
