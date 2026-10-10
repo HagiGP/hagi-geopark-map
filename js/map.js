@@ -405,7 +405,8 @@ map.on("popupopen", e=>{
 // ディープリンク（?site=名前 / ?area=id）で対象を開く
 function openDeepLink(){
   const params = new URLSearchParams(location.search);
-  const areaId = params.get("area"), siteName = params.get("site");
+  const areaId = params.get("area"), siteName = params.get("site"), tourId = params.get("tour");
+  if (tourId && areaById[tourId]){ startTour(tourId); return; }   // ?tour=ryu ＝解説から始める（講演・授業用）
   if (areaId && areaById[areaId]){ enterArea(areaId); return; }
   if (siteName){
     const o = allMarkers.find(x=> x.name === siteName);
@@ -579,7 +580,7 @@ function injectLabelStyles(){
 }
 
 // ---- 読み込み ----
-const DATAV = "?d=29";   // geojson更新時にbump（ブラウザキャッシュ回避）
+const DATAV = "?d=31";   // geojson更新時にbump（ブラウザキャッシュ回避）
 const fetchGj = def => fetch("data/"+def.file+DATAV).then(r=>r.json());
 Promise.all([
   fetch("data/areas.geojson"+DATAV).then(r=>r.json()),
@@ -966,6 +967,12 @@ function buildSidebar(){
 
     const body = document.createElement("div"); body.className="area-card-body";
     if (a.lead) body.innerHTML = `<p class="area-lead">${esc(a.lead)}</p>`;
+    if ((a.tour||[]).length){   // 地図を動かしながら語る解説（js/tour.js）
+      const tb = document.createElement("button"); tb.className = "tour-start";
+      tb.innerHTML = `<span class="ts-icon">▶</span>地図で解説を見る`;
+      tb.onclick = e=>{ e.stopPropagation(); startTour(a.id); };
+      body.appendChild(tb);
+    }
     // 大地 → 人 のつながり（文章は areas.geojson に記入。空欄の項目は出さない／運営モードは「未記入」で枠を見せる）
     AREA_STORY.slice(0,2).forEach(s=> appendStory(body, a, s));
 

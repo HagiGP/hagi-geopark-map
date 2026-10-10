@@ -1,0 +1,186 @@
+/* エリア解説ツアー：地図を動かし、指差し・囲み・溶岩流の線で示しながら、
+   画面下の字幕（ファミコンRPG風のメッセージ窓）で大地と人のつながりを語る。
+   台本は areas.geojson の各エリアの "tour"（場面の配列）、図形は data/tour_<エリアid>.geojson。
+   場面のキー：
+     text  字幕（改行で行を分ける）
+     fit   地図に収めるもの（サイト名 or 図形id の配列）。省略時は前の場面の表示のまま
+     shape 塗って示す図形id の配列（溶岩の範囲など）
+     line  流れを描く線の図形id（アニメーションで描く）
+     ring  丸で囲むサイト名の配列
+     point 指差す（▼）サイト名
+   操作：窓をタップ／→・Space・Enter・PageDown＝次へ、←・PageUp＝戻る、Esc＝終わる（講演のプレゼンリモコン対応） */
+
+const tourShapes = {};            // エリアid → { 図形id: Leaflet用GeoJSON feature }
+let tour = null;                  // 実行中のツアー { area, scenes, i, layer, typing }
+
+function loadTourShapes(id){
+  if (tourShapes[id]) return Promise.resolve(tourShapes[id]);
+  return fetch(`data/tour_${id}.geojson${DATAV}`).then(r=> r.ok ? r.json() : {features:[]})
+    .catch(()=>({features:[]}))
+    .then(gj=>{ const m = {}; (gj.features||[]).forEach(f=> m[f.properties.id] = f); return tourShapes[id] = m; });
+}
+
+// ドット絵フォント（初回のみ読み込み）
+function loadPixelFont(){
+  if (document.getElementById("pixelFont")) return;
+  const l = document.createElement("link"); l.id = "pixelFont"; l.rel = "stylesheet";
+  l.href = "https://fonts.googleapis.com/css2?family=DotGothic16&display=swap";
+  document.head.appendChild(l);
+}
+loadPixelFont();   // 「解説を見る」ボタンにも使うので最初に読む
+
+function startTour(id){
+  const a = areaById[id]; if (!a || !(a.tour||[]).length) return;
+  loadPixelFont();
+  loadTourShapes(id).then(shapes=>{
+    if (tour) endTour();
+    tour = { area:a, shapes, scenes:a.tour, i:0, layer:L.layerGroup().addTo(map),
+             sbWasHidden: document.body.classList.contains("sb-hidden") };
+    map.closePopup();
+    document.body.classList.add("touring");
+    if (!isMobile() && !tour.sbWasHidden){ document.body.classList.add("sb-hidden"); }
+    sidebar.classList.remove("open");
+    setTimeout(()=> map.invalidateSize(), 220);
+    buildTourBox();
+    setTimeout(()=> showScene(0), 240);
+  });
+}
+
+function endTour(){
+  if (!tour) return;
+  stopTyping();
+  tour.layer.remove();
+  document.getElementById("tourBox")?.remove();
+  document.body.classList.remove("touring");
+  if (!isMobile() && !tour.sbWasHidden){ document.body.classList.remove("sb-hidden"); setTimeout(()=> map.invalidateSize(), 220); }
+  tour = null;
+}
+
+function buildTourBox(){
+  document.getElementById("tourBox")?.remove();
+  const box = document.createElement("div"); box.id = "tourBox";
+  box.innerHTML =
+    `<div class="tb-head"><span class="tb-title"></span><span class="tb-count"></span>`+
+    `<button class="tb-close" aria-label="解説を終わる">✕</button></div>`+
+    `<div class="tb-text" aria-live="polite"></div>`+
+    `<div class="tb-nav"><button class="tb-prev">◀ もどる</button><span class="tb-next">▼</span></div>`;
+  document.body.appendChild(box);
+  box.querySelector(".tb-title").textContent = tour.area.name;
+  box.querySelector(".tb-close").onclick = e=>{ e.stopPropagation(); endTour(); };
+  box.querySelector(".tb-prev").onclick = e=>{ e.stopPropagation(); prevScene(); };
+  box.onclick = ()=> nextScene();
+  L.DomEvent.disableClickPropagation(box); L.DomEvent.disableScrollPropagation(box);
+}
+
+function nextScene(){
+  if (!tour) return;
+  if (tour.typing){ finishTyping(); return; }   // 文字送り中は全文を出すだけ
+  if (tour.i < tour.scenes.length-1) showScene(tour.i+1);
+  else endTour();
+}
+function prevScene(){ if (tour && tour.i > 0) showScene(tour.i-1); }
+
+document.addEventListener("keydown", e=>{
+  if (!tour) return;
+  if (["ArrowRight"," ","Enter","PageDown"].includes(e.key)){ e.preventDefault(); nextScene(); }
+  else if (["ArrowLeft","PageUp","Backspace"].includes(e.key)){ e.preventDefault(); prevScene(); }
+  else if (e.key === "Escape"){ endTour(); }
+});
+
+// 名前（サイト名 or 図形id）→ 位置・範囲
+function tourTarget(name){
+  const f = tour.shapes[name];
+  if (f) return L.geoJSON(f).getBounds();
+  const o = allMarkers.find(x=> x.name === name);
+  if (o) return o.marker.getLatLng();
+  console.warn("解説：見つからない名前", name);
+  return null;
+}
+
+function showScene(i){
+  const sc = tour.scenes[i]; tour.i = i;
+  const box = document.getElementById("tourBox");
+  box.querySelector(".tb-count").textContent = `${i+1}／${tour.scenes.length}`;
+  box.querySelector(".tb-prev").style.visibility = i ? "visible" : "hidden";
+  box.classList.toggle("last", i === tour.scenes.length-1);
+  tour.layer.clearLayers();
+
+  // 地図の表示（字幕の窓の高さぶん下を空ける）
+  if (sc.fit && sc.fit.length){
+    const b = L.latLngBounds([]);
+    sc.fit.forEach(n=>{ const t = tourTarget(n); if (t) b.extend(t); });
+    if (b.isValid()){
+      const padB = box.offsetHeight + 24;
+      map.flyToBounds(b, { paddingTopLeft:[40,40], paddingBottomRight:[40,padB], maxZoom:14, duration:1.0 });
+    }
+  }
+  const draw = ()=>{ if (tour && tour.i === i) drawSceneMarks(sc); };
+  map.once("moveend", draw); setTimeout(draw, 1150);   // 移動後に描く（移動しない場面の保険）
+  typeText(sc.text || "");
+}
+
+function drawSceneMarks(sc){
+  if (tour._drawn === tour.i) return; tour._drawn = tour.i;
+  (sc.shape||[]).forEach(id=>{
+    const f = tour.shapes[id]; if (!f) return;
+    const color = f.properties.color || "#d9481c";   // 既定は溶岩の赤橙
+    L.geoJSON(f, { interactive:false, pane:"tourShapePane",
+      style:{ color, weight:3, dashArray:"8 6", fillColor:color, fillOpacity:.28, className:"tour-shape" } }).addTo(tour.layer);
+  });
+  if (sc.line && tour.shapes[sc.line]){
+    const ln = L.geoJSON(tour.shapes[sc.line], { interactive:false, pane:"tourShapePane",
+      style:{ color:"#b3200f", weight:5, opacity:.95, lineCap:"round", className:"tour-line" } }).addTo(tour.layer);
+    ln.eachLayer(l=>{   // 線を始点から描いていく
+      const p = l.getElement(); if (!p) return;
+      const len = p.getTotalLength(); p.style.strokeDasharray = len; p.style.strokeDashoffset = len;
+      p.getBoundingClientRect();
+      p.style.transition = "stroke-dashoffset 3.2s ease-in-out"; p.style.strokeDashoffset = 0;
+      // 描き終えたら破線指定を外す（途中でズームされて長さが変わっても、確実に全体が見えるように）
+      setTimeout(()=>{ p.style.transition = "none"; p.style.strokeDasharray = ""; p.style.strokeDashoffset = ""; }, 3400);
+    });
+  }
+  (sc.ring||[]).forEach(n=>{
+    const o = allMarkers.find(x=> x.name === n); if (!o) return;
+    L.marker(o.marker.getLatLng(), { interactive:false, pane:"tourPane", keyboard:false,
+      icon:L.divIcon({ className:"", iconSize:[56,56], iconAnchor:[28,28], html:`<div class="tour-ring"></div>` }) }).addTo(tour.layer);
+  });
+  if (sc.point){
+    const o = allMarkers.find(x=> x.name === sc.point);
+    if (o) L.marker(o.marker.getLatLng(), { interactive:false, pane:"tourPane", keyboard:false,
+      icon:L.divIcon({ className:"", iconSize:[36,36], iconAnchor:[18,46], html:`<div class="tour-point">${POINTER_SVG}</div>` }) }).addTo(tour.layer);
+  }
+}
+
+// ドット絵の▼カーソル（8×8マスを拡大。にじまないよう crispEdges）
+const POINTER_SVG = (()=>{
+  const rows = ["11111111","12222221","12222221","01222210","00122100","00122100","00011000","00011000"];
+  let r = "";
+  rows.forEach((row,y)=> [...row].forEach((c,x)=>{
+    if (c !== "0") r += `<rect x="${x}" y="${y}" width="1" height="1" fill="${c==="1"?"#000":"#fff"}"/>`;
+  }));
+  return `<svg viewBox="0 0 8 8" width="36" height="36" shape-rendering="crispEdges">${r}</svg>`;
+})();
+
+// 文字送り（1文字ずつ）。タップで全文。動きを減らす設定なら最初から全文
+function stopTyping(){ if (tour && tour.typing){ clearInterval(tour.typing); tour.typing = null; } }
+function finishTyping(){
+  stopTyping();
+  const el = document.querySelector("#tourBox .tb-text"); if (el) el.textContent = tour.fullText;
+  document.getElementById("tourBox")?.classList.remove("typing");
+}
+function typeText(text){
+  stopTyping();
+  const el = document.querySelector("#tourBox .tb-text"); tour.fullText = text;
+  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches){ el.textContent = text; return; }
+  el.textContent = ""; let n = 0;
+  document.getElementById("tourBox").classList.add("typing");
+  tour.typing = setInterval(()=>{
+    n++; el.textContent = text.slice(0, n);
+    if (n >= text.length) finishTyping();
+  }, 45);
+}
+
+// 図形（溶岩の範囲・流れの線）は背景の上・サイトの下、指差し・囲みはサイトの上
+map.createPane("tourShapePane"); map.getPane("tourShapePane").style.zIndex = 420;
+map.createPane("tourPane"); map.getPane("tourPane").style.zIndex = 690;
+["tourShapePane","tourPane"].forEach(n=> map.getPane(n).style.pointerEvents = "none");

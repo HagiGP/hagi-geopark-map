@@ -320,6 +320,66 @@ body.sb-hidden #map { left: 0; }
 .area-label b { display: block; font-size: 16px; font-weight: 800; color: var(--ac, #333); letter-spacing: .5px; }
 .area-label span { display: block; font-size: 11px; font-weight: 600; color: #444; margin-top: 1px; }
 
+/* ---- エリア解説ツアー（js/tour.js）：ファミコンRPG風のメッセージ窓 ---- */
+.tour-start {
+  display: flex; align-items: center; gap: 8px; width: 100%; margin: 2px 0 8px; padding: 9px 12px;
+  background: #111; color: #fff; border: 0; border-radius: 4px; cursor: pointer;
+  box-shadow: inset 0 0 0 2px #111, inset 0 0 0 4px #fff;
+  font: 700 13px/1.2 "DotGothic16", system-ui, sans-serif; letter-spacing: .05em; text-align: left;
+}
+.tour-start:hover { background: #2a2a2a; }
+.tour-start .ts-icon { font-size: 11px; animation: tb-blink 1s steps(1) infinite; }
+
+/* 解説中は一覧・凡例・ボタン類をしまい、地図と字幕だけにする */
+body.touring #sidebar, body.touring .layers-panel, body.touring .map-fab,
+body.touring .leaflet-control-zoom, body.touring #sidebarToggle, body.touring .area-label { display: none; }
+@media (max-width: 760px) { body.touring #map { bottom: 0; } }
+
+#tourBox {
+  position: fixed; z-index: 1500; left: 50%; bottom: 18px; transform: translateX(-50%);
+  width: min(760px, calc(100% - 24px)); box-sizing: border-box;
+  background: #000; color: #fff; border-radius: 6px; padding: 12px 18px 10px;
+  box-shadow: inset 0 0 0 3px #000, inset 0 0 0 6px #fff, 0 6px 22px rgba(0,0,0,.45);
+  font-family: "DotGothic16", "MS Gothic", monospace; cursor: pointer;
+  -webkit-user-select: none; user-select: none; -webkit-tap-highlight-color: transparent;
+}
+#tourBox .tb-head { display: flex; align-items: center; gap: 10px; font-size: 13px; color: #ffd84a; margin-bottom: 6px; }
+#tourBox .tb-count { color: #aaa; font-size: 12px; }
+#tourBox .tb-close {
+  margin-left: auto; background: none; border: 0; color: #fff; font: inherit; font-size: 16px;
+  cursor: pointer; padding: 2px 6px;
+}
+#tourBox .tb-text {
+  font-size: 20px; line-height: 1.6; letter-spacing: .04em; white-space: pre-line;
+  min-height: calc(1.6em * 3);   /* 3行ぶん確保＝場面ごとに窓の高さが変わらない */
+}
+#tourBox .tb-nav { display: flex; align-items: center; justify-content: space-between; margin-top: 4px; min-height: 26px; }
+#tourBox .tb-prev { background: none; border: 0; color: #ccc; font: inherit; font-size: 14px; cursor: pointer; padding: 2px 0; }
+#tourBox .tb-next { font-size: 16px; animation: tb-blink 1s steps(1) infinite; }
+#tourBox.typing .tb-next { visibility: hidden; }
+#tourBox.last .tb-next::after { content: " おわり"; font-size: 14px; }
+@keyframes tb-blink { 50% { opacity: 0; } }
+
+.tour-ring {
+  width: 56px; height: 56px; box-sizing: border-box; border-radius: 50%;
+  border: 4px solid #ffd84a; box-shadow: 0 0 0 2px #000, inset 0 0 0 2px #000;
+  animation: tour-ring 1.4s ease-out infinite;
+}
+@keyframes tour-ring { 0% { transform: scale(.55); opacity: 1; } 100% { transform: scale(1.15); opacity: .15; } }
+.tour-point { animation: tour-bob .8s steps(2) infinite; }
+.tour-point svg { display: block; filter: drop-shadow(0 2px 0 rgba(0,0,0,.35)); }
+@keyframes tour-bob { 50% { transform: translateY(-6px); } }
+.tour-shape { animation: tour-ants 1.2s linear infinite; }
+@keyframes tour-ants { to { stroke-dashoffset: -28; } }
+
+@media (max-width: 760px) {
+  #tourBox { bottom: 10px; padding: 10px 14px 8px; }
+  #tourBox .tb-text { font-size: 16px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .tour-ring, .tour-point, .tour-shape, #tourBox .tb-next, .tour-start .ts-icon { animation: none; }
+}
+
 /* mobile：見どころ一覧・凡例は「下から出るボトムシート」に */
 @media (max-width: 760px) {
   /* シートは閉じても上端(--peek)だけ見せる＝一覧の存在が分かる。地図はその上までにして中心・ボタンがずれないように */
