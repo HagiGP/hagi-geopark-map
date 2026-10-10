@@ -513,12 +513,17 @@ function placeLabels(){
   };
   document.querySelectorAll(".area-label").forEach(el => {
     if (parseFloat(el.style.opacity || "1") < 0.1) return;   // 寄って消えているエリア名は無視
-    const R = toLayerRect(el); if (R) placed.push(R);
+    // 枠(160px固定)ではなく文字の実寸で登録（長い名前は枠からはみ出すため）
+    const rng = document.createRange(); rng.selectNodeContents(el);
+    const R = toLayerRect(rng); if (R) placed.push(R);
   });
-  // 地名（市町名）＝最優先。必ず表示し、障害物として登録する（他のラベルが避ける）
+  // 地名（市町名）＝エリア名に重なるものだけ隠し、残りは障害物として登録する（他のラベルが避ける）
+  const areaRects = placed.slice();
   document.querySelectorAll(".place-label").forEach(el => {
     el.style.display = "";
-    const R = toLayerRect(el); if (R) placed.push(R);
+    const R = toLayerRect(el); if (!R) return;
+    if (areaRects.some(q=> rectsOverlap(R,q,2))){ el.style.display = "none"; return; }
+    placed.push(R);
   });
   vis.slice().sort((a,b)=> b.prio-a.prio).forEach((v,i)=>{
     const own = dots.find(d=> d.x===v.x && d.y===v.y);
@@ -575,7 +580,7 @@ function injectLabelStyles(){
 }
 
 // ---- 読み込み ----
-const DATAV = "?d=26";   // geojson更新時にbump（ブラウザキャッシュ回避）
+const DATAV = "?d=28";   // geojson更新時にbump（ブラウザキャッシュ回避）
 const fetchGj = def => fetch("data/"+def.file+DATAV).then(r=>r.json());
 Promise.all([
   fetch("data/areas.geojson"+DATAV).then(r=>r.json()),
@@ -930,7 +935,7 @@ function buildSidebar(){
     const card = document.createElement("div"); card.className="area-card"; card.dataset.id=a.id;
     const head = document.createElement("div"); head.className="area-card-head";
     head.style.setProperty("--ac", a.color);
-    head.innerHTML = `<b>${esc(a.listName || a.name)}</b><span>${esc(a.theme)}</span>`;
+    head.innerHTML = `<b>${esc(a.name)}</b><span>${esc(a.theme)}</span>`;
     head.onclick = ()=> enterArea(a.id);
     card.appendChild(head);
 
