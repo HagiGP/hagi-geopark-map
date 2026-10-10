@@ -119,7 +119,7 @@ function showScene(i){
       // 写真の窓のぶんも空ける（PC＝右下、スマホ＝字幕の上）
       const padR = tour.photoOk[i] && !isMobile() ? 340 : 40;
       const padB2 = tour.photoOk[i] && isMobile() ? padB + 170 : padB;
-      tour.target = [b, { paddingTopLeft:[40,40], paddingBottomRight:[padR,padB2], maxZoom:14 }];
+      tour.target = [b, { paddingTopLeft:[50,80], paddingBottomRight:[padR,padB2], maxZoom:14 }];
       map.flyToBounds(b, { ...tour.target[1], duration:1.0 });
     }
   }
