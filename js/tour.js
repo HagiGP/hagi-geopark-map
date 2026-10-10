@@ -119,7 +119,7 @@ function showScene(i){
     const b = L.latLngBounds([]);
     sc.fit.forEach(n=>{ const t = tourTarget(n); if (t) b.extend(t); });
     if (b.isValid()){
-      const padB = box.offsetHeight + 24;
+      const padB = box.offsetHeight + 60;   // 字幕の窓＋名札・矢じりが窓に隠れないぶん
       // 写真の窓のぶんも空ける（PC＝右下、スマホ＝字幕の上）
       const padR = tour.photoOk[i] && !isMobile() ? 340 : 40;
       const padB2 = tour.photoOk[i] && isMobile() ? padB + 170 : padB;
@@ -178,8 +178,10 @@ function drawSceneMarks(sc){
   (sc.shape||[]).forEach(id=>{
     const f = tour.shapes[id]; if (!f) return;
     const color = f.properties.color || "#d9481c";   // 既定は溶岩の赤橙
+    const pr = f.properties, outline = pr.outline !== false;   // 図形ごとに濃さ・枠線を変えられる
     L.geoJSON(f, { interactive:false, pane:"tourShapePane",
-      style:{ color, weight:3, dashArray:"8 6", fillColor:color, fillOpacity:.28, className:"tour-shape" } }).addTo(tour.layer);
+      style:{ color, weight: outline ? 3 : 0, dashArray:"8 6", fillColor:color, fillOpacity: pr.fillOpacity ?? .28,
+              className: outline ? "tour-shape" : "" } }).addTo(tour.layer);
   });
   if (sc.line && tour.shapes[sc.line]){
     const ln = L.geoJSON(tour.shapes[sc.line], { interactive:false, pane:"tourShapePane",

@@ -184,17 +184,18 @@
             ]
           },
           {
-            "text": "約1500万年前、このあたりは海の中でした。",
+            "text": "約1500万年前、このあたり一帯は海の中でした。",
             "fit": [
               "susa_strata",
+              "takayama_gabbro",
               "山島"
             ],
             "shape": [
-              "susa_strata"
+              "ancient_sea"
             ]
           },
           {
-            "text": "その証拠が、礫岩層・砂岩層・砂泥互層。\nこの大地は、海の底でできた地層でできているのです。",
+            "text": "その証拠が、今も残る礫岩層・砂岩層・砂泥互層。\nこの大地は、海の底でできた地層でできているのです。",
             "fit": [
               "susa_strata"
             ],
@@ -212,6 +213,7 @@
             "text": "当時の海では、海底火山の活動がさかんでした。",
             "fit": [
               "山島",
+              "susa_strata",
               "takayama_gabbro"
             ],
             "ring": [
@@ -222,9 +224,11 @@
           {
             "text": "活動が終わったあと、その地下にあったマグマだまりが\n隆起してできた山。それが、高山です。",
             "fit": [
+              "susa_strata",
               "takayama_gabbro"
             ],
             "shape": [
+              "susa_strata",
               "takayama_gabbro"
             ],
             "point": "高山磁石石",
@@ -233,11 +237,13 @@
           {
             "text": "高山の両側には、2つの入り江ができました。\n須佐湾と江崎湾です。",
             "fit": [
+              "susa_strata",
               "takayama_gabbro",
               [34.6285, 131.594],
               [34.6485, 131.645]
             ],
             "shape": [
+              "susa_strata",
               "takayama_gabbro"
             ],
             "label": [
@@ -252,27 +258,28 @@
             ]
           },
           {
-            "text": "高山の沖、山島のまわりは、複雑な海底地形。\nイカがよくとれる漁場です。",
+            "text": "高山の沖、山島などの島々のまわりは、複雑な海底地形。\nイカがよくとれる漁場です。",
             "fit": [
-              "山島",
-              [34.67, 131.5985],
-              "高山磁石石"
+              "ika_ground"
             ],
-            "ring": [
-              "山島"
+            "shape": [
+              "ika_ground"
             ],
             "label": [
               {
                 "text": "高山沖",
-                "at": [34.664, 131.588]
+                "at": [34.669, 131.589]
               }
             ]
           },
           {
             "text": "そして、真冬でも波が立たない天然の良港・須佐湾がすぐ近く。\nだから、イカを生きたまま水揚げできるのです。",
             "fit": [
-              "山島",
+              "ika_ground",
               [34.6285, 131.594]
+            ],
+            "shape": [
+              "ika_ground"
             ],
             "line": "ika_route",
             "label": [
@@ -289,6 +296,7 @@
               "takayama_gabbro"
             ],
             "shape": [
+              "susa_strata",
               "takayama_gabbro"
             ],
             "point": "高山展望台"
