@@ -8,6 +8,9 @@
      line  流れを描く線の図形id（アニメーションで描く）
      ring  丸で囲むサイト名の配列
      point 指差す（▼）サイト名
+     label 地名ラベル [{ "text":"須佐湾", "at":[緯度,経度] }]
+     photo 写真（サイト名 or 画像パス。false で出さない。省略時は point のサイトの写真）
+   fit・ring などの名前の代わりに [緯度,経度] も使える
    操作：窓をタップ／→・Space・Enter・PageDown＝次へ、←・PageUp＝戻る、Esc＝終わる（講演のプレゼンリモコン対応） */
 
 const tourShapes = {};            // エリアid → { 図形id: Leaflet用GeoJSON feature }
@@ -94,6 +97,7 @@ document.addEventListener("keydown", e=>{
 
 // 名前（サイト名 or 図形id）→ 位置・範囲
 function tourTarget(name){
+  if (Array.isArray(name)) return L.latLng(name[0], name[1]);   // [緯度, 経度] の直接指定
   const f = tour.shapes[name];
   if (f) return L.geoJSON(f).getBounds();
   const o = allMarkers.find(x=> x.name === name);
@@ -209,6 +213,10 @@ function drawSceneMarks(sc){
     const o = allMarkers.find(x=> x.name === n); if (!o) return;
     L.marker(o.marker.getLatLng(), { interactive:false, pane:"tourPane", keyboard:false,
       icon:L.divIcon({ className:"", iconSize:[56,56], iconAnchor:[28,28], html:`<div class="tour-ring"></div>` }) }).addTo(tour.layer);
+  });
+  (sc.label||[]).forEach(lb=>{   // 地名ラベル（例：{"text":"須佐湾","at":[34.628,131.594]}）
+    L.marker(lb.at, { interactive:false, pane:"tourPane", keyboard:false,
+      icon:L.divIcon({ className:"", iconSize:null, iconAnchor:[0,0], html:`<div class="tour-label">${esc(lb.text)}</div>` }) }).addTo(tour.layer);
   });
   if (sc.point){
     const o = allMarkers.find(x=> x.name === sc.point);

@@ -375,6 +375,13 @@ body.touring .leaflet-control-zoom, body.touring #sidebarToggle, body.touring .a
 @keyframes tour-pop { from { transform: scale(.6); opacity: 0; } }
 
 .tour-arrow svg { display: block; overflow: visible; filter: drop-shadow(0 1px 2px rgba(0,0,0,.5)); }
+.tour-label {
+  transform: translate(-50%,-50%); white-space: nowrap;
+  font: 15px/1 "DotGothic16", monospace; letter-spacing: .1em; color: #fff;
+  background: #1b3f73; padding: 5px 9px 4px; border-radius: 3px;
+  box-shadow: inset 0 0 0 2px #1b3f73, inset 0 0 0 3.5px #fff, 0 2px 6px rgba(0,0,0,.35);
+  animation: tour-pop .25s steps(3);
+}
 .tour-ring {
   width: 56px; height: 56px; box-sizing: border-box; border-radius: 50%;
   border: 4px solid #ffd84a; box-shadow: 0 0 0 2px #000, inset 0 0 0 2px #000;
