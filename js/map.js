@@ -575,7 +575,7 @@ function injectLabelStyles(){
 }
 
 // ---- 読み込み ----
-const DATAV = "?d=25";   // geojson更新時にbump（ブラウザキャッシュ回避）
+const DATAV = "?d=26";   // geojson更新時にbump（ブラウザキャッシュ回避）
 const fetchGj = def => fetch("data/"+def.file+DATAV).then(r=>r.json());
 Promise.all([
   fetch("data/areas.geojson"+DATAV).then(r=>r.json()),
@@ -930,7 +930,7 @@ function buildSidebar(){
     const card = document.createElement("div"); card.className="area-card"; card.dataset.id=a.id;
     const head = document.createElement("div"); head.className="area-card-head";
     head.style.setProperty("--ac", a.color);
-    head.innerHTML = `<b>${esc(a.name)}</b><span>${esc(a.theme)}</span>`;
+    head.innerHTML = `<b>${esc(a.listName || a.name)}</b><span>${esc(a.theme)}</span>`;
     head.onclick = ()=> enterArea(a.id);
     card.appendChild(head);
 
