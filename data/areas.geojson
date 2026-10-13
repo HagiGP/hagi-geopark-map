@@ -42,25 +42,33 @@
             "text": "町が築かれているのは、阿武川がつくった三角州の上。\n海側には、冬に北西から吹く季節風がつくった砂丘があります。",
             "fit": [
               "hagi_dune",
-              "hagi_lowland"
+              "hagi_lowland",
+              [34.37, 131.44]
             ],
             "shape": [
               "hagi_dune",
               "hagi_lowland"
             ],
             "line": [
+              "river_abu",
+              "river_matsumoto",
+              "river_hashimoto",
               "wind1",
               "wind2",
               "wind3"
             ],
             "label": [
               {
-                "text": "砂丘",
-                "at": [34.4205, 131.3905]
+                "text": "阿武川",
+                "at": [34.38, 131.43]
+              },
+              {
+                "text": "季節風",
+                "at": [34.4335, 131.3735]
               },
               {
                 "text": "三角州",
-                "at": [34.4075, 131.4045]
+                "at": [34.4075, 131.399]
               }
             ]
           },
@@ -71,8 +79,8 @@
               "hagi_lowland"
             ],
             "shape": [
-              "delta_high",
-              "delta_low"
+              "delta_all",
+              "low_ellipse"
             ],
             "label": [
               {
@@ -81,7 +89,7 @@
               },
               {
                 "text": "ハス田",
-                "at": [34.4085, 131.397]
+                "at": [34.408, 131.397]
               }
             ],
             "point": "土原のハス田"
@@ -147,13 +155,17 @@
           {
             "text": "平らな火山の上は、日当たりも水はけもよく、果樹や野菜の畑に。\n水がわき出るふもとでは、米づくり。",
             "fit": [
-              "abu_volcanoes"
+              "hagi_dune",
+              "hagi_lowland",
+              [34.445, 131.455],
+              [34.385, 131.355]
             ],
             "shape": [
               "abu_volcanoes"
             ],
             "photo": "img/tour/daichi_nougyou.jpg",
-            "photoCaption": "模式図"
+            "photoCaption": "模式図",
+            "shapeOpacity": 0.3
           },
           {
             "text": "海に沈んだ火山は、魚の集まる岩場「瀬」に。\n定置網や巻き網で魚がたくさんとれ、\n瀬にとどまって脂がのったアジは「瀬付きアジ」と呼ばれています。",

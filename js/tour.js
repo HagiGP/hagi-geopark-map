@@ -4,7 +4,7 @@
    場面のキー：
      text  字幕（改行で行を分ける）
      fit   地図に収めるもの（サイト名 or 図形id の配列）。省略時は前の場面の表示のまま
-     shape 塗って示す図形id の配列（溶岩の範囲など）
+     shape 塗って示す図形id の配列（溶岩の範囲など）。shapeOpacity で塗りの濃さを場面ごとに上書き
      line  流れを描く線の図形id（アニメーションで描く）。配列で複数本も可
      ring  丸で囲むサイト名の配列
      point 指差す（▼）サイト名
@@ -181,17 +181,18 @@ function drawSceneMarks(sc){
     const color = f.properties.color || "#d9481c";   // 既定は溶岩の赤橙
     const pr = f.properties, outline = pr.outline !== false;   // 図形ごとに濃さ・枠線を変えられる
     L.geoJSON(f, { interactive:false, pane:"tourShapePane",
-      style:{ color, weight: outline ? 3 : 0, dashArray:"8 6", fillColor:color, fillOpacity: pr.fillOpacity ?? .28,
+      style:{ color, weight: outline ? 3 : 0, dashArray:"8 6", fillColor:color, fillOpacity: sc.shapeOpacity ?? pr.fillOpacity ?? .28,
               className: outline ? "tour-shape" : "" } }).addTo(tour.layer);
   });
   [].concat(sc.line || []).filter(id=> tour.shapes[id]).forEach(id=>{
+    const lc = tour.shapes[id].properties.color || "#b3200f";   // 線の色（既定は赤。川は青など）
     const ln = L.geoJSON(tour.shapes[id], { interactive:false, pane:"tourShapePane",
-      style:{ color:"#b3200f", weight:6, opacity:.95, lineCap:"round", className:"tour-line" } }).addTo(tour.layer);
+      style:{ color:lc, weight:6, opacity:.95, lineCap:"round", className:"tour-line" } }).addTo(tour.layer);
     ln.eachLayer(l=>{   // 線を始点から描き、先端の矢じりを一緒に進める
       const p = l.getElement(); if (!p) return;
       const along = lineSampler(l.getLatLngs());
       const short = along.px < 260;   // 短い矢印（季節風など）は小さめ・途中の矢じりなし
-      const head = arrowMarker(along(0), short ? 34 : 44).addTo(tour.layer);
+      const head = arrowMarker(along(0), short ? 34 : 44, lc).addTo(tour.layer);
       const len = p.getTotalLength(); p.style.strokeDasharray = len; p.style.strokeDashoffset = len;
       const D = short ? 1400 : 3200, t0 = performance.now(), sceneNo = tour.i;
       const ease = t=> t<.5 ? 2*t*t : 1-Math.pow(-2*t+2,2)/2;
@@ -200,7 +201,7 @@ function drawSceneMarks(sc){
         // 描き終えたら破線指定を外す（途中でズームされて長さが変わっても、確実に全体が見えるように）
         p.style.strokeDasharray = ""; p.style.strokeDashoffset = "";
         setArrow(head, along(1));
-        if (!short) [.25,.5,.75].forEach(f=> arrowMarker(along(f), 30).addTo(tour.layer));   // 途中にも向きを示す矢じり
+        if (!short) [.25,.5,.75].forEach(f=> arrowMarker(along(f), 30, lc).addTo(tour.layer));   // 途中にも向きを示す矢じり
       };
       const step = now=>{
         if (!tour || tour.i !== sceneNo || head._done) return;
@@ -246,11 +247,11 @@ function lineSampler(lls){
   fn.px = total; return fn;
 }
 // 矢じり（右向きの三角を進行方向へ回す。白縁で地図の上でも見える）
-function arrowMarker(pos, size){
+function arrowMarker(pos, size, color = "#b3200f"){
   const m = L.marker(pos.latlng, { interactive:false, pane:"tourPane", keyboard:false,
     icon: L.divIcon({ className:"", iconSize:[size,size], iconAnchor:[size/2,size/2],
       html:`<div class="tour-arrow" style="transform:rotate(${pos.deg}deg)"><svg viewBox="0 0 20 20" width="${size}" height="${size}">`+
-           `<path d="M3 3 L18 10 L3 17 L7 10 Z" fill="#b3200f" stroke="#fff" stroke-width="2.2" stroke-linejoin="round"/></svg></div>` }) });
+           `<path d="M3 3 L18 10 L3 17 L7 10 Z" fill="${color}" stroke="#fff" stroke-width="2.2" stroke-linejoin="round"/></svg></div>` }) });
   return m;
 }
 function setArrow(m, pos){
