@@ -43,13 +43,18 @@
             "fit": [
               "hagi_dune",
               "hagi_lowland",
-              [34.37, 131.44]
+              [34.379, 131.4396]
             ],
             "shape": [
               "hagi_dune",
               "hagi_lowland"
             ],
-            "line": [[ "river_abu", "wind1", "wind2", "wind3" ], [ "river_matsumoto", "river_hashimoto" ]],
+            "line": [
+              "river_abu",
+              "wind1",
+              "wind2",
+              "wind3"
+            ],
             "label": [
               {
                 "text": "阿武川",
@@ -82,7 +87,7 @@
               },
               {
                 "text": "ハス田",
-                "at": [34.4078, 131.399]
+                "at": [34.4083, 131.399]
               }
             ],
             "point": "土原のハス田"
