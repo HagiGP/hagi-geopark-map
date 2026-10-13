@@ -5,7 +5,7 @@
      text  字幕（改行で行を分ける）
      fit   地図に収めるもの（サイト名 or 図形id の配列）。省略時は前の場面の表示のまま
      shape 塗って示す図形id の配列（溶岩の範囲など）
-     line  流れを描く線の図形id（アニメーションで描く）
+     line  流れを描く線の図形id（アニメーションで描く）。配列で複数本も可
      ring  丸で囲むサイト名の配列
      point 指差す（▼）サイト名
      label 地名ラベル [{ "text":"須佐湾", "at":[緯度,経度] }]
@@ -121,7 +121,7 @@ function showScene(i){
     if (b.isValid()){
       const padB = box.offsetHeight + 60;   // 字幕の窓＋名札・矢じりが窓に隠れないぶん
       // 写真の窓のぶんも空ける（PC＝右下、スマホ＝字幕の上）
-      const padR = tour.photoOk[i] && !isMobile() ? 340 : 40;
+      const padR = tour.photoOk[i] && !isMobile() ? (innerWidth - box.offsetWidth) / 2 + photoWidth(sc) + 30 : 40;
       const padB2 = tour.photoOk[i] && isMobile() ? padB + 170 : padB;
       tour.target = [b, { paddingTopLeft:[50,80], paddingBottomRight:[padR,padB2], maxZoom:14 }];
       map.flyToBounds(b, { ...tour.target[1], duration:1.0 });
@@ -152,9 +152,10 @@ function showScene(i){
 function scenePhoto(sc){
   if (sc.photo === false) return null;
   const p = sc.photo || sc.point; if (!p) return null;
-  const isPath = /[\/.]/.test(p) && /\.(jpe?g|png|webp)$/i.test(p);
-  return { src: isPath ? p : photoSrc(p), caption: sc.photoCaption || (isPath ? "" : p) };
+  const isPath = /[\/.]/.test(p) && /\.(jpe?g|png|webp|svg)$/i.test(p);
+  return { src: isPath ? p : photoSrc(p), caption: sc.photoCaption || (isPath ? "" : p), diagram: /^img\/tour\//.test(p) };   // img/tour/ の図（模式図）は切り取らず全体を見せる
 }
+const photoWidth = sc=> scenePhoto(sc)?.diagram ? 380 : 300;   // 模式図は少し大きめ（CSSと合わせる）
 function hidePhoto(){ document.querySelectorAll("#tourPhoto").forEach(el=> el.remove()); }
 function showPhoto(sc, i){
   const ph = scenePhoto(sc); if (!ph) return;
@@ -162,7 +163,7 @@ function showPhoto(sc, i){
   img.onload = ()=>{
     if (!tour || tour.i !== i) return;
     hidePhoto();
-    const w = document.createElement("figure"); w.id = "tourPhoto";
+    const w = document.createElement("figure"); w.id = "tourPhoto"; if (ph.diagram) w.className = "diagram";
     w.innerHTML = `<img alt="">`+(ph.caption ? `<figcaption></figcaption>` : "");
     w.querySelector("img").src = ph.src;
     if (ph.caption) w.querySelector("figcaption").textContent = ph.caption;
@@ -183,22 +184,23 @@ function drawSceneMarks(sc){
       style:{ color, weight: outline ? 3 : 0, dashArray:"8 6", fillColor:color, fillOpacity: pr.fillOpacity ?? .28,
               className: outline ? "tour-shape" : "" } }).addTo(tour.layer);
   });
-  if (sc.line && tour.shapes[sc.line]){
-    const ln = L.geoJSON(tour.shapes[sc.line], { interactive:false, pane:"tourShapePane",
+  [].concat(sc.line || []).filter(id=> tour.shapes[id]).forEach(id=>{
+    const ln = L.geoJSON(tour.shapes[id], { interactive:false, pane:"tourShapePane",
       style:{ color:"#b3200f", weight:6, opacity:.95, lineCap:"round", className:"tour-line" } }).addTo(tour.layer);
     ln.eachLayer(l=>{   // 線を始点から描き、先端の矢じりを一緒に進める
       const p = l.getElement(); if (!p) return;
       const along = lineSampler(l.getLatLngs());
-      const head = arrowMarker(along(0), 44).addTo(tour.layer);
+      const short = along.px < 260;   // 短い矢印（季節風など）は小さめ・途中の矢じりなし
+      const head = arrowMarker(along(0), short ? 34 : 44).addTo(tour.layer);
       const len = p.getTotalLength(); p.style.strokeDasharray = len; p.style.strokeDashoffset = len;
-      const D = 3200, t0 = performance.now(), sceneNo = tour.i;
+      const D = short ? 1400 : 3200, t0 = performance.now(), sceneNo = tour.i;
       const ease = t=> t<.5 ? 2*t*t : 1-Math.pow(-2*t+2,2)/2;
       const finish = ()=>{
         if (!tour || tour.i !== sceneNo || head._done) return; head._done = true;
         // 描き終えたら破線指定を外す（途中でズームされて長さが変わっても、確実に全体が見えるように）
         p.style.strokeDasharray = ""; p.style.strokeDashoffset = "";
         setArrow(head, along(1));
-        [.25,.5,.75].forEach(f=> arrowMarker(along(f), 30).addTo(tour.layer));   // 途中にも向きを示す矢じり
+        if (!short) [.25,.5,.75].forEach(f=> arrowMarker(along(f), 30).addTo(tour.layer));   // 途中にも向きを示す矢じり
       };
       const step = now=>{
         if (!tour || tour.i !== sceneNo || head._done) return;
@@ -210,7 +212,7 @@ function drawSceneMarks(sc){
       requestAnimationFrame(step);
       setTimeout(finish, D + 300);   // 画面が裏にある等で描画が止まっても最後は必ず完成形に
     });
-  }
+  });
   (sc.ring||[]).forEach(n=>{   // サイト名 or [緯度,経度]
     const ll = Array.isArray(n) ? L.latLng(n[0], n[1]) : allMarkers.find(x=> x.name === n)?.marker.getLatLng();
     if (!ll) return;
@@ -234,13 +236,14 @@ function lineSampler(lls){
   const z = map.getZoom(), pts = lls.map(ll=> map.project(ll, z));
   const cum = [0]; for (let k=1; k<pts.length; k++) cum.push(cum[k-1] + pts[k].distanceTo(pts[k-1]));
   const total = cum[cum.length-1] || 1;
-  return f=>{
+  const fn = f=>{
     const d = Math.max(0, Math.min(1, f)) * total;
     let k = 1; while (k < pts.length-1 && cum[k] < d) k++;
     const a = pts[k-1], b = pts[k], seg = (cum[k]-cum[k-1]) || 1, r = (d - cum[k-1]) / seg;
     const pt = L.point(a.x + (b.x-a.x)*r, a.y + (b.y-a.y)*r);
     return { latlng: map.unproject(pt, z), deg: Math.atan2(b.y-a.y, b.x-a.x) * 180 / Math.PI };
   };
+  fn.px = total; return fn;
 }
 // 矢じり（右向きの三角を進行方向へ回す。白縁で地図の上でも見える）
 function arrowMarker(pos, size){

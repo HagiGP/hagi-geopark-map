@@ -371,6 +371,8 @@ body.touring .leaflet-control-zoom, body.touring #sidebarToggle, body.touring .a
 #tourPhoto img { display: block; width: 100%; height: auto; max-height: 220px; object-fit: cover; border-radius: 2px; }
 #tourPhoto figcaption { font: 13px/1.4 "DotGothic16", monospace; color: #ffd84a; padding: 5px 4px 0; }
 #tourPhoto.big { width: min(720px, calc(100% - 24px)); cursor: zoom-out; }
+#tourPhoto.diagram { width: 380px; }
+#tourPhoto.diagram img { max-height: none; object-fit: contain; background: #fff; }
 #tourPhoto.big img { max-height: 60vh; object-fit: contain; }
 @keyframes tour-pop { from { transform: scale(.6); opacity: 0; } }
 
@@ -399,6 +401,8 @@ body.touring .leaflet-control-zoom, body.touring #sidebarToggle, body.touring .a
   #tourBox .tb-text { font-size: 16px; }
   #tourPhoto { left: 50%; right: auto; transform: translateX(-50%); width: min(260px, calc(100% - 24px)); animation: none; }
   #tourPhoto img { max-height: 130px; }
+  #tourPhoto.diagram { width: min(300px, calc(100% - 24px)); }
+  #tourPhoto.diagram img { max-height: 170px; }
   #tourPhoto.big { width: calc(100% - 24px); }
   #tourPhoto.big img { max-height: 50vh; }
 }
