@@ -211,9 +211,10 @@ function drawSceneMarks(sc){
       setTimeout(finish, D + 300);   // 画面が裏にある等で描画が止まっても最後は必ず完成形に
     });
   }
-  (sc.ring||[]).forEach(n=>{
-    const o = allMarkers.find(x=> x.name === n); if (!o) return;
-    L.marker(o.marker.getLatLng(), { interactive:false, pane:"tourPane", keyboard:false,
+  (sc.ring||[]).forEach(n=>{   // サイト名 or [緯度,経度]
+    const ll = Array.isArray(n) ? L.latLng(n[0], n[1]) : allMarkers.find(x=> x.name === n)?.marker.getLatLng();
+    if (!ll) return;
+    L.marker(ll, { interactive:false, pane:"tourPane", keyboard:false,
       icon:L.divIcon({ className:"", iconSize:[56,56], iconAnchor:[28,28], html:`<div class="tour-ring"></div>` }) }).addTo(tour.layer);
   });
   (sc.label||[]).forEach(lb=>{   // 地名ラベル（例：{"text":"須佐湾","at":[34.628,131.594]}）
