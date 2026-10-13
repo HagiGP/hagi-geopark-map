@@ -5,7 +5,7 @@
      text  字幕（改行で行を分ける）
      fit   地図に収めるもの（サイト名 or 図形id の配列）。省略時は前の場面の表示のまま
      shape 塗って示す図形id の配列（溶岩の範囲など）。shapeOpacity で塗りの濃さを場面ごとに上書き
-     line  流れを描く線の図形id（アニメーションで描く）。配列で複数本も可
+     line  流れを描く線の図形id（アニメーションで描く）。配列で複数本も可。配列の配列なら組ごとに順番に描く
      ring  丸で囲むサイト名の配列
      point 指差す（▼）サイト名
      label 地名ラベル [{ "text":"須佐湾", "at":[緯度,経度] }]
@@ -118,6 +118,7 @@ function showScene(i){
   if (sc.fit && sc.fit.length){
     const b = L.latLngBounds([]);
     sc.fit.forEach(n=>{ const t = tourTarget(n); if (t) b.extend(t); });
+    (sc.label||[]).forEach(lb=> b.extend(lb.at));   // 名札も必ず画面に入れる
     if (b.isValid()){
       const padB = box.offsetHeight + 60;   // 字幕の窓＋名札・矢じりが窓に隠れないぶん
       // 写真の窓のぶんも空ける（PC＝右下、スマホ＝字幕の上）
@@ -184,35 +185,14 @@ function drawSceneMarks(sc){
       style:{ color, weight: outline ? 3 : 0, dashArray:"8 6", fillColor:color, fillOpacity: sc.shapeOpacity ?? pr.fillOpacity ?? .28,
               className: outline ? "tour-shape" : "" } }).addTo(tour.layer);
   });
-  [].concat(sc.line || []).filter(id=> tour.shapes[id]).forEach(id=>{
-    const lc = tour.shapes[id].properties.color || "#b3200f";   // 線の色（既定は赤。川は青など）
-    const ln = L.geoJSON(tour.shapes[id], { interactive:false, pane:"tourShapePane",
-      style:{ color:lc, weight:6, opacity:.95, lineCap:"round", className:"tour-line" } }).addTo(tour.layer);
-    ln.eachLayer(l=>{   // 線を始点から描き、先端の矢じりを一緒に進める
-      const p = l.getElement(); if (!p) return;
-      const along = lineSampler(l.getLatLngs());
-      const short = along.px < 260;   // 短い矢印（季節風など）は小さめ・途中の矢じりなし
-      const head = arrowMarker(along(0), short ? 34 : 44, lc).addTo(tour.layer);
-      const len = p.getTotalLength(); p.style.strokeDasharray = len; p.style.strokeDashoffset = len;
-      const D = short ? 1400 : 3200, t0 = performance.now(), sceneNo = tour.i;
-      const ease = t=> t<.5 ? 2*t*t : 1-Math.pow(-2*t+2,2)/2;
-      const finish = ()=>{
-        if (!tour || tour.i !== sceneNo || head._done) return; head._done = true;
-        // 描き終えたら破線指定を外す（途中でズームされて長さが変わっても、確実に全体が見えるように）
-        p.style.strokeDasharray = ""; p.style.strokeDashoffset = "";
-        setArrow(head, along(1));
-        if (!short) [.25,.5,.75].forEach(f=> arrowMarker(along(f), 30, lc).addTo(tour.layer));   // 途中にも向きを示す矢じり
-      };
-      const step = now=>{
-        if (!tour || tour.i !== sceneNo || head._done) return;
-        const e = ease(Math.min(1, (now - t0) / D));
-        p.style.strokeDashoffset = len * (1 - e);
-        setArrow(head, along(e));
-        if (e < 1) requestAnimationFrame(step); else finish();
-      };
-      requestAnimationFrame(step);
-      setTimeout(finish, D + 300);   // 画面が裏にある等で描画が止まっても最後は必ず完成形に
-    });
+  // 線は配列の配列で「組」に分けると、組ごとに順番に描く（例：[["本流"],["支流A","支流B"]]）
+  const groups = [].concat(sc.line || []).some(Array.isArray)
+    ? sc.line.map(g=> [].concat(g)) : [[].concat(sc.line || [])];
+  let delay = 0;
+  groups.forEach(g=>{
+    let dur = 0;
+    g.filter(id=> tour.shapes[id]).forEach(id=>{ dur = Math.max(dur, drawArrowLine(id, delay)); });
+    delay += dur;
   });
   (sc.ring||[]).forEach(n=>{   // サイト名 or [緯度,経度]
     const ll = Array.isArray(n) ? L.latLng(n[0], n[1]) : allMarkers.find(x=> x.name === n)?.marker.getLatLng();
@@ -229,6 +209,43 @@ function drawSceneMarks(sc){
     if (o) L.marker(o.marker.getLatLng(), { interactive:false, pane:"tourPane", keyboard:false,
       icon:L.divIcon({ className:"", iconSize:[36,36], iconAnchor:[18,46], html:`<div class="tour-point">${POINTER_SVG}</div>` }) }).addTo(tour.layer);
   }
+}
+
+// 線を始点から描き、先端の矢じりを一緒に進める。delay ms 後に描き始め、描き終わるまでの時間(ms)を返す
+function drawArrowLine(id, delay){
+  const lc = tour.shapes[id].properties.color || "#b3200f";   // 線の色（既定は赤。川は青など）
+  const ln = L.geoJSON(tour.shapes[id], { interactive:false, pane:"tourShapePane",
+    style:{ color:lc, weight:6, opacity:.95, lineCap:"round", className:"tour-line" } }).addTo(tour.layer);
+  let total = 0;
+  ln.eachLayer(l=>{
+    const p = l.getElement(); if (!p) return;
+    const along = lineSampler(l.getLatLngs());
+    const short = along.px < 260;   // 短い矢印（季節風など）は小さめ・途中の矢じりなし
+    const len = p.getTotalLength(); p.style.strokeDasharray = len; p.style.strokeDashoffset = len;   // 描き始めるまで隠す
+    const D = short ? 1400 : 3200, sceneNo = tour.i; total = Math.max(total, D);
+    const ease = t=> t<.5 ? 2*t*t : 1-Math.pow(-2*t+2,2)/2;
+    setTimeout(()=>{
+      if (!tour || tour.i !== sceneNo) return;
+      const head = arrowMarker(along(0), short ? 34 : 44, lc).addTo(tour.layer), t0 = performance.now();
+      const finish = ()=>{
+        if (!tour || tour.i !== sceneNo || head._done) return; head._done = true;
+        // 描き終えたら破線指定を外す（途中でズームされて長さが変わっても、確実に全体が見えるように）
+        p.style.strokeDasharray = ""; p.style.strokeDashoffset = "";
+        setArrow(head, along(1));
+        if (!short) [.25,.5,.75].forEach(f=> arrowMarker(along(f), 30, lc).addTo(tour.layer));   // 途中にも向きを示す矢じり
+      };
+      const step = now=>{
+        if (!tour || tour.i !== sceneNo || head._done) return;
+        const e = ease(Math.min(1, (now - t0) / D));
+        p.style.strokeDashoffset = len * (1 - e);
+        setArrow(head, along(e));
+        if (e < 1) requestAnimationFrame(step); else finish();
+      };
+      requestAnimationFrame(step);
+      setTimeout(finish, D + 300);   // 画面が裏にある等で描画が止まっても最後は必ず完成形に
+    }, delay);
+  });
+  return total;
 }
 
 // 線上の位置（0〜1）→ { latlng, deg（進行方向。画面上の角度） }

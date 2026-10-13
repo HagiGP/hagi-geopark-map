@@ -49,14 +49,7 @@
               "hagi_dune",
               "hagi_lowland"
             ],
-            "line": [
-              "river_abu",
-              "river_matsumoto",
-              "river_hashimoto",
-              "wind1",
-              "wind2",
-              "wind3"
-            ],
+            "line": [[ "river_abu", "wind1", "wind2", "wind3" ], [ "river_matsumoto", "river_hashimoto" ]],
             "label": [
               {
                 "text": "阿武川",
@@ -64,7 +57,7 @@
               },
               {
                 "text": "季節風",
-                "at": [34.4335, 131.3735]
+                "at": [34.432, 131.381]
               },
               {
                 "text": "三角州",
@@ -89,7 +82,7 @@
               },
               {
                 "text": "ハス田",
-                "at": [34.408, 131.397]
+                "at": [34.4078, 131.399]
               }
             ],
             "point": "土原のハス田"
