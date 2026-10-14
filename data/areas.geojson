@@ -508,7 +508,122 @@
         ],
         "color": "#8a6bb0",
         "labelLon": 131.66,
-        "labelLat": 34.3675
+        "labelLat": 34.3675,
+        "tour": [
+          {
+            "text": "ここは「徳佐盆地と長門峡」。\n徳佐は、西日本では珍しいりんごの産地。そして米どころです。\n山あいの涼しさと、昼と夜の寒暖差が、りんごを育てます。",
+            "fit": [
+              "tokusa_basin"
+            ],
+            "shape": [
+              "tokusa_basin"
+            ]
+          },
+          {
+            "text": "山あいの奥に、なぜこれほど広くて平らな土地があるのでしょう？\n実はここ、かつて湖の底でした。",
+            "fit": [
+              "tokusa_basin"
+            ],
+            "shape": [
+              "tokusa_basin"
+            ]
+          },
+          {
+            "text": "昔、ここには北東へ流れる川がありました。",
+            "fit": [
+              "old_river"
+            ],
+            "line": "old_river"
+          },
+          {
+            "text": "数十万年前、川の途中で粘り気の強いマグマがふき出し、\n青野山や野坂山など、お椀をふせたような形の火山ができました。\n「青野山火山群」です。",
+            "fit": [
+              "aonoyama_volcanoes",
+              "tokusa_basin"
+            ],
+            "shape": [
+              "aonoyama_volcanoes"
+            ],
+            "point": "野坂山",
+            "label": [
+              {
+                "text": "青野山火山群",
+                "at": [34.472, 131.795]
+              }
+            ]
+          },
+          {
+            "text": "川はせき止められ、大きな湖「古徳佐湖」が生まれました。\nまわりの山から流れ込んだ土砂が、湖の底に厚くたまっていきます。",
+            "fit": [
+              "kotokusa_lake",
+              "aonoyama_volcanoes"
+            ],
+            "shape": [
+              "kotokusa_lake",
+              "aonoyama_volcanoes"
+            ],
+            "label": [
+              {
+                "text": "古徳佐湖",
+                "at": [34.39, 131.705]
+              }
+            ]
+          },
+          {
+            "text": "やがて湖の水は、南西の端の丁字川出合淵から抜けていきました。\n南北から来た川がぶつかり、長門峡へ流れ込む不思議な場所です。",
+            "fit": [
+              "kotokusa_lake",
+              "丁字川出合淵"
+            ],
+            "shape": [
+              "kotokusa_lake"
+            ],
+            "shapeOpacity": 0.3,
+            "line": "drain_to_deai",
+            "point": "丁字川出合淵"
+          },
+          {
+            "text": "抜けた水は北西へ流れ、岩盤を深く削って\n渓谷「長門峡」をつくりました。",
+            "fit": [
+              "chomonkyo"
+            ],
+            "line": "chomonkyo",
+            "label": [
+              {
+                "text": "長門峡",
+                "at": [34.328, 131.552]
+              }
+            ]
+          },
+          {
+            "text": "その流れは日本海へ。\n河口にたまった土砂がつくったのが、萩城下町の三角州です。",
+            "fit": [
+              "to_delta"
+            ],
+            "line": "to_delta",
+            "label": [
+              {
+                "text": "萩三角州",
+                "at": [34.41, 131.398]
+              },
+              {
+                "text": "長門峡",
+                "at": [34.328, 131.552]
+              }
+            ]
+          },
+          {
+            "text": "火山と川の出合いが、山口県有数の米どころを生み、\n萩城下町の土台もつくったのです。\n船平山展望台から、消えた湖を見わたしてみよう！",
+            "fit": [
+              "tokusa_basin",
+              "船平山展望台"
+            ],
+            "shape": [
+              "tokusa_basin"
+            ],
+            "point": "船平山展望台"
+          }
+        ]
       },
       "geometry": {
         "type": "Polygon",
