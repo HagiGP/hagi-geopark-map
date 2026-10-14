@@ -9,6 +9,7 @@
      ring  丸で囲むサイト名の配列
      point 指差す（▼）サイト名
      label 地名ラベル [{ "text":"須佐湾", "at":[緯度,経度] }]
+     followLine true なら、line の組ごとに地図がその組の範囲へ移って描く（長い流れを寄りぎみに見せる）
      photo 写真（サイト名 or 画像パス。false で出さない。省略時は point のサイトの写真）
    fit・ring などの名前の代わりに [緯度,経度] も使える
    操作：窓をタップ／→・Space・Enter・PageDown＝次へ、←・PageUp＝戻る、Esc＝終わる（講演のプレゼンリモコン対応） */
@@ -126,7 +127,7 @@ function showScene(i){
   if (sc.fit && sc.fit.length){
     const b = L.latLngBounds([]);
     sc.fit.forEach(n=>{ const t = tourTarget(n); if (t) b.extend(t); });
-    (sc.label||[]).forEach(lb=> b.extend(lb.at));   // 名札も必ず画面に入れる
+    if (!sc.followLine) (sc.label||[]).forEach(lb=> b.extend(lb.at));   // 名札も必ず画面に入れる（矢印を追う場面は除く）
     if (b.isValid()){
       const padB = box.offsetHeight + 60;   // 字幕の窓＋名札・矢じりが窓に隠れないぶん
       // 写真の窓のぶんも空ける（PC＝右下、スマホ＝字幕の上）
@@ -199,8 +200,20 @@ function drawSceneMarks(sc){
   const groups = [].concat(sc.line || []).some(Array.isArray)
     ? sc.line.map(g=> [].concat(g)) : [[].concat(sc.line || [])];
   let delay = 0;
-  groups.forEach(g=>{
+  groups.forEach((g, gi)=>{
     let dur = 0;
+    if (sc.followLine && gi > 0){   // カメラが矢印を追う：次の組の範囲（＋名札）へ移ってから描く
+      const b = L.latLngBounds([]);
+      g.forEach(id=>{ const t = tourTarget(id); if (t) b.extend(t); });
+      (sc.label||[]).forEach(lb=>{ if (b.pad(0.3).contains(lb.at)) b.extend(lb.at); });
+      const sceneNo = tour.i;
+      const opts = { ...(tour.target?.[1] || {}) };
+      setTimeout(()=>{ if (tour && tour.i === sceneNo && b.isValid()) map.flyToBounds(b, { ...opts, duration:1.2 }); }, delay);
+      setTimeout(()=>{   // 移動が終わっていなければ（端末が重い等）目的の範囲へ一気に移す
+        if (tour && tour.i === sceneNo && (map._flyToFrame || map._animatingZoom)){ map.stop(); map.fitBounds(b, { ...opts, animate:false }); }
+      }, delay + 1350);
+      delay += 1400;
+    }
     g.filter(id=> tour.shapes[id] && !tour.keep["l:"+id]).forEach(id=>{
       const grp = tour.keep["l:"+id] = L.layerGroup().addTo(tour.keepLayer);
       dur = Math.max(dur, drawArrowLine(id, delay, grp));
@@ -236,11 +249,12 @@ function drawArrowLine(id, delay, grp){
     const p = l.getElement(); if (!p) return;
     const along = lineSampler(l.getLatLngs());
     const short = along.px < 260;   // 短い矢印（季節風など）は小さめ・途中の矢じりなし
-    const len = p.getTotalLength(); p.style.strokeDasharray = len; p.style.strokeDashoffset = len;   // 描き始めるまで隠す
+    p.style.strokeDasharray = 1e6; p.style.strokeDashoffset = 1e6;   // 描き始めるまで隠す
     const D = short ? 1400 : 3200, sceneNo = tour.i; total = Math.max(total, D);
     const ease = t=> t<.5 ? 2*t*t : 1-Math.pow(-2*t+2,2)/2;
     setTimeout(()=>{
       if (!tour || grp._dead) return;
+      const len = p.getTotalLength(); p.style.strokeDasharray = len; p.style.strokeDashoffset = len;   // 描き始める時点の長さ
       const head = arrowMarker(along(0), short ? 34 : 44, lc).addTo(grp), t0 = performance.now();
       const finish = ()=>{
         if (!tour || grp._dead || head._done) return; head._done = true;
