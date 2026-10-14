@@ -115,7 +115,8 @@ const V = "?v=5"; // タイル再生成時にbump（v5=市町名をタイルか�
 // 合成タイル専用ペイン（地理院タイルの上・オーバーレイの下）。ジオパークの形でくり抜く
 map.createPane("pane-combo");
 map.getPane("pane-combo").style.zIndex = 250;
-const tOpts = { minZoom:10, maxZoom:16, maxNativeZoom:14, bounds:GEOPARK_BOUNDS, tileSize:256, pane:"pane-combo",
+const tOpts = { minZoom:8, maxZoom:16, minNativeZoom:10, maxNativeZoom:14,   // z10未満はz10タイルを縮小（解説で大きく引く場面用）
+  bounds:GEOPARK_BOUNDS, tileSize:256, pane:"pane-combo",
   attribution:"陰影・傾斜・海底地形・地質・植生：萩ジオパーク推進協議会（QGIS）" };
 // 陰影図の範囲（GEOPARK_BOUNDS）でクリップ。外側は地理院地図
 function clipCombo(){
@@ -449,7 +450,9 @@ function refresh(){
   // 画像タイル（詳細）モードは「z11以上 かつ 表示中心がジオパークのタイル域内」のときだけ。
   // エリア外を拡大しているときは、倍率が上がっても地理院地図のままにする（現在地周辺の確認用）
   const overGeopark = GEOPARK_BOUNDS.contains(map.getCenter());
-  setWideMode(z < WIDE_Z || !overGeopark);
+  // 解説中は広域表示に切り替えない（大きく引く場面でも陰影図と見どころを残す）
+  const touring = document.body.classList.contains("touring");
+  setWideMode(!touring && (z < WIDE_Z || !overGeopark));
   if (wideMode) return;   // 広域モードは詳細（マーカー・ラベル）を出さない
   // サイト：ランク等で「見せる対象」を絞り、QGISの表示ズーム(def.minZoom)で「出現」を制御
   allMarkers.forEach(o=>{
@@ -580,7 +583,7 @@ function injectLabelStyles(){
 }
 
 // ---- 読み込み ----
-const DATAV = "?d=44";   // geojson更新時にbump（ブラウザキャッシュ回避）
+const DATAV = "?d=46";   // geojson更新時にbump（ブラウザキャッシュ回避）
 const fetchGj = def => fetch("data/"+def.file+DATAV).then(r=>r.json());
 Promise.all([
   fetch("data/areas.geojson"+DATAV).then(r=>r.json()),

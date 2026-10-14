@@ -37,10 +37,11 @@ function startTour(id){
   loadPixelFont();
   loadTourShapes(id).then(shapes=>{
     if (tour) endTour();
-    tour = { area:a, shapes, scenes:a.tour, i:0, layer:L.layerGroup().addTo(map),
+    tour = { area:a, shapes, scenes:a.tour, i:0, layer:L.layerGroup().addTo(map), keep:{}, keepLayer:L.layerGroup().addTo(map),
              sbWasHidden: document.body.classList.contains("sb-hidden") };
     map.closePopup();
     document.body.classList.add("touring");
+    refresh();   // 広域表示を解除（解説中は詳細表示のまま）
     if (!isMobile() && !tour.sbWasHidden){ document.body.classList.add("sb-hidden"); }
     sidebar.classList.remove("open");
     setTimeout(()=> map.invalidateSize(), 220);
@@ -56,10 +57,12 @@ function startTour(id){
 function endTour(){
   if (!tour) return;
   stopTyping();
-  tour.layer.remove();
+  tour.layer.remove(); tour.keepLayer.remove();
+  Object.values(tour.keep).forEach(g=> g._dead = true);
   document.getElementById("tourBox")?.remove();
   hidePhoto();
   document.body.classList.remove("touring");
+  refresh();
   if (!isMobile() && !tour.sbWasHidden){ document.body.classList.remove("sb-hidden"); setTimeout(()=> map.invalidateSize(), 220); }
   tour = null;
 }
@@ -113,6 +116,9 @@ function showScene(i){
   box.querySelector(".tb-prev").style.visibility = i ? "visible" : "hidden";
   box.classList.toggle("last", i === tour.scenes.length-1);
   tour.layer.clearLayers(); tour._drawn = -1;
+  // 次の場面にも出る図形・矢印は消さずに持ち越す（例：火山を出したまま湖を塗る）
+  const next = new Set([...(sc.shape||[]).map(id=> shapeKey(sc, id)), ...[].concat(sc.line||[]).flat().map(id=> "l:"+id)]);
+  Object.keys(tour.keep).forEach(k=>{ if (!next.has(k)){ tour.keep[k]._dead = true; tour.keep[k].remove(); delete tour.keep[k]; } });
 
   // 地図の表示（字幕の窓の高さぶん下を空ける）
   if (sc.fit && sc.fit.length){
@@ -179,11 +185,13 @@ function showPhoto(sc, i){
 function drawSceneMarks(sc){
   (sc.shape||[]).forEach(id=>{
     const f = tour.shapes[id]; if (!f) return;
+    const key = shapeKey(sc, id); if (tour.keep[key]) return;
+    const grp = tour.keep[key] = L.layerGroup().addTo(tour.keepLayer);
     const color = f.properties.color || "#d9481c";   // 既定は溶岩の赤橙
     const pr = f.properties, outline = pr.outline !== false;   // 図形ごとに濃さ・枠線を変えられる
     L.geoJSON(f, { interactive:false, pane:"tourShapePane",
       style:{ color, weight: outline ? 3 : 0, dashArray:"8 6", fillColor:color, fillOpacity: sc.shapeOpacity ?? pr.fillOpacity ?? .28,
-              className: outline ? "tour-shape" : "" } }).addTo(tour.layer);
+              className: outline ? "tour-shape" : "" } }).addTo(grp);
   });
   // 線は配列の配列で「組」に分けると、組ごとに順番に描く（例：[["本流"],["支流A","支流B"]]）
   const groups = [].concat(sc.line || []).some(Array.isArray)
@@ -191,7 +199,10 @@ function drawSceneMarks(sc){
   let delay = 0;
   groups.forEach(g=>{
     let dur = 0;
-    g.filter(id=> tour.shapes[id]).forEach(id=>{ dur = Math.max(dur, drawArrowLine(id, delay)); });
+    g.filter(id=> tour.shapes[id] && !tour.keep["l:"+id]).forEach(id=>{
+      const grp = tour.keep["l:"+id] = L.layerGroup().addTo(tour.keepLayer);
+      dur = Math.max(dur, drawArrowLine(id, delay, grp));
+    });
     delay += dur;
   });
   (sc.ring||[]).forEach(n=>{   // サイト名 or [緯度,経度]
@@ -211,11 +222,13 @@ function drawSceneMarks(sc){
   }
 }
 
+const shapeKey = (sc, id)=> `s:${id}:${sc.shapeOpacity ?? ""}`;   // 濃さが変わる場面では描き直す
+
 // 線を始点から描き、先端の矢じりを一緒に進める。delay ms 後に描き始め、描き終わるまでの時間(ms)を返す
-function drawArrowLine(id, delay){
+function drawArrowLine(id, delay, grp){
   const lc = tour.shapes[id].properties.color || "#b3200f";   // 線の色（既定は赤。川は青など）
   const ln = L.geoJSON(tour.shapes[id], { interactive:false, pane:"tourShapePane",
-    style:{ color:lc, weight:6, opacity:.95, lineCap:"round", className:"tour-line" } }).addTo(tour.layer);
+    style:{ color:lc, weight:6, opacity:.95, lineCap:"round", className:"tour-line" } }).addTo(grp);
   let total = 0;
   ln.eachLayer(l=>{
     const p = l.getElement(); if (!p) return;
@@ -225,17 +238,17 @@ function drawArrowLine(id, delay){
     const D = short ? 1400 : 3200, sceneNo = tour.i; total = Math.max(total, D);
     const ease = t=> t<.5 ? 2*t*t : 1-Math.pow(-2*t+2,2)/2;
     setTimeout(()=>{
-      if (!tour || tour.i !== sceneNo) return;
-      const head = arrowMarker(along(0), short ? 34 : 44, lc).addTo(tour.layer), t0 = performance.now();
+      if (!tour || grp._dead) return;
+      const head = arrowMarker(along(0), short ? 34 : 44, lc).addTo(grp), t0 = performance.now();
       const finish = ()=>{
-        if (!tour || tour.i !== sceneNo || head._done) return; head._done = true;
+        if (!tour || grp._dead || head._done) return; head._done = true;
         // 描き終えたら破線指定を外す（途中でズームされて長さが変わっても、確実に全体が見えるように）
         p.style.strokeDasharray = ""; p.style.strokeDashoffset = "";
         setArrow(head, along(1));
-        if (!short) [.25,.5,.75].forEach(f=> arrowMarker(along(f), 30, lc).addTo(tour.layer));   // 途中にも向きを示す矢じり
+        if (!short) [.25,.5,.75].forEach(f=> arrowMarker(along(f), 30, lc).addTo(grp));   // 途中にも向きを示す矢じり
       };
       const step = now=>{
-        if (!tour || tour.i !== sceneNo || head._done) return;
+        if (!tour || grp._dead || head._done) return;
         const e = ease(Math.min(1, (now - t0) / D));
         p.style.strokeDashoffset = len * (1 - e);
         setArrow(head, along(e));
