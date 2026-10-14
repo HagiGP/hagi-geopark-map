@@ -615,18 +615,22 @@
           {
             "text": "その流れは日本海へ。\n河口にたまった土砂がつくったのが、萩城下町の三角州です。",
             "fit": [
-              "to_delta"
+              "to_delta",
+              "hagi_delta"
             ],
             "line": "to_delta",
             "label": [
               {
                 "text": "萩三角州",
-                "at": [34.41, 131.398]
+                "at": [34.433, 131.365]
               },
               {
                 "text": "長門峡",
                 "at": [34.328, 131.552]
               }
+            ],
+            "shape": [
+              "hagi_delta"
             ]
           },
           {
@@ -640,13 +644,14 @@
             ],
             "shape": [
               "tokusa_basin",
-              "aonoyama_volcanoes"
+              "aonoyama_volcanoes",
+              "hagi_delta"
             ],
             "point": "船平山展望台",
             "label": [
               {
                 "text": "萩城下町",
-                "at": [34.414, 131.395]
+                "at": [34.433, 131.365]
               },
               {
                 "text": "青野山火山群",
