@@ -118,7 +118,9 @@ function showScene(i){
   tour.layer.clearLayers(); tour._drawn = -1;
   // 次の場面にも出る図形・矢印は消さずに持ち越す（例：火山を出したまま湖を塗る）
   const next = new Set([...(sc.shape||[]).map(id=> shapeKey(sc, id)), ...[].concat(sc.line||[]).flat().map(id=> "l:"+id)]);
-  Object.keys(tour.keep).forEach(k=>{ if (!next.has(k)){ tour.keep[k]._dead = true; tour.keep[k].remove(); delete tour.keep[k]; } });
+  // 次の場面に出ない図形・矢印は、新しい図形を描くのと同時に消す（地図の移動中は前の場面のまま）
+  const leaving = Object.keys(tour.keep).filter(k=> !next.has(k));
+  const dropLeaving = ()=> leaving.forEach(k=>{ const g = tour.keep[k]; if (!g) return; g._dead = true; g.remove(); delete tour.keep[k]; });
 
   // 地図の表示（字幕の窓の高さぶん下を空ける）
   if (sc.fit && sc.fit.length){
@@ -146,7 +148,7 @@ function showScene(i){
       if (tour.target) map.fitBounds(tour.target[0], { ...tour.target[1], animate:false });
     }
     if (tour._drawn === i) return;   // moveend と保険のタイマーの二重実行を防ぐ
-    drawSceneMarks(sc); showPhoto(sc, i);
+    dropLeaving(); drawSceneMarks(sc); showPhoto(sc, i);
     tour._drawn = i;
   };
   map.once("moveend", draw); setTimeout(draw, 1150);   // 移動後に描く（移動しない場面の保険）
