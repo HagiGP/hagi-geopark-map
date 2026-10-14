@@ -633,7 +633,9 @@
             "fit": [
               [34.425, 131.375],
               "aonoyama_volcanoes",
-              [34.47, 131.845]
+              [34.47, 131.845],
+              "tokusa_basin",
+              [34.295, 131.57]
             ],
             "shape": [
               "tokusa_basin",
