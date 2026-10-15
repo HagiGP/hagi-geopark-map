@@ -20,11 +20,10 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
           integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
           crossorigin=""></script>
-  <link rel="stylesheet" href="css/style.css?v=131" />
+  <link rel="stylesheet" href="css/style.css?v=133" />
 </head>
 <body>
   <header id="appbar">
-    <button id="sidebarToggle" aria-label="主な見どころ" title="主な見どころ">☰</button>
     <span id="brand" title="萩ジオパーク">
       <img id="brandLogo" src="img/logo-badge.png" alt="萩ジオパーク" draggable="false" />
     </span>
@@ -32,29 +31,50 @@
     <button id="resetView" title="萩ジオパーク全体を見る">全体</button>
   </header>
 
-  <aside id="sidebar">
-    <div id="sheetHandle" aria-label="引き上げ／下げ" role="button" tabindex="0"></div>
-    <div class="sidebar-head">
-      <strong>主な見どころ一覧</strong>
-      <button id="sidebarClose" aria-label="閉じる">×</button>
+  <!-- 4つのメニュー（横長＝左に縦1列、縦長＝下に横1列）。タップでパネルが開く -->
+  <nav id="dock" aria-label="メニュー">
+    <button class="dock-btn" data-tab="sites" aria-controls="panel"><span>みど</span><span>ころ</span></button>
+    <button class="dock-btn" data-tab="areas" aria-controls="panel"><span>地域</span><span>解説</span></button>
+    <button class="dock-btn" data-tab="food" aria-controls="panel"><span>食と</span><span>大地</span></button>
+    <button class="dock-btn one" data-tab="legend" aria-controls="panel"><span>凡例</span></button>
+  </nav>
+  <aside id="panel" aria-hidden="true">
+    <div class="panel-head">
+      <strong id="panelTitle"></strong>
+      <button id="panelClose" aria-label="閉じる">×</button>
     </div>
-    <input type="search" id="poiSearch" placeholder="名前で検索…" />
-    <div id="sheetExtra"></div>
-    <div id="poiList"><p class="loading">読み込み中…</p></div>
-    <p class="credit">
-      地形（陰影・傾斜）・地質・植生・海底地形の合成：萩ジオパーク推進協議会（QGIS）<br>
-      地質：産総研 20万分の1日本シームレス地質図V2<br>
-      植生：環境省 自然環境保全基礎調査<br>
-      行政界・交通：国土数値情報／基盤地図情報<br>
-      作成：萩ジオパーク推進協議会
-    </p>
+    <div class="panel-body">
+      <section class="tab" data-tab="sites">
+        <input type="search" id="poiSearch" placeholder="名前で検索…" />
+        <div id="poiList"><p class="loading">読み込み中…</p></div>
+      </section>
+      <section class="tab" data-tab="areas">
+        <div id="areaList"></div>
+      </section>
+      <section class="tab" data-tab="food">
+        <div class="tab-soon">
+          <b>食と大地</b>
+          <p>萩の食べものと、それを育てた大地のつながりを紹介するページを準備しています。</p>
+        </div>
+      </section>
+      <section class="tab" data-tab="legend">
+        <div id="legendBox"></div>
+        <p class="credit">
+          地形（陰影・傾斜）・地質・植生・海底地形の合成：萩ジオパーク推進協議会（QGIS）<br>
+          地質：産総研 20万分の1日本シームレス地質図V2<br>
+          植生：環境省 自然環境保全基礎調査<br>
+          行政界・交通：国土数値情報／基盤地図情報<br>
+          作成：萩ジオパーク推進協議会
+        </p>
+      </section>
+    </div>
   </aside>
 
   <div id="map"></div>
 
   <script src="js/qrcode.min.js?v=58"></script>
-  <script src="js/map.js?v=131"></script>
-  <script src="js/tour.js?v=131"></script>
+  <script src="js/map.js?v=133"></script>
+  <script src="js/tour.js?v=133"></script>
   <script>
     if ("serviceWorker" in navigator) {
       window.addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(()=>{}));

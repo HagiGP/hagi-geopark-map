@@ -39,13 +39,12 @@ function startTour(id){
   loadTourShapes(id).then(shapes=>{
     if (tour) endTour();
     tour = { area:a, shapes, scenes:a.tour, i:0, layer:L.layerGroup().addTo(map), keep:{}, keepLayer:L.layerGroup().addTo(map),
-             sbWasHidden: document.body.classList.contains("sb-hidden") };
+             prevTab: openTab };   // 解説の前に開いていたタブ（終わったら戻す）
     map.closePopup();
     document.body.classList.add("touring");
     refresh();   // 広域表示を解除（解説中は詳細表示のまま）
-    if (!isMobile() && !tour.sbWasHidden){ document.body.classList.add("sb-hidden"); }
-    sidebar.classList.remove("open");
-    setTimeout(()=> map.invalidateSize(), 220);
+    closeTab();
+    map.invalidateSize();   // メニューの帯を隠して地図を全面に
     buildTourBox();
     // 写真を先読み（表示が速くなり、写真のある場面は地図をその分ずらして収められる）
     tour.photoOk = {};
@@ -64,7 +63,8 @@ function endTour(){
   hidePhoto();
   document.body.classList.remove("touring");
   refresh();
-  if (!isMobile() && !tour.sbWasHidden){ document.body.classList.remove("sb-hidden"); setTimeout(()=> map.invalidateSize(), 220); }
+  map.invalidateSize();
+  if (tour.prevTab) showTab(tour.prevTab);
   tour = null;
 }
 

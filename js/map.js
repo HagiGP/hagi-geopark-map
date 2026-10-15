@@ -583,7 +583,7 @@ function injectLabelStyles(){
 }
 
 // ---- 読み込み ----
-const DATAV = "?d=52";   // geojson更新時にbump（ブラウザキャッシュ回避）
+const DATAV = "?d=53";   // geojson更新時にbump（ブラウザキャッシュ回避）
 const fetchGj = def => fetch("data/"+def.file+DATAV).then(r=>r.json());
 Promise.all([
   fetch("data/areas.geojson"+DATAV).then(r=>r.json()),
@@ -716,11 +716,8 @@ function spreadOverlaps(){
 function enterArea(id){
   const a = areaById[id]; if(!a) return;
   map.flyToBounds(a.bounds.pad(0.15), { maxZoom:13, duration:.8 });
+  showTab("areas");
   openAreaCard(id);
-  if (window.innerWidth<=760) document.getElementById("sidebar").classList.add("open");
-  else if (document.body.classList.contains("sb-hidden")){   // PCで一覧を閉じていても、エリアを選んだら開く
-    document.body.classList.remove("sb-hidden"); setTimeout(()=> map.invalidateSize(), 220);
-  }
 }
 function resetView(){
   // 範囲を中央に。陰影図の外は見せない（homeView がズーム・中心を決める）
@@ -751,11 +748,10 @@ function geoLegendRows(){
   }).join("");
 }
 
-// ---- コントロール（右上：表示切替＋凡例。開閉式でスマホでも地図を隠さない） ----
+// ---- 表示切替＋凡例（「凡例」タブの中） ----
 function buildControls(){
-  const ctrl = L.control({ position:"topright" });
-  ctrl.onAdd = function(){
-    const div = L.DomUtil.create("div", "layers-panel collapsed");   // 初期は凡例を畳んで非表示
+  {
+    const div = document.createElement("div"); div.className = "layers-panel";
     let body =
       `<div class="lp-sec">背景（大地の見方）</div>`+
       `<label><input type="checkbox" id="lp-veg" checked> 植生図</label>`+
@@ -770,19 +766,13 @@ function buildControls(){
     }
     body += `<div class="lp-sec">凡例</div>`+
       `<div class="lp-legend">`+
-      `<div class="lp-hint">丸をタップすると詳細が開きます。</div>`+
+      `<div class="lp-hint">丸をタップすると詳細が開きます。${staff ? "（運営モード）" : ""}</div>`+
       `<div class="lp-legend-sub">見どころの種類</div>${siteLegendRows()}`+
       `<div class="lp-legend-sub">特徴的な地質</div>${geoLegendRows()}`+
       `</div>`;
-    div.innerHTML =
-      `<div class="lp-head"><span>${staff?"表示・凡例（運営中）":"表示・凡例"}</span><span class="lp-caret">▼</span></div>`+
-      `<div class="lp-body">${body}</div>`;
-    div.querySelector(".lp-head").addEventListener("click", ()=> div.classList.toggle("collapsed"));
-    L.DomEvent.disableClickPropagation(div);
-    L.DomEvent.disableScrollPropagation(div);
-    return div;
-  };
-  ctrl.addTo(map);
+    div.innerHTML = `<div class="lp-body">${body}</div>`;
+    document.getElementById("legendBox").appendChild(div);
+  }
 
   document.getElementById("lp-veg").addEventListener("change", e=>{ vegOn=e.target.checked; updateBase(); });
   document.getElementById("lp-geo").addEventListener("change", e=>{ geoOn=e.target.checked; updateBase(); });
@@ -898,20 +888,26 @@ const SITE_GROUPS = [
   { label:"文化サイト",    cats:["文化サイト"] },
   { label:"神社",         cats:["神社"] },
 ];
+// サイトへ寄ってポップアップを開く。縦長画面はパネルを閉じ、横長でパネルが開いていれば隠れない位置へ
+function flyToSite(o){
+  const z = Math.min(map.getMaxZoom(), Math.max(14, Math.ceil(o.def.minZoom)));
+  let c = o.marker.getLatLng();
+  if (isPortrait()) closeTab();
+  else if (openTab){
+    const w = document.getElementById("panel").offsetWidth;
+    c = map.unproject(map.project(c, z).subtract([w/2, 0]), z);   // パネルの幅の半分だけ中心を左へ＝サイトは右寄りに見える
+  }
+  map.flyTo(c, z, {duration:.7});
+  map.once("moveend", ()=> o.marker.openPopup());
+}
 // 一覧の1項目（距離はGPS取得後のみ表示）
 function makePoiItem(o){
   const li = document.createElement("li"); li.className="poi-item"; li.dataset.name=o.name;
   const rank = (staff && o.rank) ? `<span class="poi-rank rank-${o.rank}">${esc(o.rank)}</span>` : "";
   const dist = myLatLng ? `<span class="poi-dist">${fmtDist(myLatLng.distanceTo(o.marker.getLatLng()))}</span>` : "";
   li.innerHTML = `${rank}<span class="poi-dot" style="background:${SITE_CATS[o.cat].fill}"></span><span class="poi-name">${esc(o.name)}</span>${dist}`;
-  li.onclick = ()=>{
-    // そのサイトが地図に現れる倍率（QGIS縮尺依存の表示開始）まで寄せる。
-    // 解説板など高倍率でしか出ないものも、タップすれば必ず表示＋ポップアップが開く
-    const z = Math.min(map.getMaxZoom(), Math.max(14, Math.ceil(o.def.minZoom)));
-    if (window.innerWidth<=760) document.getElementById("sidebar").classList.remove("open");
-    map.flyTo(o.marker.getLatLng(), z, {duration:.7});
-    map.once("moveend", ()=> o.marker.openPopup());
-  };
+  // そのサイトが地図に現れる倍率（QGIS縮尺依存の表示開始）まで寄せる。解説板など高倍率のものも必ず表示＋ポップアップ
+  li.onclick = ()=> flyToSite(o);
   return li;
 }
 // エリア説明の項目（areas.geojson のキー → 見出し）。改行で段落を分けられる
@@ -929,28 +925,19 @@ function appendStory(body, a, s){
   sec.innerHTML = `<h4>${esc(s.label)}</h4>${paras}`;
   body.appendChild(sec);
 }
-const creditEl = document.querySelector("#sidebar .credit");   // 出典は一覧の末尾（スクロール内）に置く
-function buildSidebar(){
-  const listEl = document.getElementById("poiList"); listEl.innerHTML = "";
-  queueMicrotask(()=> creditEl && listEl.appendChild(creditEl));
-  // 地図のコンセプト（一覧の冒頭）
-  if (!nearSort){
-    const intro = document.createElement("p"); intro.className = "list-intro";
-    intro.textContent = "萩ジオパークの4つのエリアを「大地と人のつながり」で紹介しています。エリアを選ぶと、地図がそのエリアへ寄ります。";
-    listEl.appendChild(intro);
-  }
+function buildSidebar(){ buildSites(); buildAreaGuide(); }
 
-  // 現在地取得後：近い順トグル
-  if (myLatLng){
+// みどころ：検索＋（現在地があれば近い順）＋エリアごとにたためる種類別の一覧
+function buildSites(){
+  const listEl = document.getElementById("poiList"); listEl.innerHTML = "";
+  if (myLatLng){   // 現在地取得後：近い順トグル
     const t = document.createElement("button");
     t.className = "near-toggle" + (nearSort ? " on" : "");
     t.textContent = nearSort ? "◂ エリア別に戻す" : "現在地から近い順に並べる";
-    t.onclick = ()=>{ nearSort = !nearSort; buildSidebar(); };
+    t.onclick = ()=>{ nearSort = !nearSort; buildSites(); };
     listEl.appendChild(t);
   }
-
-  // 近い順モード：全サイトを距離順のフラットな一覧に
-  if (nearSort && myLatLng){
+  if (nearSort && myLatLng){   // 近い順モード：全サイトを距離順のフラットな一覧に
     const items = allMarkers.filter(o=> catOn[o.cat] && siteEligible(o))
       .sort((x,y)=> myLatLng.distanceTo(x.marker.getLatLng()) - myLatLng.distanceTo(y.marker.getLatLng()));
     const ul = document.createElement("ul"); ul.className="site-list near-list";
@@ -958,8 +945,35 @@ function buildSidebar(){
     listEl.appendChild(ul);
     return;
   }
+  AREAS.forEach(a=>{
+    const sec = document.createElement("div"); sec.className = "site-area"; sec.dataset.id = a.id;
+    const head = document.createElement("div"); head.className = "site-area-head";
+    head.style.setProperty("--ac", a.color); head.textContent = a.name;
+    head.onclick = ()=> sec.classList.toggle("open");
+    const body = document.createElement("div"); body.className = "site-area-body";
+    // サイト一覧を「分類ごと」に見出し付きで整理（LIST_EXCLUDEは地図には残すが一覧から外す）
+    const inArea = allMarkers.filter(o=> o.area===a.id && !LIST_EXCLUDE.has(o.name) && siteEligible(o));
+    SITE_GROUPS.forEach(g=>{
+      const items = inArea.filter(o=> g.cats.includes(o.cat))
+                          .sort((x,y)=> rankWeight(x.rank)-rankWeight(y.rank) || x.name.localeCompare(y.name,"ja"));
+      if (!items.length) return;
+      const gh = document.createElement("div"); gh.className="site-group-head";
+      gh.innerHTML = `<span class="poi-dot" style="background:${SITE_CATS[g.cats[0]].fill}"></span>${esc(g.label)}`;
+      body.appendChild(gh);
+      const ul = document.createElement("ul"); ul.className="site-list";
+      items.forEach(o=> ul.appendChild(makePoiItem(o)));
+      body.appendChild(ul);
+    });
+    sec.append(head, body); listEl.appendChild(sec);
+  });
+}
 
-  // 通常：エリア → 分類
+// 地域解説：4エリアのカード（リード文・解説ボタン・エリア説明・視点）
+function buildAreaGuide(){
+  const listEl = document.getElementById("areaList"); listEl.innerHTML = "";
+  const intro = document.createElement("p"); intro.className = "list-intro";
+  intro.textContent = "萩ジオパークの4つのエリアを「大地と人のつながり」で紹介しています。エリアを選ぶと、地図がそのエリアへ寄ります。";
+  listEl.appendChild(intro);
   AREAS.forEach(a=>{
     const card = document.createElement("div"); card.className="area-card"; card.dataset.id=a.id;
     const head = document.createElement("div"); head.className="area-card-head";
@@ -978,7 +992,6 @@ function buildSidebar(){
     }
     // 大地 → 人 のつながり（文章は areas.geojson に記入。空欄の項目は出さない／運営モードは「未記入」で枠を見せる）
     AREA_STORY.slice(0,2).forEach(s=> appendStory(body, a, s));
-
     // 視点（見わたす／さかのぼる）＝紙版マップと同じ見せ方。タップで対象サイトへ
     if (a.viewpoints && a.viewpoints.length){
       const vpWrap = document.createElement("div"); vpWrap.className="area-vps";
@@ -989,33 +1002,12 @@ function buildSidebar(){
         el.innerHTML = `<span class="vp-kind">${esc(vp.vp)}</span>`+
                        `<span class="vp-notice">${esc(vp.notice)}</span>`+
                        `<span class="vp-site">📍 ${esc(vp.site)}</span>`;
-        if (o){
-          el.onclick = ()=>{
-            const z = Math.min(map.getMaxZoom(), Math.max(14, Math.ceil(o.def.minZoom)));
-            if (window.innerWidth<=760) document.getElementById("sidebar").classList.remove("open");
-            map.flyTo(o.marker.getLatLng(), z, {duration:.7});
-            map.once("moveend", ()=> o.marker.openPopup());
-          };
-        }
+        if (o) el.onclick = ()=> flyToSite(o);
         vpWrap.appendChild(el);
       });
       body.appendChild(vpWrap);
     }
     AREA_STORY.slice(2).forEach(s=> appendStory(body, a, s));   // めぐり方（視点の後）
-
-    // サイト一覧を「分類ごと」に見出し付きで整理（LIST_EXCLUDEは地図には残すが一覧から外す）
-    const inArea = allMarkers.filter(o=> o.area===a.id && !LIST_EXCLUDE.has(o.name) && siteEligible(o));
-    SITE_GROUPS.forEach(g=>{
-      const items = inArea.filter(o=> g.cats.includes(o.cat))
-                          .sort((x,y)=> rankWeight(x.rank)-rankWeight(y.rank) || x.name.localeCompare(y.name,"ja"));
-      if (!items.length) return;
-      const gh = document.createElement("div"); gh.className="site-group-head";
-      gh.innerHTML = `<span class="poi-dot" style="background:${SITE_CATS[g.cats[0]].fill}"></span>${esc(g.label)}`;
-      body.appendChild(gh);
-      const ul = document.createElement("ul"); ul.className="site-list";
-      items.forEach(o=> ul.appendChild(makePoiItem(o)));
-      body.appendChild(ul);
-    });
     card.appendChild(body);
     listEl.appendChild(card);
   });
@@ -1029,25 +1021,37 @@ function openAreaCard(id){
 // 検索（全カード横断）
 document.getElementById("poiSearch").addEventListener("input", e=>{
   const q = e.target.value.trim().toLowerCase();
-  if (q) document.querySelectorAll(".area-card").forEach(c=>c.classList.add("open"));
+  document.querySelectorAll(".site-area").forEach(c=> c.classList.toggle("open", !!q));
   document.querySelectorAll(".poi-item").forEach(li=>{
     li.style.display = li.dataset.name.toLowerCase().includes(q) ? "" : "none";
   });
 });
 
-// サイドバー開閉（スマホは下部シート、PCは左サイドバー）
-const sidebar = document.getElementById("sidebar");
-const isMobile = ()=> window.matchMedia("(max-width: 760px)").matches;
-document.getElementById("sidebarToggle").onclick = ()=>{
-  if (isMobile()){ sidebar.classList.toggle("open"); }
-  else { document.body.classList.toggle("sb-hidden"); setTimeout(()=> map.invalidateSize(), 220); }  // PCは一覧の出し入れ
-};
-document.getElementById("sidebarClose").onclick = ()=> sidebar.classList.remove("open");
-const sheetHandle = document.getElementById("sheetHandle");
-if (sheetHandle) sheetHandle.onclick = ()=> sidebar.classList.toggle("open");
-// スマホ：少しだけ出ているシートの見出しをタップしても引き上げる（×ボタンは除く）
-document.querySelector(".sidebar-head").addEventListener("click", e=>{
-  if (isMobile() && e.target.id !== "sidebarClose") sidebar.classList.toggle("open");
+// ---- メニュー（ドック）とパネルの開閉 ----
+const TAB_TITLES = { sites:"みどころ", areas:"地域解説", food:"食と大地", legend:"凡例" };
+const isMobile = ()=> window.matchMedia("(max-width: 760px)").matches;      // 解説の写真の窓の配置など
+const isPortrait = ()=> window.matchMedia("(orientation: portrait)").matches;   // メニューの配置（縦長＝下・横長＝左）
+let openTab = null;
+function showTab(name){
+  openTab = name;
+  document.querySelectorAll(".dock-btn").forEach(b=> b.classList.toggle("on", b.dataset.tab === name));
+  document.querySelectorAll("#panel .tab").forEach(s=> s.classList.toggle("on", s.dataset.tab === name));
+  document.getElementById("panelTitle").textContent = TAB_TITLES[name] || "";
+  const panel = document.getElementById("panel");
+  panel.classList.add("open"); panel.setAttribute("aria-hidden", "false");
+  panel.querySelector(".panel-body").scrollTop = 0;
+}
+function closeTab(){
+  openTab = null;
+  document.querySelectorAll(".dock-btn").forEach(b=> b.classList.remove("on"));
+  const panel = document.getElementById("panel");
+  panel.classList.remove("open"); panel.setAttribute("aria-hidden", "true");
+}
+document.querySelectorAll(".dock-btn").forEach(b=>{
+  b.onclick = ()=> openTab === b.dataset.tab ? closeTab() : showTab(b.dataset.tab);   // もう一度押すと閉じる
 });
+document.getElementById("panelClose").onclick = closeTab;
+L.DomEvent.disableClickPropagation(document.getElementById("panel"));
+L.DomEvent.disableScrollPropagation(document.getElementById("panel"));
 document.getElementById("resetView").onclick = resetView;   // 上部帯「全体」ボタン
-map.on("click", ()=>{ if (isMobile()) sidebar.classList.remove("open"); });   // 地図タップでシートを閉じる
+map.on("click", ()=>{ if (isPortrait() && openTab) closeTab(); });   // 縦長：地図をタップしたらパネルを閉じる
