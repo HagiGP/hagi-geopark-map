@@ -964,7 +964,8 @@ function buildSites(){
                           .sort((x,y)=> rankWeight(x.rank)-rankWeight(y.rank) || x.name.localeCompare(y.name,"ja"));
       if (!items.length) return;
       const gh = document.createElement("div"); gh.className="site-group-head";
-      gh.innerHTML = `<span class="poi-dot" style="background:${SITE_CATS[g.cats[0]].fill}"></span>${esc(g.label)}`;
+      gh.style.setProperty("--gc", SITE_CATS[g.cats[0]].fill);   // 種類の色の帯（白抜き文字）で、下のサイト名と見分ける
+      gh.textContent = g.label;
       body.appendChild(gh);
       const ul = document.createElement("ul"); ul.className="site-list";
       items.forEach(o=> ul.appendChild(makePoiItem(o)));

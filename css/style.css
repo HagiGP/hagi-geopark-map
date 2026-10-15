@@ -478,3 +478,11 @@ body.touring #map { left: 0; bottom: 0; }
 .site-group-head, .area-story h4, .vp-kind, .vp-site, .lp-sec, .lp-legend-sub, .tab-soon b { font-family: var(--heavy); font-weight: 900; }
 .poi-name, .layers-panel label, .lp-legend .row, .near-toggle { font-family: var(--heavy); font-weight: 700; }
 #poiSearch { font-family: var(--heavy); font-weight: 700; }
+
+/* みどころ：分類の小見出しは、その種類の色の帯（白抜き文字）。下にぶら下がるサイト名と区別 */
+.site-area-body .site-group-head {
+  background: var(--gc, #666); color: #fff; padding: 4px 10px; border-radius: 6px;
+  margin: 12px 0 4px; font-size: 12.5px; letter-spacing: .06em;
+}
+.site-area-body .site-group-head:first-child { margin-top: 6px; }
+.site-area-body .site-list { padding-left: 4px; }
