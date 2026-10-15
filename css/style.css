@@ -7,6 +7,7 @@ html, body { margin: 0; padding: 0; height: 100%; font-family: "Hiragino Kaku Go
   --panel-w: 340px;
   --accent: #1b6a4b;      /* 地図の情報色（地質・植生・拠点）。ブランド赤とは別 */
   --brand-red: #c30d23;   /* 萩ジオパーク公式ロゴの赤 */
+  --sumi: #595857;        /* 墨色（メニューのアイコン） */
 }
 
 #appbar {
@@ -44,13 +45,13 @@ body.staff #appbar { background: #595857; }   /* 運営モード＝墨色でひ�
 }
 .dock-btn {
   width: 60px; height: 60px; flex-shrink: 0; padding: 0; cursor: pointer;
-  background: #fff; color: #333; border: 1.5px solid #d6d6d6; border-radius: 10px;
+  background: var(--sumi); color: #fff; border: 1.5px solid var(--sumi); border-radius: 10px;
   display: flex; flex-direction: column; align-items: center; justify-content: center;
-  font: 800 16px/1.12 "Hiragino Kaku Gothic ProN", "Yu Gothic", Meiryo, sans-serif; letter-spacing: .06em;
+  font: 900 16px/1.12 "Hiragino Kaku Gothic ProN", "Yu Gothic", Meiryo, sans-serif; font-weight: 900; letter-spacing: .06em;
   -webkit-tap-highlight-color: transparent; transition: background .15s, color .15s, border-color .15s;
 }
 .dock-btn.one { font-size: 19px; }
-.dock-btn:hover { border-color: var(--brand-red); color: var(--brand-red); }
+.dock-btn:hover { background: #6e6d6b; border-color: #6e6d6b; }
 .dock-btn.on { background: var(--brand-red); border-color: var(--brand-red); color: #fff; }
 #panel {
   position: fixed; top: var(--bar-h); left: var(--dock); bottom: 0; z-index: 1005;
@@ -446,7 +447,7 @@ body.touring #map { left: 0; bottom: 0; }
   }
   #map { left: 0; bottom: var(--dock); }
   #panel {
-    top: auto; left: 0; right: 0; bottom: var(--dock); width: auto; max-width: none; height: 62vh;
+    top: auto; left: 0; right: 0; bottom: var(--dock); width: auto; max-width: none; height: 52vh;   /* 地図も見えるよう5割強 */
     border-radius: 16px 16px 0 0; box-shadow: 0 -4px 16px rgba(0,0,0,.24);
     transform: translateY(calc(100% + var(--dock)));
   }

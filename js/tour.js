@@ -43,7 +43,7 @@ function startTour(id){
     map.closePopup();
     document.body.classList.add("touring");
     refresh();   // 広域表示を解除（解説中は詳細表示のまま）
-    closeTab();
+    closeTab({ pan:false });   // 解説で地図を動かすので、パネルを閉じるときのずらしはしない
     map.invalidateSize();   // メニューの帯を隠して地図を全面に
     buildTourBox();
     // 写真を先読み（表示が速くなり、写真のある場面は地図をその分ずらして収められる）

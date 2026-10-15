@@ -583,7 +583,7 @@ function injectLabelStyles(){
 }
 
 // ---- 読み込み ----
-const DATAV = "?d=53";   // geojson更新時にbump（ブラウザキャッシュ回避）
+const DATAV = "?d=54";   // geojson更新時にbump（ブラウザキャッシュ回避）
 const fetchGj = def => fetch("data/"+def.file+DATAV).then(r=>r.json());
 Promise.all([
   fetch("data/areas.geojson"+DATAV).then(r=>r.json()),
@@ -714,10 +714,16 @@ function spreadOverlaps(){
 
 // エリアへ寄る＋サイドバーでそのエリアを開く
 function enterArea(id){
-  const a = areaById[id]; if(!a) return;
-  map.flyToBounds(a.bounds.pad(0.15), { maxZoom:13, duration:.8 });
-  showTab("areas");
+  if (!areaById[id]) return;
+  showTab("areas", { pan:false });   // 先にパネルを開き、その分をよけてエリアへ寄る
   openAreaCard(id);
+  flyToArea(id);
+}
+// エリアの範囲へ寄る。パネルが開いていれば、パネルに隠れていない部分に収める
+function flyToArea(id){
+  const a = areaById[id]; if (!a) return;
+  const [l, b] = openTab ? panelCover() : [0, 0];
+  map.flyToBounds(a.bounds.pad(0.15), { maxZoom:13, duration:.8, paddingTopLeft:[l + 16, 16], paddingBottomRight:[16, b + 16] });
 }
 function resetView(){
   // 範囲を中央に。陰影図の外は見せない（homeView がズーム・中心を決める）
@@ -892,7 +898,7 @@ const SITE_GROUPS = [
 function flyToSite(o){
   const z = Math.min(map.getMaxZoom(), Math.max(14, Math.ceil(o.def.minZoom)));
   let c = o.marker.getLatLng();
-  if (isPortrait()) closeTab();
+  if (isPortrait()) closeTab({ pan:false });   // このあと寄るので、閉じるときの地図のずらしはしない
   else if (openTab){
     const w = document.getElementById("panel").offsetWidth;
     c = map.unproject(map.project(c, z).subtract([w/2, 0]), z);   // パネルの幅の半分だけ中心を左へ＝サイトは右寄りに見える
@@ -949,7 +955,7 @@ function buildSites(){
     const sec = document.createElement("div"); sec.className = "site-area"; sec.dataset.id = a.id;
     const head = document.createElement("div"); head.className = "site-area-head";
     head.style.setProperty("--ac", a.color); head.textContent = a.name;
-    head.onclick = ()=> sec.classList.toggle("open");
+    head.onclick = ()=>{ if (sec.classList.toggle("open")) flyToArea(a.id); };   // 開いたらそのエリアへ寄る
     const body = document.createElement("div"); body.className = "site-area-body";
     // サイト一覧を「分類ごと」に見出し付きで整理（LIST_EXCLUDEは地図には残すが一覧から外す）
     const inArea = allMarkers.filter(o=> o.area===a.id && !LIST_EXCLUDE.has(o.name) && siteEligible(o));
@@ -1032,7 +1038,18 @@ const TAB_TITLES = { sites:"みどころ", areas:"地域解説", food:"食と大
 const isMobile = ()=> window.matchMedia("(max-width: 760px)").matches;      // 解説の写真の窓の配置など
 const isPortrait = ()=> window.matchMedia("(orientation: portrait)").matches;   // メニューの配置（縦長＝下・横長＝左）
 let openTab = null;
-function showTab(name){
+// パネルが地図を覆う量 [左, 下]（横長＝左に幅ぶん、縦長＝下に高さぶん）
+function panelCover(){
+  const p = document.getElementById("panel");
+  return isPortrait() ? [0, p.offsetHeight] : [p.offsetWidth, 0];
+}
+// パネルを開く／閉じるとき、見ていた場所がパネルに隠れないよう、地図を半分だけずらす
+function shiftForPanel(opening){
+  const [l, b] = panelCover(), s = opening ? 1 : -1;
+  map.panBy([-l / 2 * s, b / 2 * s], { duration:.25 });
+}
+function showTab(name, { pan = true } = {}){
+  if (!openTab && pan) shiftForPanel(true);   // 閉じていたパネルを開くときだけずらす（タブの切り替えではずらさない）
   openTab = name;
   document.querySelectorAll(".dock-btn").forEach(b=> b.classList.toggle("on", b.dataset.tab === name));
   document.querySelectorAll("#panel .tab").forEach(s=> s.classList.toggle("on", s.dataset.tab === name));
@@ -1041,7 +1058,8 @@ function showTab(name){
   panel.classList.add("open"); panel.setAttribute("aria-hidden", "false");
   panel.querySelector(".panel-body").scrollTop = 0;
 }
-function closeTab(){
+function closeTab({ pan = true } = {}){
+  if (openTab && pan) shiftForPanel(false);
   openTab = null;
   document.querySelectorAll(".dock-btn").forEach(b=> b.classList.remove("on"));
   const panel = document.getElementById("panel");
