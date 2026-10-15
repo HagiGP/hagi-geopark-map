@@ -17,15 +17,15 @@ const map = L.map("map", {
   zoomControl: false,                // ＋－は右下（GPSボタンの下）に自前で置く
 });
 // 「全体を見る」＝見島を除く萩ジオパークの範囲を中央に。
-// 縦長画面＝範囲全体を収める（引くと広域＝赤枠オーバービューになる。それでよい）。
+// 縦長画面＝範囲の中心を、陰影図（植生・地質）が出る倍率で（広域の赤枠表示にはしない）。
 // 横長画面＝陰影図(GEOPARK_BOUNDS)の外は見せない（寄せて中心を陰影図内へクランプ）。
 const MAINLAND_BOUNDS = L.latLngBounds([34.2103, 131.2706], [34.6810, 131.7955]);
 const HOME_PADDING = [16, 16];   // 範囲まわりの余白（縁が切れないよう）
 function homeView(){
   const sz = map.getSize();
   const zRange = map.getBoundsZoom(MAINLAND_BOUNDS, false, L.point(HOME_PADDING[0], HOME_PADDING[1]));
-  if (sz.y >= sz.x){   // 縦長＝範囲全体を中央に（広域＝赤枠オーバービューでOK）
-    return { center: MAINLAND_BOUNDS.getCenter(), zoom: zRange };
+  if (sz.y >= sz.x){   // 縦長＝範囲の中心。全体が入らなくても、陰影図が出る倍率（WIDE_Z）より引かない
+    return { center: MAINLAND_BOUNDS.getCenter(), zoom: Math.max(zRange, WIDE_Z + 0.15) };
   }
   // 横長＝陰影図の外を出さない。範囲全体が入るズームと外を出さない最小ズームの大きい方を採用
   const zInside = map.getBoundsZoom(GEOPARK_BOUNDS, true);
@@ -1064,12 +1064,17 @@ function closeTab({ pan = true } = {}){
   openTab = null;
   document.querySelectorAll(".dock-btn").forEach(b=> b.classList.remove("on"));
   const panel = document.getElementById("panel");
-  panel.classList.remove("open"); panel.setAttribute("aria-hidden", "true");
+  panel.classList.remove("open", "tall"); panel.setAttribute("aria-hidden", "true");
 }
 document.querySelectorAll(".dock-btn").forEach(b=>{
   b.onclick = ()=> openTab === b.dataset.tab ? closeTab() : showTab(b.dataset.tab);   // もう一度押すと閉じる
 });
 document.getElementById("panelClose").onclick = closeTab;
+// 縦長画面：パネルの見出しをタップすると大きく広げる（もう一度で戻す）。地図を見ながら使うときは低いまま
+document.querySelector("#panel .panel-head").addEventListener("click", e=>{
+  if (e.target.id === "panelClose" || !isPortrait()) return;
+  document.getElementById("panel").classList.toggle("tall");
+});
 L.DomEvent.disableClickPropagation(document.getElementById("panel"));
 L.DomEvent.disableScrollPropagation(document.getElementById("panel"));
 document.getElementById("resetView").onclick = resetView;   // 上部帯「全体」ボタン
