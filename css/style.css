@@ -8,6 +8,7 @@ html, body { margin: 0; padding: 0; height: 100%; font-family: "Hiragino Kaku Go
   --accent: #1b6a4b;      /* 地図の情報色（地質・植生・拠点）。ブランド赤とは別 */
   --brand-red: #c30d23;   /* 萩ジオパーク公式ロゴの赤 */
   --sumi: #595857;        /* 墨色（メニューのアイコン） */
+  --heavy: "Noto Sans JP", "Hiragino Kaku Gothic ProN", "Yu Gothic", Meiryo, sans-serif;   /* 見出し・項目名の太い文字 */
 }
 
 #appbar {
@@ -17,7 +18,7 @@ html, body { margin: 0; padding: 0; height: 100%; font-family: "Hiragino Kaku Go
   box-shadow: 0 1px 4px rgba(0,0,0,.3);
 }
 body.staff #appbar { background: #595857; }   /* 運営モード＝墨色でひと目で分かるように */
-#appbar h1 { font-size: 17px; margin: 0; font-weight: 600; white-space: nowrap; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+#appbar h1 { font-family: var(--heavy); font-size: 21px; margin: 0; font-weight: 900; letter-spacing: .04em; white-space: nowrap; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
 /* ロゴ＝白丸チップの上にフルカラーで載せる（赤帯に同化させない）。長押しで運営モード */
 #brand {
   flex-shrink: 0; width: 38px; height: 38px; border-radius: 50%;
@@ -47,7 +48,7 @@ body.staff #appbar { background: #595857; }   /* 運営モード＝墨色でひ�
   width: 60px; height: 60px; flex-shrink: 0; padding: 0; cursor: pointer;
   background: #fff; color: var(--sumi); border: 0; border-radius: 10px;
   display: flex; flex-direction: column; align-items: center; justify-content: center;
-  font: 900 17px/1.12 "Noto Sans JP", "Hiragino Kaku Gothic ProN", "Yu Gothic", Meiryo, sans-serif; letter-spacing: .04em;   /* 極太（Noto Sans JP 900） */
+  font: 900 17px/1.12 var(--heavy); letter-spacing: .04em;   /* 極太（Noto Sans JP 900） */
   -webkit-tap-highlight-color: transparent; transition: background .15s, color .15s, border-color .15s;
 }
 .dock-btn.one { font-size: 20px; }
@@ -453,7 +454,7 @@ body.touring #map { left: 0; bottom: 0; }
   }
 }
 @media (max-width: 760px) {
-  #appbar h1 { font-size: 15px; }
+  #appbar h1 { font-size: 18px; }
   .map-fab button { width: 44px; height: 44px; font-size: 21px; }  /* 屋外・指で押しやすく */
   .leaflet-bottom.leaflet-right .leaflet-control-zoom { margin-right: 15px; }  /* GPS44px幅に合わせ中央そろえ */
 }
@@ -469,3 +470,11 @@ body.touring #map { left: 0; bottom: 0; }
   .dock-btn.one { font-size: 16px; }
   #dock { gap: 6px; padding: 6px 0; }
 }
+
+/* ---- タブの中の見出し・項目名・ラベルは太く（説明文などの長い文章はそのまま） ---- */
+.panel-head strong { font-family: var(--heavy); font-weight: 900; font-size: 18px; }
+.site-area-head, .area-card-head b { font-family: var(--heavy); font-weight: 900; }
+.area-card-head span { font-family: var(--heavy); font-weight: 700; }
+.site-group-head, .area-story h4, .vp-kind, .vp-site, .lp-sec, .lp-legend-sub, .tab-soon b { font-family: var(--heavy); font-weight: 900; }
+.poi-name, .layers-panel label, .lp-legend .row, .near-toggle { font-family: var(--heavy); font-weight: 700; }
+#poiSearch { font-family: var(--heavy); font-weight: 700; }
