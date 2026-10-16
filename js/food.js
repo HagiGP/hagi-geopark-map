@@ -27,7 +27,9 @@ Promise.all([
   FOOD.forEach(it=>{
     const two = (it.seal || "").length > 1;   // 2字は縦書きの判子
     const m = L.marker(it.at, { pane:"foodPinPane", keyboard:false, title: it.title,
-      icon: L.divIcon({ className:"", iconSize: two ? [30,48] : [34,34], iconAnchor: two ? [15,24] : [17,17],
+      icon: L.divIcon({ className:"", iconSize: two ? [30,48] : [34,34],
+        // offset＝同じ場所の判子を画面上で左右にずらして並べる（px）
+        iconAnchor: [(two ? 15 : 17) - (it.offset?.[0] || 0), (two ? 24 : 17) - (it.offset?.[1] || 0)],
         html:`<div class="food-pin${two ? " two" : ""}" style="--fc:${FOOD_TYPES[it.type] || "#666"}"><span>${esc(it.seal || it.icon)}</span></div>` }) });
     m.on("click", ()=>{ if (openTab !== "food") showTab("food", { pan:false }); openFood(it.id); });
     it.pin = m; m.addTo(foodPins);
