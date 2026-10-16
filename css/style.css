@@ -4,7 +4,7 @@ html, body { margin: 0; padding: 0; height: 100%; font-family: "Hiragino Kaku Go
 :root {
   --bar-h: 52px;
   --dock: 76px;          /* メニューの帯の太さ */
-  --panel-w: 340px;
+  --panel-w: 306px;     /* PC（横長）のパネルの幅 */
   --accent: #1b6a4b;      /* 地図の情報色（地質・植生・拠点）。ブランド赤とは別 */
   --brand-red: #c30d23;   /* 萩ジオパーク公式ロゴの赤 */
   --sumi: #595857;        /* 墨色（メニューのアイコン） */
@@ -497,3 +497,19 @@ body.touring #map { left: 0; bottom: 0; }
 }
 .site-area-body .site-group-head:first-child { margin-top: 6px; }
 .site-area-body .site-list { padding-left: 4px; }
+
+/* ---- タブ内の文字を 1pt ずつ大きく（元の大きさ＋1pt） ---- */
+#panel .panel-head strong { font-size: calc(18px + 1pt); }
+#panel #poiSearch { font-size: calc(14px + 1pt); }
+#panel .site-area-head, #panel .area-card-head b { font-size: calc(13.5px + 1pt); }
+#panel .site-area-body .site-group-head { font-size: calc(12.5px + 1pt); }
+#panel .poi-item, #panel .near-toggle, #panel .tour-start { font-size: calc(13px + 1pt); }
+#panel .poi-dist, #panel .area-card-head span, #panel .vp-site { font-size: calc(11px + 1pt); }
+#panel .list-intro, #panel .area-lead, #panel .area-story h4 { font-size: calc(11.5px + 1pt); }
+#panel .area-story p, #panel .vp-notice { font-size: calc(12px + 1pt); }
+#panel .vp-kind, #panel .credit { font-size: calc(10.5px + 1pt); }
+#panel #legendBox .layers-panel { font-size: calc(13.5px + 1pt); }
+#panel .lp-sec, #panel .lp-legend .lp-hint, #panel .lp-legend-sub { font-size: calc(11px + 1pt); }
+#panel .lp-legend .row { font-size: calc(12px + 1pt); }
+#panel .tab-soon b { font-size: calc(16px + 1pt); }
+#panel .tab-soon p { font-size: calc(13px + 1pt); }
