@@ -3,12 +3,12 @@
    項目（または地図の印）をタップすると、地図がその産地へ寄って育てた大地を示す。
    データ：data/food.json（文章・産地・示す大地）、data/food_shapes.geojson（大地の範囲） */
 
-const FOOD_TYPES = {   // 種類の札の色
-  "海":   "#1f78b4",
-  "田畑": "#3f8f3a",
-  "果物": "#e07b1a",
-  "牛":   "#8a5a2b",
-  "加工品": "#6b6b6b",
+const FOOD_TYPES = {   // 種類の色（日本の伝統色）：海＝藍、田畑＝松葉、果物＝柿、牛＝焦茶、加工品＝墨
+  "海":   "#165e83",
+  "田畑": "#42602d",
+  "果物": "#c9601e",
+  "牛":   "#6f4b3e",
+  "加工品": "#3f3f3f",
 };
 let FOOD = [], foodShapes = {}, foodMode = false, foodOpenId = null, foodBuilt = false;
 map.createPane("foodShapePane"); map.getPane("foodShapePane").style.zIndex = 420;
@@ -25,9 +25,10 @@ Promise.all([
   gj.features.forEach(f=> foodShapes[f.properties.id] = f);
   if (foodMode) buildFoodTab();   // 読み込み前にタブが開かれていた場合
   FOOD.forEach(it=>{
+    const two = (it.seal || "").length > 1;   // 2字は縦書きの判子
     const m = L.marker(it.at, { pane:"foodPinPane", keyboard:false, title: it.title,
-      icon: L.divIcon({ className:"", iconSize:[34,34], iconAnchor:[17,17],
-        html:`<div class="food-pin" style="--fc:${FOOD_TYPES[it.type] || "#666"}">${it.icon}</div>` }) });
+      icon: L.divIcon({ className:"", iconSize: two ? [30,48] : [34,34], iconAnchor: two ? [15,24] : [17,17],
+        html:`<div class="food-pin${two ? " two" : ""}" style="--fc:${FOOD_TYPES[it.type] || "#666"}"><span>${esc(it.seal || it.icon)}</span></div>` }) });
     m.on("click", ()=>{ if (openTab !== "food") showTab("food", { pan:false }); openFood(it.id); });
     it.pin = m; m.addTo(foodPins);
   });

@@ -531,11 +531,16 @@ body.touring #map { left: 0; bottom: 0; }
 .food-item.open .food-body { display: block; }
 .food-item.open { border-color: #c9c9c9; box-shadow: 0 1px 4px rgba(0,0,0,.08); }
 .food-body p { margin: 2px 0 10px; font-size: calc(12px + 1pt); line-height: 1.75; color: #333; }
-/* 地図の産地の印（種類の色の丸に絵文字） */
+/* 地図の産地の印＝判子（和紙色の地に、種類の伝統色で産品の字を筆文字で） */
 .food-pin {
-  width: 34px; height: 34px; border-radius: 50%; background: #fff; border: 3px solid var(--fc);
-  display: flex; align-items: center; justify-content: center; font-size: 18px; line-height: 1;
-  box-shadow: 0 2px 6px rgba(0,0,0,.35); cursor: pointer; transition: transform .15s;
+  width: 34px; height: 34px; border-radius: 5px; cursor: pointer;
+  background: #fbf6ea; color: var(--fc); border: 2.5px solid var(--fc);
+  box-shadow: inset 0 0 0 1.5px #fbf6ea, inset 0 0 0 2.5px var(--fc), 0 2px 5px rgba(0,0,0,.35);
+  display: flex; align-items: center; justify-content: center;
+  font-family: "Yuji Syuku", "Noto Serif JP", "Yu Mincho", serif; font-size: 20px; line-height: 1;
+  transform: rotate(-4deg); transition: transform .15s;
 }
-.food-pin:hover { transform: scale(1.12); }
-.food-pin.on { transform: scale(1.3); box-shadow: 0 0 0 4px rgba(255,200,0,.75), 0 2px 8px rgba(0,0,0,.4); }
+.food-pin.two { width: 30px; height: 48px; }   /* 2字は縦長の判子 */
+.food-pin.two span { writing-mode: vertical-rl; font-size: 17px; letter-spacing: .02em; line-height: 1; }
+.food-pin:hover { transform: rotate(0) scale(1.12); }
+.food-pin.on { transform: rotate(0) scale(1.3); box-shadow: inset 0 0 0 1.5px #fbf6ea, inset 0 0 0 2.5px var(--fc), 0 0 0 4px rgba(195,13,35,.55), 0 2px 8px rgba(0,0,0,.4); }
