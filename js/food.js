@@ -141,5 +141,7 @@ function startFoodTour(id){
              label: last ? (it.label || []) : [] };
   });
   if (out.length === 1) Object.assign(out[0], { shape: it.shape || [], ring: it.ring || [], label: it.label || [], fit:[it.at].concat(land) });
+  // 締めの場面：大地の恵みとしてまとめ、味わう・訪れる誘いで終える（大地を出したまま）
+  if (it.close) out.push({ text: it.close, fit:[it.at].concat(land), shape: it.shape || [], ring: it.ring || [], point: it.at, label: it.label || [] });
   beginTour({ name: it.title, tour: out }, foodShapes);
 }
