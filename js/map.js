@@ -583,7 +583,7 @@ function injectLabelStyles(){
 }
 
 // ---- 読み込み ----
-const DATAV = "?d=54";   // geojson更新時にbump（ブラウザキャッシュ回避）
+const DATAV = "?d=55";   // geojson更新時にbump（ブラウザキャッシュ回避）
 const fetchGj = def => fetch("data/"+def.file+DATAV).then(r=>r.json());
 Promise.all([
   fetch("data/areas.geojson"+DATAV).then(r=>r.json()),
@@ -1058,6 +1058,7 @@ function showTab(name, { pan = true } = {}){
   const panel = document.getElementById("panel");
   panel.classList.add("open"); panel.setAttribute("aria-hidden", "false");
   panel.querySelector(".panel-body").scrollTop = 0;
+  if (typeof setFoodMode === "function") setFoodMode(name === "food");   // 食と大地＝地図を産地の印に切り替える
 }
 function closeTab({ pan = true } = {}){
   if (openTab && pan) shiftForPanel(false);
@@ -1065,6 +1066,7 @@ function closeTab({ pan = true } = {}){
   document.querySelectorAll(".dock-btn").forEach(b=> b.classList.remove("on"));
   const panel = document.getElementById("panel");
   panel.classList.remove("open", "tall"); panel.setAttribute("aria-hidden", "true");
+  if (typeof setFoodMode === "function") setFoodMode(false);
 }
 document.querySelectorAll(".dock-btn").forEach(b=>{
   b.onclick = ()=> openTab === b.dataset.tab ? closeTab() : showTab(b.dataset.tab);   // もう一度押すと閉じる

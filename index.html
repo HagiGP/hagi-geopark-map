@@ -22,7 +22,7 @@
           crossorigin=""></script>
   <!-- 見出し・項目名を太くする書体（Noto Sans JP 700/900。使う文字の分だけ読み込まれる） -->
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@700;900&display=swap" />
-  <link rel="stylesheet" href="css/style.css?v=140" />
+  <link rel="stylesheet" href="css/style.css?v=142" />
 </head>
 <body>
   <header id="appbar">
@@ -53,12 +53,7 @@
       <section class="tab" data-tab="areas">
         <div id="areaList"></div>
       </section>
-      <section class="tab" data-tab="food">
-        <div class="tab-soon">
-          <b>食と大地</b>
-          <p>萩の食べものと、それを育てた大地のつながりを紹介するページを準備しています。</p>
-        </div>
-      </section>
+      <section class="tab" data-tab="food"><p class="loading">読み込み中…</p></section>
       <section class="tab" data-tab="legend">
         <div id="legendBox"></div>
         <p class="credit">
@@ -75,8 +70,9 @@
   <div id="map"></div>
 
   <script src="js/qrcode.min.js?v=58"></script>
-  <script src="js/map.js?v=140"></script>
-  <script src="js/tour.js?v=140"></script>
+  <script src="js/map.js?v=142"></script>
+  <script src="js/tour.js?v=142"></script>
+  <script src="js/food.js?v=142"></script>
   <script>
     if ("serviceWorker" in navigator) {
       window.addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(()=>{}));
