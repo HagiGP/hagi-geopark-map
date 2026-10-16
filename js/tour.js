@@ -35,8 +35,12 @@ loadPixelFont();   // 「解説を見る」ボタンにも使うので最初に�
 
 function startTour(id){
   const a = areaById[id]; if (!a || !(a.tour||[]).length) return;
+  loadTourShapes(id).then(shapes=> beginTour(a, shapes));
+}
+// 解説を始める。a＝{ name（字幕の窓の見出し）, tour（場面の配列） }、shapes＝{ 図形id: GeoJSON feature }
+function beginTour(a, shapes){
   loadPixelFont();
-  loadTourShapes(id).then(shapes=>{
+  {
     if (tour) endTour();
     tour = { area:a, shapes, scenes:a.tour, i:0, layer:L.layerGroup().addTo(map), keep:{}, keepLayer:L.layerGroup().addTo(map),
              prevTab: openTab };   // 解説の前に開いていたタブ（終わったら戻す）
@@ -51,7 +55,7 @@ function startTour(id){
     tour.scenes.forEach((sc,k)=>{ const ph = scenePhoto(sc); if (!ph) return;
       const im = new Image(); im.onload = ()=>{ if (tour) tour.photoOk[k] = true; }; im.src = ph.src; });
     setTimeout(()=> showScene(0), 240);
-  });
+  }
 }
 
 function endTour(){
@@ -161,7 +165,7 @@ function showScene(i){
 // 省略時は指差し(point)のサイトに写真があれば自動で出す。写真が無ければ何も出さない
 function scenePhoto(sc){
   if (sc.photo === false) return null;
-  const p = sc.photo || sc.point; if (!p) return null;
+  const p = sc.photo || (typeof sc.point === "string" ? sc.point : null); if (!p) return null;
   const isPath = /[\/.]/.test(p) && /\.(jpe?g|png|webp|svg)$/i.test(p);
   return { src: isPath ? p : photoSrc(p), caption: sc.photoCaption || (isPath ? "" : p), diagram: /^img\/tour\//.test(p) };   // img/tour/ の図（模式図）は切り取らず全体を見せる
 }
@@ -231,8 +235,8 @@ function drawSceneMarks(sc){
       icon:L.divIcon({ className:"", iconSize:null, iconAnchor:[0,0], html:`<div class="tour-label">${esc(lb.text)}</div>` }) }).addTo(tour.layer);
   });
   if (sc.point){
-    const o = allMarkers.find(x=> x.name === sc.point);
-    if (o) L.marker(o.marker.getLatLng(), { interactive:false, pane:"tourPane", keyboard:false,
+    const ll = Array.isArray(sc.point) ? L.latLng(sc.point[0], sc.point[1]) : allMarkers.find(x=> x.name === sc.point)?.marker.getLatLng();
+    if (ll) L.marker(ll, { interactive:false, pane:"tourPane", keyboard:false,
       icon:L.divIcon({ className:"", iconSize:[36,36], iconAnchor:[18,46], html:`<div class="tour-point">${POINTER_SVG}</div>` }) }).addTo(tour.layer);
   }
 }

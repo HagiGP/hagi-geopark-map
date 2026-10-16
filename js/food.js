@@ -52,12 +52,10 @@ function buildFoodTab(){
       head.onclick = ()=> foodOpenId === it.id ? closeFood() : openFood(it.id);
       const body = document.createElement("div"); body.className = "food-body";
       body.innerHTML = `<p>${esc(it.text)}</p>`;
-      if (it.tour && areaById[it.tour] && (areaById[it.tour].tour || []).length){   // 地域解説の解説ツアーへ
-        const b = document.createElement("button"); b.className = "tour-start";
-        b.innerHTML = `<span class="ts-icon">▶</span>この大地の解説を見る`;
-        b.onclick = e=>{ e.stopPropagation(); startTour(it.tour); };
-        body.appendChild(b);
-      }
+      const b = document.createElement("button"); b.className = "tour-start";   // 食の解説（字幕で地図を動かしながら）
+      b.innerHTML = `<span class="ts-icon">▶</span>地図で解説を見る`;
+      b.onclick = e=>{ e.stopPropagation(); startFoodTour(it.id); };
+      body.appendChild(b);
       card.append(head, body); sec.appendChild(card);
     });
   });
@@ -123,3 +121,25 @@ function setFoodMode(on){
 map.on("moveend", ()=>{   // 広域表示の切り替えなどで見どころが戻っても、食と大地の間は隠したまま
   if (foodMode) foodHidePanes().forEach(p=>{ const pn = map.getPane(p); if (pn) pn.style.display = "none"; });
 });
+
+// ---- 食の解説：解説文を1文ずつ場面にして、「産品 → なぜ → 大地」の順に地図を動かす ----
+// 1場面目＝産地に寄って指差し／2場面目以降＝育てた大地を示す（最後の場面で名札も）
+function startFoodTour(id){
+  const it = FOOD.find(x=> x.id === id); if (!it) return;
+  const sents = it.text.match(/[^。]+。?/g).map(s=> s.trim()).filter(Boolean);
+  const scenes = []; let buf = "";
+  sents.forEach(s=>{   // 短すぎる文は次の文とまとめる（1場面の字幕が細切れにならないように）
+    buf = buf ? buf + "\n" + s : s;
+    if (buf.replace(/\n/g, "").length >= 22){ scenes.push(buf); buf = ""; }
+  });
+  if (buf) scenes.length ? scenes[scenes.length - 1] += "\n" + buf : scenes.push(buf);
+  const land = (it.shape || []).concat(it.ring || []);
+  const out = scenes.map((text, k)=>{
+    if (k === 0) return { text, fit:[it.at, [it.at[0] + 0.02, it.at[1] + 0.03], [it.at[0] - 0.02, it.at[1] - 0.03]], point: it.at };
+    const last = k === scenes.length - 1;
+    return { text, fit:[it.at].concat(land.length ? land : []), shape: it.shape || [], ring: it.ring || [], point: it.at,
+             label: last ? (it.label || []) : [] };
+  });
+  if (out.length === 1) Object.assign(out[0], { shape: it.shape || [], ring: it.ring || [], label: it.label || [], fit:[it.at].concat(land) });
+  beginTour({ name: it.title, tour: out }, foodShapes);
+}
