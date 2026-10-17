@@ -129,6 +129,13 @@ map.on("moveend", ()=>{   // 広域表示の切り替えなどで見どころが
 // 1場面目＝産地に寄って指差し／2場面目以降＝育てた大地を示す（最後の場面で名札も）
 function startFoodTour(id){
   const it = FOOD.find(x=> x.id === id); if (!it) return;
+  const land = (it.shape || []).concat(it.ring || []);
+  if (it.scenes){   // 場面を書いてある品：字幕と地図の動き（矢印・名札など）はデータのとおり
+    const out = it.scenes.map(sc=> ({ ...sc }));
+    if (it.close) out.push({ text: it.close, fit:[it.at].concat(land), shape: it.shape || [], ring: it.ring || [], point: it.at, label: it.label || [] });
+    beginTour({ name: it.title, tour: out }, foodShapes);
+    return;
+  }
   const sents = it.text.match(/[^。]+。?/g).map(s=> s.trim()).filter(Boolean);
   const scenes = []; let buf = "";
   sents.forEach(s=>{   // 短すぎる文は次の文とまとめる（1場面の字幕が細切れにならないように）
@@ -136,7 +143,6 @@ function startFoodTour(id){
     if (buf.replace(/\n/g, "").length >= 22){ scenes.push(buf); buf = ""; }
   });
   if (buf) scenes.length ? scenes[scenes.length - 1] += "\n" + buf : scenes.push(buf);
-  const land = (it.shape || []).concat(it.ring || []);
   const out = scenes.map((text, k)=>{
     if (k === 0) return { text, fit:[it.at, [it.at[0] + 0.02, it.at[1] + 0.03], [it.at[0] - 0.02, it.at[1] - 0.03]], point: it.at };
     const last = k === scenes.length - 1;
