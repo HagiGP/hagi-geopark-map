@@ -7,7 +7,7 @@
      shape 塗って示す図形id の配列（溶岩の範囲など）。shapeOpacity で塗りの濃さを場面ごとに上書き
      line  流れを描く線の図形id（アニメーションで描く）。配列で複数本も可。配列の配列なら組ごとに順番に描く
      ring  丸で囲むサイト名の配列
-     point 指差す（▼）サイト名
+     point 指差す（▼）サイト名（points＝何か所も指差す [[緯度,経度], …]）
      label 地名ラベル [{ "text":"須佐湾", "at":[緯度,経度] }]
      followLine true なら、line の組ごとに地図がその組の範囲へ移って描く（長い流れを寄りぎみに見せる）
      photo 写真（サイト名 or 画像パス。false で出さない。省略時は point のサイトの写真）
@@ -234,11 +234,12 @@ function drawSceneMarks(sc){
     L.marker(lb.at, { interactive:false, pane:"tourPane", keyboard:false,
       icon:L.divIcon({ className:"", iconSize:null, iconAnchor:[0,0], html:`<div class="tour-label">${esc(lb.text)}</div>` }) }).addTo(tour.layer);
   });
-  if (sc.point){
-    const ll = Array.isArray(sc.point) ? L.latLng(sc.point[0], sc.point[1]) : allMarkers.find(x=> x.name === sc.point)?.marker.getLatLng();
+  // 指差し：point＝1か所（サイト名 or [緯度,経度]）、points＝何か所も（[[緯度,経度], …]）
+  [].concat(sc.point ? [sc.point] : [], sc.points || []).forEach(p=>{
+    const ll = Array.isArray(p) ? L.latLng(p[0], p[1]) : allMarkers.find(x=> x.name === p)?.marker.getLatLng();
     if (ll) L.marker(ll, { interactive:false, pane:"tourPane", keyboard:false,
       icon:L.divIcon({ className:"", iconSize:[36,36], iconAnchor:[18,46], html:`<div class="tour-point">${POINTER_SVG}</div>` }) }).addTo(tour.layer);
-  }
+  });
 }
 
 const shapeKey = (sc, id)=> `s:${id}:${sc.shapeOpacity ?? ""}`;   // 濃さが変わる場面では描き直す
