@@ -727,8 +727,14 @@ function flyToArea(id){
 }
 function resetView(){
   // 範囲を中央に。陰影図の外は見せない（homeView がズーム・中心を決める）
+  // パネルが開いていれば、パネルに隠れていない部分の中央に（閉じると半分戻るので、閉じた後も中央になる）
   const h = homeView();
-  map.flyTo(h.center, h.zoom, { duration:.8 });
+  let c = h.center;
+  if (openTab){
+    const [l, b] = panelCover();
+    c = map.unproject(map.project(h.center, h.zoom).add([-l / 2, b / 2]), h.zoom);
+  }
+  map.flyTo(c, h.zoom, { duration:.8 });
   document.querySelectorAll(".area-card").forEach(el=> el.classList.remove("open"));
 }
 
