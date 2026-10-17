@@ -132,7 +132,8 @@ function startFoodTour(id){
   const land = (it.shape || []).concat(it.ring || []);
   if (it.scenes){   // 場面を書いてある品：字幕と地図の動き（矢印・名札など）はデータのとおり
     const out = it.scenes.map(sc=> ({ ...sc }));
-    if (it.close) out.push({ text: it.close, fit:[it.at].concat(land), shape: it.shape || [], ring: it.ring || [], point: it.at, label: it.label || [] });
+    // nopoint＝とれる範囲が広い・店がいくつもある品は、締めでも指差ししない
+    if (it.close) out.push({ text: it.close, fit:[it.at].concat(land), shape: it.shape || [], ring: it.ring || [], point: it.nopoint ? null : it.at, label: it.label || [] });
     beginTour({ name: it.title, tour: out }, foodShapes);
     return;
   }
