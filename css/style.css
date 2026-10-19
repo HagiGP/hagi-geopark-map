@@ -346,11 +346,16 @@ body.staff #appbar { background: #595857; }   /* 運営モード＝墨色でひ�
 .area-zone { transition: fill-opacity .2s; }
 .area-label {
   text-align: center; white-space: nowrap; pointer-events: auto; cursor: pointer;
-  transform: translateX(-50%); transition: opacity .25s; text-shadow: 0 0 3px #fff, 0 0 3px #fff, 0 0 6px #fff;
+  transform: translateX(-50%); transition: opacity .25s;
+  font-family: var(--heavy);
+  /* 見どころの名前より一段目立たせる：白地の札（エリアの色の枠）＋白の縁取り */
+  display: inline-block; padding: 4px 10px 5px; border-radius: 8px;
+  background: rgba(255,255,255,.9); border: 2px solid var(--ac, #333); box-shadow: 0 2px 6px rgba(0,0,0,.3);
+  text-shadow: 1.5px 0 0 #fff, -1.5px 0 0 #fff, 0 1.5px 0 #fff, 0 -1.5px 0 #fff;
 }
 .area-label.area-label-l { transform: none; text-align: left; }   /* 左アンカー＝labelLonから右へ伸ばす */
-.area-label b { display: block; font-size: 16px; font-weight: 800; color: var(--ac, #333); letter-spacing: .5px; }
-.area-label span { display: block; font-size: 11px; font-weight: 600; color: #444; margin-top: 1px; }
+.area-label b { display: block; font-size: 19px; font-weight: 900; color: var(--ac, #333); letter-spacing: .5px; }
+.area-label span { display: block; font-size: 13px; font-weight: 900; color: #2b2b2b; margin-top: 2px; }
 
 /* ---- エリア解説ツアー（js/tour.js）：ファミコンRPG風のメッセージ窓 ---- */
 .tour-start {
