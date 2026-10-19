@@ -558,8 +558,8 @@ function updateAreaLabels(z){
   });
   positionAreaLabels();
 }
-// エリアの札を「そのエリアの上」かつ「画面の見えている部分（パネル・メニューに隠れない所）」に収める。
-// 決めた位置（labelLat/Lon）が画面からはみ出すときだけ、エリアの中で内側へずらす。エリアが画面に無ければ隠す
+// エリア名を、決めた位置（labelLat/Lon。三角州や高山など大事な所を避けて置いてある）に出し、
+// 画面の見えている部分（パネル・メニューに隠れない所）からはみ出すときだけ内側へずらす。エリアが画面に無ければ隠す
 function positionAreaLabels(){
   const sz = map.getSize(), mr = map.getContainer().getBoundingClientRect();
   const [cl, cb] = openTab ? panelCover() : [0, 0];
@@ -572,10 +572,9 @@ function positionAreaLabels(){
     const nw = map.latLngToContainerPoint(a.bounds.getNorthWest()), se = map.latLngToContainerPoint(a.bounds.getSouthEast());
     const R = { l: Math.max(V.l, nw.x), t: Math.max(V.t, nw.y), r: Math.min(V.r, se.x), b: Math.min(V.b, se.y) };
     if (R.l >= R.r || R.t >= R.b){ el.style.visibility = "hidden"; return; }   // エリアが画面の外
-    const fit = (v, lo, hi, size, vlo, vhi)=> hi - lo >= size ? Math.min(Math.max(v, lo), hi - size)
-      : Math.min(Math.max((lo + hi) / 2 - size / 2, vlo), vhi - size);   // エリアの見えている幅より大きい札は、その真ん中に（画面からは出さない）
-    el.style.marginLeft = (fit(x0, R.l, R.r, w, V.l, V.r) - x0) + "px";
-    el.style.marginTop  = (fit(y0, R.t, R.b, h, V.t, V.b) - y0) + "px";
+    const fit = (v, lo, hi, size)=> Math.min(Math.max(v, lo), Math.max(lo, hi - size));   // 画面の内側へ（必要なぶんだけ）
+    el.style.marginLeft = (fit(x0, V.l, V.r, w) - x0) + "px";
+    el.style.marginTop  = (fit(y0, V.t, V.b, h) - y0) + "px";
   });
 }
 

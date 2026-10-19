@@ -348,18 +348,24 @@ body.staff #appbar { background: #595857; }   /* 運営モード＝墨色でひ�
   text-align: center; white-space: nowrap; pointer-events: auto; cursor: pointer;
   transform: translateX(-50%); transition: opacity .25s;
   font-family: var(--heavy);
-  /* 見どころの名前より一段格上の「札」：墨色の地に白抜きの文字、左にエリアの色の帯（ドック・帯と同じ墨色で統一） */
-  display: inline-block; padding: 6px 13px 7px 11px; border-radius: 3px;
-  background: rgba(47,45,43,.92); border-left: 7px solid var(--ac, #888);
-  box-shadow: 0 3px 10px rgba(0,0,0,.45), inset 0 0 0 1px rgba(255,255,255,.12);
+  /* 地図を隠さないよう地の札は敷かず、文字そのものを重く：白抜きの名前に墨色の太い縁取り、下にエリアの色の線 */
+  display: inline-block;
 }
 .area-label.area-label-l { transform: none; text-align: left; }   /* 左アンカー＝labelLonから右へ伸ばす */
-.area-label b { display: block; font-size: 19px; font-weight: 900; color: #fff; letter-spacing: .08em; }
-.area-label span { display: block; font-size: 12.5px; font-weight: 700; color: #e9e2d2; margin-top: 3px; padding-top: 3px; border-top: 1px solid rgba(255,255,255,.28); letter-spacing: .04em; }
-@media (max-width: 500px) {   /* スマホ：札が地図を覆いすぎないよう一回り小さく */
-  .area-label { padding: 4px 9px 5px 8px; border-left-width: 5px; }
-  .area-label b { font-size: 15px; }
-  .area-label span { font-size: 10.5px; margin-top: 2px; padding-top: 2px; }
+.area-label b {
+  display: inline-block; font-size: 20px; font-weight: 900; color: #fff; letter-spacing: .08em; padding-bottom: 2px;
+  border-bottom: 3px solid var(--ac, #888);
+  text-shadow: 2px 0 0 #2f2d2b, -2px 0 0 #2f2d2b, 0 2px 0 #2f2d2b, 0 -2px 0 #2f2d2b,
+               1.5px 1.5px 0 #2f2d2b, -1.5px 1.5px 0 #2f2d2b, 1.5px -1.5px 0 #2f2d2b, -1.5px -1.5px 0 #2f2d2b, 0 2px 5px rgba(0,0,0,.5);
+}
+.area-label span {
+  display: block; font-size: 12.5px; font-weight: 900; color: #2f2d2b; margin-top: 3px; letter-spacing: .04em;
+  text-shadow: 1.5px 0 0 #fff, -1.5px 0 0 #fff, 0 1.5px 0 #fff, 0 -1.5px 0 #fff,
+               1px 1px 0 #fff, -1px 1px 0 #fff, 1px -1px 0 #fff, -1px -1px 0 #fff, 0 0 4px #fff;
+}
+@media (max-width: 500px) {   /* スマホ：一回り小さく */
+  .area-label b { font-size: 16px; border-bottom-width: 2px; }
+  .area-label span { font-size: 11px; }
 }
 
 /* ---- エリア解説ツアー（js/tour.js）：ファミコンRPG風のメッセージ窓 ---- */
