@@ -723,7 +723,17 @@ function enterArea(id){
 function flyToArea(id){
   const a = areaById[id]; if (!a) return;
   const [l, b] = openTab ? panelCover() : [0, 0];
-  map.flyToBounds(a.bounds.pad(0.15), { maxZoom:13, duration:.8, paddingTopLeft:[l + 16, 16], paddingBottomRight:[16, b + 16] });
+  flyToFit(a.bounds.pad(0.15), { maxZoom:13, paddingTopLeft:[l + 16, 16], paddingBottomRight:[16, b + 16] });
+}
+// 範囲へ寄る。ただし陰影図・植生が出る倍率（WIDE_Z）より引かない（スマホの狭い画面で広域表示に落ちないように）。
+// 範囲が収まりきらないときは、その中心をパネルに隠れていない部分の中央に置く
+const MIN_DETAIL_Z = WIDE_Z + 0.15;
+function flyToFit(bounds, { maxZoom = 18, paddingTopLeft = [0, 0], paddingBottomRight = [0, 0], duration = .8 } = {}){
+  const tl = L.point(paddingTopLeft), br = L.point(paddingBottomRight);
+  let z = Math.min(map.getBoundsZoom(bounds, false, tl.add(br)), maxZoom);
+  z = Math.max(z, MIN_DETAIL_Z);
+  const c = map.unproject(map.project(bounds.getCenter(), z).add(br.subtract(tl).divideBy(2)), z);
+  map.flyTo(c, z, { duration });
 }
 function resetView(){
   // 範囲を中央に。陰影図の外は見せない（homeView がズーム・中心を決める）
@@ -742,21 +752,23 @@ function resetView(){
 function siteLegendRows(){
   return SITE_GROUPS.map(g=>{
     const d = SITE_CATS[g.cats[0]];
-    return `<div class="row"><span class="dot" style="background:${d.fill};box-shadow:0 0 0 1.5px ${d.outline||'#fff'}"></span>${esc(g.label)}</div>`;
+    return `<div class="row"><span class="dot" style="background:${d.fill};box-shadow:0 0 0 1.5px ${d.outline||'#fff'}"></span>`+
+           `<span>${esc(g.label)}${g.desc ? `<small class="lg-desc">${esc(g.desc)}</small>` : ""}</span></div>`;
   }).join("");
 }
 // 特徴的な地質の凡例（背景タイルの色・記号の意味。陰影と重なるため代表色で表示）
 const GEO_LEGEND = [
-  { type:"ellipse", label:"大陸のマグマの活動でできた古いカルデラ" },
-  { type:"swatch", color:"#8b5fbf", label:"日本海のマグマの活動でできた火山岩や深成岩" },
-  { type:"swatch", color:"#cf4436", label:"萩・阿武のマグマの活動でできた火山岩" },
+  // 年代は紙のガイドマップ（guidemap 2025）の凡例と同じ
+  { type:"ellipse", label:"大陸のマグマの活動でできた古いカルデラ", desc:"１億～3000万年前。日本列島が大陸の一部だったころ" },
+  { type:"swatch", color:"#8b5fbf", label:"日本海のマグマの活動でできた火山岩や深成岩", desc:"2000万～1000万年前。日本海が広がり、日本列島が大陸から離れたころ" },
+  { type:"swatch", color:"#cf4436", label:"萩・阿武のマグマの活動でできた火山岩", desc:"200万～1万年前。阿武火山群などの小さな火山" },
 ];
 function geoLegendRows(){
   return GEO_LEGEND.map(g=>{
     const mark = g.type==="ellipse"
       ? `<svg class="lg-mark" width="18" height="14" viewBox="0 0 18 14"><ellipse cx="9" cy="7" rx="7.5" ry="5" fill="none" stroke="#555" stroke-width="1.4" stroke-dasharray="3 2"/></svg>`
       : `<span class="dot" style="background:${g.color}"></span>`;
-    return `<div class="row">${mark}<span>${esc(g.label)}</span></div>`;
+    return `<div class="row">${mark}<span>${esc(g.label)}${g.desc ? `<small class="lg-desc">${esc(g.desc)}</small>` : ""}</span></div>`;
   }).join("");
 }
 
@@ -892,13 +904,13 @@ const rankWeight = r => ({AA:0,A:1,B:2}[r] ?? 3);
 // 見どころ一覧・凡例の分類の並び・見出し。1グループに複数カテゴリを含められる
 // （拠点施設＝hubs＋案内板。データ上の「展望地」は「ビューポイント」と表示）
 const SITE_GROUPS = [
-  { label:"拠点施設",     cats:["拠点施設"] },
-  { label:"ビューポイント", cats:["展望地"] },
-  { label:"案内地図",     cats:["案内地図"] },
-  { label:"解説板",       cats:["解説板"] },
-  { label:"ジオサイト",    cats:["ジオサイト"] },
-  { label:"文化サイト",    cats:["文化サイト"] },
-  { label:"神社",         cats:["神社"] },
+  { label:"拠点施設",     cats:["拠点施設"],   desc:"萩ジオパークの展示や案内がある施設" },
+  { label:"ビューポイント", cats:["展望地"],     desc:"大地の成り立ちを見わたせる展望地" },
+  { label:"案内地図",     cats:["案内地図"],   desc:"まわりの見どころを案内する地図の看板" },
+  { label:"解説板",       cats:["解説板"],     desc:"その場所の大地や歴史を解説する看板" },
+  { label:"ジオサイト",    cats:["ジオサイト"], desc:"大地の成り立ちがわかる見どころ" },
+  { label:"文化サイト",    cats:["文化サイト"], desc:"大地とつながる歴史や文化の見どころ" },
+  { label:"神社",         cats:["神社"],       desc:"大地や暮らしとかかわりの深い神社" },
 ];
 // サイトへ寄ってポップアップを開く。縦長画面はパネルを閉じ、横長でパネルが開いていれば隠れない位置へ
 function flyToSite(o){
@@ -992,7 +1004,7 @@ function buildAreaGuide(){
     const head = document.createElement("div"); head.className="area-card-head";
     head.style.setProperty("--ac", a.color);
     head.innerHTML = `<b>${esc(a.name)}</b><span>${esc(a.theme)}</span>`;
-    head.onclick = ()=> enterArea(a.id);
+    head.onclick = ()=> card.classList.contains("open") ? card.classList.remove("open") : enterArea(a.id);   // 開いていればたたむ
     card.appendChild(head);
 
     const body = document.createElement("div"); body.className="area-card-body";

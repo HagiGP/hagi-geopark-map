@@ -99,6 +99,9 @@ body.staff #appbar { background: #595857; }   /* 運営モード＝墨色でひ�
   display: flex; flex-direction: column; gap: 1px;
 }
 .area-card-head:hover { background: #fafafa; }
+.area-card-head::after { content: "▸"; color: #999; font-size: 12px; position: absolute; right: 12px; top: 50%; transform: translateY(-50%); transition: transform .15s; }
+.area-card.open .area-card-head::after { transform: translateY(-50%) rotate(90deg); }
+.area-card-head { padding-right: 28px; }
 .area-card-head b { font-size: 13.5px; }
 .area-card-head span { font-size: 11px; color: #666; }
 .area-card-body { display: none; padding: 4px 10px 8px; }
@@ -192,6 +195,7 @@ body.staff #appbar { background: #595857; }   /* 運営モード＝墨色でひ�
 .lp-legend .row { display: flex; align-items: flex-start; gap: 7px; margin: 3px 0; font-size: 12px; line-height: 1.35; }
 .lp-legend .dot { width: 13px; height: 13px; border-radius: 50%; flex-shrink: 0; margin-top: 1px; box-shadow: 0 0 0 1px rgba(0,0,0,.15); }
 .lp-legend .lg-mark { flex-shrink: 0; margin-top: 1px; }
+.lp-legend .lg-desc { display: block; font-family: system-ui, sans-serif; font-weight: 400; font-size: 11px; color: #666; line-height: 1.45; margin-top: 1px; }
 
 /* 地図上の丸ボタン（現在地・全体に戻す）＝右下。親指が届く位置・44px */
 .map-fab { display: flex; flex-direction: column; gap: 10px; margin: 0 4px 4px 0; }

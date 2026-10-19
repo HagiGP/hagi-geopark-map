@@ -92,7 +92,7 @@ function openFood(id){
   });
   foodMarks.addTo(map);
   const [l, bot] = openTab ? panelCover() : [0, 0];
-  map.flyToBounds(b.pad(0.15), { maxZoom:13.5, duration:.8, paddingTopLeft:[l + 30, 40], paddingBottomRight:[30, bot + 30] });
+  flyToFit(b.pad(0.15), { maxZoom:13.5, paddingTopLeft:[l + 30, 40], paddingBottomRight:[30, bot + 30] });
 }
 function closeFood(){
   foodOpenId = null;
@@ -114,7 +114,8 @@ function setFoodMode(on){
     foodPins.addTo(map);
     if (FOOD.length && !foodOpenId){   // 開いたときは、20か所の産地の印がすべて見えるように（パネルの分をよける）
       const [l, bot] = panelCover();
-      map.flyToBounds(L.latLngBounds(FOOD.map(it=> it.at)), { duration:.8, paddingTopLeft:[l + 30, 40], paddingBottomRight:[40, bot + 30] });
+      // スマホでは全部が入らなくてもよい（陰影図・植生が出る倍率までにとどめる）
+      flyToFit(L.latLngBounds(FOOD.map(it=> it.at)), { paddingTopLeft:[l + 30, 40], paddingBottomRight:[40, bot + 30] });
     }
   } else {
     if (!wideMode) foodHidePanes().forEach(p=>{ const pn = map.getPane(p); if (pn) pn.style.display = ""; });
