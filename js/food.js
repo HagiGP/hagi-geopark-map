@@ -91,6 +91,7 @@ function openFood(id){
     b.extend(lb.at);
   });
   foodMarks.addTo(map);
+  lowerPanel();   // スマホ：パネルを低くたたんで地図を見せる
   const [l, bot] = openTab ? panelCover() : [0, 0];
   flyToFit(b.pad(0.15), { maxZoom:13.5, paddingTopLeft:[l + 30, 40], paddingBottomRight:[30, bot + 30] });
 }

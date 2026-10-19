@@ -68,7 +68,6 @@ body.staff #appbar { background: #595857; }   /* 運営モード＝墨色でひ�
 .panel-body { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; }
 .tab { display: none; padding: 10px 6px 14px; }
 .tab.on { display: block; }
-#poiSearch { display: block; width: calc(100% - 16px); margin: 0 8px 10px; padding: 8px 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 14px; }
 .tab-soon { margin: 24px 14px; padding: 18px; border: 1.5px dashed #ccc; border-radius: 10px; color: #666; text-align: center; }
 .tab-soon b { display: block; font-size: 16px; color: #333; margin-bottom: 6px; }
 .tab-soon p { margin: 0; font-size: 13px; line-height: 1.7; }
@@ -454,7 +453,7 @@ body.touring #map { left: 0; bottom: 0; }
   }
   #map { left: 0; bottom: var(--dock); }
   #panel {
-    top: auto; left: 0; right: 0; bottom: var(--dock); width: auto; max-width: none; height: 40vh;   /* 地図も見えるよう4割。見出しタップで広げる */
+    top: auto; left: 0; right: 0; bottom: var(--dock); width: auto; max-width: none; height: 33vh;   /* 開くと画面の約3分の1（JSの PANEL_LOW と同じ）。中を下へ送ろうとすると上まで広がる */
     transition: transform .22s ease, height .22s ease;
     border-radius: 16px 16px 0 0; box-shadow: 0 -4px 16px rgba(0,0,0,.24);
     transform: translateY(calc(100% + var(--dock)));
@@ -492,7 +491,7 @@ body.touring #map { left: 0; bottom: 0; }
 .area-card-head span { font-family: var(--heavy); font-weight: 700; }
 .site-group-head, .area-story h4, .vp-kind, .vp-site, .lp-sec, .lp-legend-sub, .tab-soon b { font-family: var(--heavy); font-weight: 900; }
 .poi-name, .layers-panel label, .lp-legend .row, .near-toggle { font-family: var(--heavy); font-weight: 700; }
-#poiSearch { font-family: var(--heavy); font-weight: 700; }
+
 
 /* みどころ：分類の小見出しは、その種類の色の帯（白抜き文字）。下にぶら下がるサイト名と区別 */
 .site-area-body .site-group-head {
@@ -504,7 +503,6 @@ body.touring #map { left: 0; bottom: 0; }
 
 /* ---- タブ内の文字を 1pt ずつ大きく（元の大きさ＋1pt） ---- */
 #panel .panel-head strong { font-size: calc(18px + 1pt); }
-#panel #poiSearch { font-size: calc(14px + 1pt); }
 #panel .site-area-head, #panel .area-card-head b { font-size: calc(13.5px + 1pt); }
 #panel .site-area-body .site-group-head { font-size: calc(12.5px + 1pt); }
 #panel .poi-item, #panel .near-toggle, #panel .tour-start { font-size: calc(13px + 1pt); }

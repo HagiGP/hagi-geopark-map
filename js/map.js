@@ -722,6 +722,7 @@ function enterArea(id){
 // エリアの範囲へ寄る。パネルが開いていれば、パネルに隠れていない部分に収める
 function flyToArea(id){
   const a = areaById[id]; if (!a) return;
+  lowerPanel();   // スマホ：一覧から地図を動かすときは、パネルを低くたたんで地図を見せる
   const [l, b] = openTab ? panelCover() : [0, 0];
   flyToFit(a.bounds.pad(0.15), { maxZoom:13, paddingTopLeft:[l + 16, 16], paddingBottomRight:[16, b + 16] });
 }
@@ -729,7 +730,7 @@ function flyToArea(id){
 // 範囲が収まりきらないときは、その中心をパネルに隠れていない部分の中央に置く
 const MIN_DETAIL_Z = WIDE_Z + 0.15;
 function flyToFit(bounds, { maxZoom = 18, paddingTopLeft = [0, 0], paddingBottomRight = [0, 0], duration = .8 } = {}){
-  const tl = L.point(paddingTopLeft), br = L.point(paddingBottomRight);
+  const tl = L.point(paddingTopLeft), br = L.point(paddingBottomRight);   // （呼ぶ側は lowerPanel() のあとで panelCover() を測る）
   let z = Math.min(map.getBoundsZoom(bounds, false, tl.add(br)), maxZoom);
   z = Math.max(z, MIN_DETAIL_Z);
   const c = map.unproject(map.project(bounds.getCenter(), z).add(br.subtract(tl).divideBy(2)), z);
@@ -907,16 +908,18 @@ const SITE_GROUPS = [
   { label:"拠点施設",     cats:["拠点施設"],   desc:"解説や案内がある施設" },
   { label:"ビューポイント", cats:["展望地"],     desc:"大地と人のつながりを見わたせる場所" },
   { label:"案内地図",     cats:["案内地図"],   desc:"まわりの見どころを案内する地図の看板" },
-  { label:"解説板",       cats:["解説板"],     desc:"大地と人のつながりの解説看板" },
+  { label:"解説看板",     cats:["解説板"],     desc:"大地と人のつながりの解説看板" },
   { label:"ジオサイト",    cats:["ジオサイト"], desc:"大地の歴史をさかのぼれる場所" },
   { label:"文化サイト",    cats:["文化サイト"], desc:"人々の歴史や営みがわかる場所" },
   { label:"神社",         cats:["神社"],       desc:"大地や暮らしとかかわりの深い神社" },
 ];
-// サイトへ寄ってポップアップを開く。縦長画面はパネルを閉じ、横長でパネルが開いていれば隠れない位置へ
+// サイトへ寄ってポップアップを開く。縦長画面はパネルを低くたたんでその上に、横長でパネルが開いていれば隠れない位置へ
 function flyToSite(o){
   const z = Math.min(map.getMaxZoom(), Math.max(14, Math.ceil(o.def.minZoom)));
   let c = o.marker.getLatLng();
-  if (isPortrait()) closeTab({ pan:false });   // このあと寄るので、閉じるときの地図のずらしはしない
+  if (isPortrait()){
+    if (openTab){ lowerPanel(); c = map.unproject(map.project(c, z).add([0, panelCover()[1] / 2]), z); }   // サイトはパネルの上の中央に
+  }
   else if (openTab){
     const w = document.getElementById("panel").offsetWidth;
     c = map.unproject(map.project(c, z).subtract([w/2, 0]), z);   // パネルの幅の半分だけ中心を左へ＝サイトは右寄りに見える
@@ -1043,15 +1046,6 @@ function openAreaCard(id){
   if (card) card.scrollIntoView({ behavior:"smooth", block:"start" });
 }
 
-// 検索（全カード横断）
-document.getElementById("poiSearch").addEventListener("input", e=>{
-  const q = e.target.value.trim().toLowerCase();
-  document.querySelectorAll(".site-area").forEach(c=> c.classList.toggle("open", !!q));
-  document.querySelectorAll(".poi-item").forEach(li=>{
-    li.style.display = li.dataset.name.toLowerCase().includes(q) ? "" : "none";
-  });
-});
-
 // ---- メニュー（ドック）とパネルの開閉 ----
 const TAB_TITLES = { sites:"みどころ", areas:"地域解説", food:"食と大地", legend:"凡例" };
 const isMobile = ()=> window.matchMedia("(max-width: 760px)").matches;      // 解説の写真の窓の配置など
@@ -1060,8 +1054,15 @@ let openTab = null;
 // パネルが地図を覆う量 [左, 下]（横長＝左に幅ぶん、縦長＝下に高さぶん）
 function panelCover(){
   const p = document.getElementById("panel");
-  return isPortrait() ? [0, p.offsetHeight] : [p.offsetWidth, 0];
+  if (!isPortrait()) return [p.offsetWidth, 0];
+  // 縦長：低い状態（画面の約3分の1。CSSの --panel-low と同じ）か、広げた状態。高さを変える途中でも行き先の高さで計算する
+  return [0, p.classList.contains("tall") ? p.offsetHeight : Math.round(innerHeight * PANEL_LOW)];
 }
+// 縦長画面のパネル：開くと画面の約3分の1。中を下へスクロールしようとすると上まで広がり（Googleマップと同じ）、
+// 一覧から地図を動かすとまた低くたたんで地図を見せる
+const PANEL_LOW = 0.33;
+function lowerPanel(){ if (isPortrait()) document.getElementById("panel").classList.remove("tall"); }
+function raisePanel(){ if (isPortrait() && openTab) document.getElementById("panel").classList.add("tall"); }
 // パネルを開く／閉じるとき、見ていた場所がパネルに隠れないよう、地図を半分だけずらす
 function shiftForPanel(opening){
   const [l, b] = panelCover(), s = opening ? 1 : -1;
@@ -1095,6 +1096,23 @@ document.querySelector("#panel .panel-head").addEventListener("click", e=>{
   if (e.target.id === "panelClose" || !isPortrait()) return;
   document.getElementById("panel").classList.toggle("tall");
 });
+{ // 中を下へ送ろうとする操作（指で上へなぞる・ホイールで下へ）で広げる。見出しを下へなぞるとたたむ／閉じる
+  const panel = document.getElementById("panel"), body = panel.querySelector(".panel-body"), head = panel.querySelector(".panel-head");
+  let y0 = null;
+  body.addEventListener("touchstart", e=>{ y0 = e.touches[0].clientY; }, { passive:true });
+  body.addEventListener("touchmove", e=>{
+    if (y0 !== null && !panel.classList.contains("tall") && y0 - e.touches[0].clientY > 8){ raisePanel(); y0 = null; }
+  }, { passive:true });
+  body.addEventListener("wheel", e=>{ if (e.deltaY > 0) raisePanel(); }, { passive:true });
+  let h0 = null;
+  head.addEventListener("touchstart", e=>{ h0 = e.touches[0].clientY; }, { passive:true });
+  head.addEventListener("touchend", e=>{
+    if (h0 === null) return;
+    const dy = e.changedTouches[0].clientY - h0; h0 = null;
+    if (dy < -30) raisePanel();
+    else if (dy > 30) panel.classList.contains("tall") ? lowerPanel() : closeTab();
+  });
+}
 L.DomEvent.disableClickPropagation(document.getElementById("panel"));
 L.DomEvent.disableScrollPropagation(document.getElementById("panel"));
 document.getElementById("resetView").onclick = resetView;   // 上部帯「全体」ボタン
