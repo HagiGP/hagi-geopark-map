@@ -515,7 +515,7 @@ function placeLabels(){
     return { left:tl.x, top:tl.y, right:tl.x + r.width, bottom:tl.y + r.height };
   };
   document.querySelectorAll(".area-label").forEach(el => {
-    if (parseFloat(el.style.opacity || "1") < 0.1) return;   // 寄って消えているエリア名は無視
+    if (parseFloat(el.style.opacity || "1") < 0.1 || el.style.visibility === "hidden") return;   // 寄って消えている・画面外のエリア名は無視
     // 枠(160px固定)ではなく文字の実寸で登録（長い名前は枠からはみ出すため）
     const rng = document.createRange(); rng.selectNodeContents(el);
     const R = toLayerRect(rng); if (R) placed.push(R);
@@ -555,6 +555,27 @@ function placeLabels(){
 function updateAreaLabels(z){
   document.querySelectorAll(".area-label").forEach(el=>{
     el.style.opacity = z >= 13 ? "0" : z >= 12 ? "0.55" : "1";
+  });
+  positionAreaLabels();
+}
+// エリアの札を「そのエリアの上」かつ「画面の見えている部分（パネル・メニューに隠れない所）」に収める。
+// 決めた位置（labelLat/Lon）が画面からはみ出すときだけ、エリアの中で内側へずらす。エリアが画面に無ければ隠す
+function positionAreaLabels(){
+  const sz = map.getSize(), mr = map.getContainer().getBoundingClientRect();
+  const [cl, cb] = openTab ? panelCover() : [0, 0];
+  const V = { l: cl + 8, t: 8, r: sz.x - 8, b: sz.y - cb - 22 };   // 下は出典の帯のぶん空ける
+  AREAS.forEach(a=>{
+    const el = a.label?.getElement()?.querySelector(".area-label"); if (!el) return;
+    el.style.marginLeft = el.style.marginTop = "0px"; el.style.visibility = "";
+    const r = el.getBoundingClientRect(); if (!r.width) return;
+    const x0 = r.left - mr.left, y0 = r.top - mr.top, w = r.width, h = r.height;
+    const nw = map.latLngToContainerPoint(a.bounds.getNorthWest()), se = map.latLngToContainerPoint(a.bounds.getSouthEast());
+    const R = { l: Math.max(V.l, nw.x), t: Math.max(V.t, nw.y), r: Math.min(V.r, se.x), b: Math.min(V.b, se.y) };
+    if (R.l >= R.r || R.t >= R.b){ el.style.visibility = "hidden"; return; }   // エリアが画面の外
+    const fit = (v, lo, hi, size, vlo, vhi)=> hi - lo >= size ? Math.min(Math.max(v, lo), hi - size)
+      : Math.min(Math.max((lo + hi) / 2 - size / 2, vlo), vhi - size);   // エリアの見えている幅より大きい札は、その真ん中に（画面からは出さない）
+    el.style.marginLeft = (fit(x0, R.l, R.r, w, V.l, V.r) - x0) + "px";
+    el.style.marginTop  = (fit(y0, R.t, R.b, h, V.t, V.b) - y0) + "px";
   });
 }
 
@@ -650,6 +671,7 @@ function buildAreas(gj){
         iconSize:[160,0], iconAnchor: leftAnchored ? [0,10] : [80,10] })
     }).addTo(map);
     label.on("click", ()=> enterArea(pr.id));
+    label.on("add", ()=> requestAnimationFrame(positionAreaLabels));
     rec.label = label;
   });
 }
@@ -1078,6 +1100,7 @@ function showTab(name, { pan = true } = {}){
   panel.classList.add("open"); panel.setAttribute("aria-hidden", "false");
   panel.querySelector(".panel-body").scrollTop = 0;
   if (typeof setFoodMode === "function") setFoodMode(name === "food");   // 食と大地＝地図を産地の印に切り替える
+  if (AREAS.length) requestAnimationFrame(positionAreaLabels);   // パネルに隠れない所へエリアの札を寄せ直す
 }
 function closeTab({ pan = true } = {}){
   if (openTab && pan) shiftForPanel(false);
@@ -1086,6 +1109,7 @@ function closeTab({ pan = true } = {}){
   const panel = document.getElementById("panel");
   panel.classList.remove("open", "tall"); panel.setAttribute("aria-hidden", "true");
   if (typeof setFoodMode === "function") setFoodMode(false);
+  if (AREAS.length) requestAnimationFrame(positionAreaLabels);
 }
 document.querySelectorAll(".dock-btn").forEach(b=>{
   b.onclick = ()=> openTab === b.dataset.tab ? closeTab() : showTab(b.dataset.tab);   // もう一度押すと閉じる
@@ -1113,6 +1137,7 @@ document.querySelector("#panel .panel-head").addEventListener("click", e=>{
     else if (dy > 30) panel.classList.contains("tall") ? lowerPanel() : closeTab();
   });
 }
+map.on("move", ()=>{ if (AREAS.length) positionAreaLabels(); });   // ドラッグ中もエリアの札を画面内に
 L.DomEvent.disableClickPropagation(document.getElementById("panel"));
 L.DomEvent.disableScrollPropagation(document.getElementById("panel"));
 document.getElementById("resetView").onclick = resetView;   // 上部帯「全体」ボタン
