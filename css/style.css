@@ -625,5 +625,5 @@ body.no-labels .leaflet-pane-place-pane, body.no-labels .leaflet-pane-arealabel-
   .leaflet-bottom.leaflet-left { margin-bottom: 76px; }
   body.panel-open .leaflet-bottom.leaflet-left { margin-bottom: 30px; }
 }
-.lp-legend .dot.sq { border-radius: 2px; }
+.lp-legend .dot.sq { border-radius: 2px; opacity: .8; }   /* 地図の上の色（陰影と重なって淡く見える）に近づける */
 .lp-legend > .row:first-child { margin-top: 6px; }
