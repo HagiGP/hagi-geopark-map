@@ -842,16 +842,16 @@ function buildControls(){
   {
     const bar = document.createElement("div"); bar.id = "mapToggles";
     const chip = (label, on, fn)=>{
-      const b = document.createElement("button"); b.className = "mt-chip" + (on ? " on" : ""); b.textContent = label;
-      b.setAttribute("aria-pressed", on);
-      b.onclick = ()=>{ const v = !b.classList.contains("on"); b.classList.toggle("on", v); b.setAttribute("aria-pressed", v); fn(v); };
+      const b = document.createElement("button"); b.className = "mt-chip" + (on ? " on" : "");
+      b.innerHTML = `<span class="mt-sw" aria-hidden="true"><i></i></span><span>${esc(label)}</span>`;   // スイッチ（丸が左右に動く）＋名前
+      b.setAttribute("role", "switch"); b.setAttribute("aria-checked", on);
+      b.onclick = ()=>{ const v = !b.classList.contains("on"); b.classList.toggle("on", v); b.setAttribute("aria-checked", v); fn(v); };
       return b;
     };
-    const grp = (name, chips)=>{ const g = document.createElement("div"); g.className = "mt-grp";
-      g.innerHTML = `<span class="mt-name">${name}</span>`; chips.forEach(c=> g.appendChild(c)); return g; };
-    bar.append(
-      grp("背景", [ chip("植生図", vegOn, v=>{ vegOn = v; updateBase(); }), chip("特徴的な地質", geoOn, v=>{ geoOn = v; updateBase(); }) ]),
-      grp("目印", Object.keys(REF_CATS).map(n=> chip(n, refOn[n], v=>{ refOn[n] = v; refresh(); })))
+    const grp = chips=>{ const g = document.createElement("div"); g.className = "mt-grp"; chips.forEach(c=> g.appendChild(c)); return g; };
+    bar.append(   // 背景（植生図・地質）と地図の目印（山名・公共施設）を、それぞれひとまとまりに
+      grp([ chip("植生図", vegOn, v=>{ vegOn = v; updateBase(); }), chip("特徴的な地質", geoOn, v=>{ geoOn = v; updateBase(); }) ]),
+      grp(Object.keys(REF_CATS).map(n=> chip(n, refOn[n], v=>{ refOn[n] = v; refresh(); })))
     );
     map.getContainer().appendChild(bar);
     L.DomEvent.disableClickPropagation(bar); L.DomEvent.disableScrollPropagation(bar);
