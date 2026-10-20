@@ -610,3 +610,11 @@ body.touring #mapToggles { display: none; }
 body.no-labels .poi-label, body.no-labels .place-label, body.no-labels .area-label { display: none !important; }
 body.no-labels .leaflet-pane[class*="leaflet-pane-cat-"], body.no-labels .leaflet-pane-labels-pane,
 body.no-labels .leaflet-pane-place-pane, body.no-labels .leaflet-pane-arealabel-pane { visibility: hidden !important; }
+#mapToggles .mt-grp { flex-wrap: nowrap; }
+@media (max-width: 500px) {
+  #mapToggles .mt-grp { gap: 2px; padding: 3px 5px; }
+  #mapToggles .mt-chip { padding: 4px 4px; font-size: 11px; gap: 4px; }
+  #mapToggles .mt-sw { width: 26px; height: 15px; }
+  #mapToggles .mt-sw i { width: 11px; height: 11px; }
+  #mapToggles .mt-chip.on .mt-sw i { transform: translateX(11px); }
+}

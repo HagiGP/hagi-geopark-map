@@ -852,11 +852,12 @@ function buildControls(){
       return b;
     };
     const grp = chips=>{ const g = document.createElement("div"); g.className = "mt-grp"; chips.forEach(c=> g.appendChild(c)); return g; };
-    bar.append(   // 背景（植生図・地質）と地図の目印（山名・公共施設）を、それぞれひとまとまりに
-      grp([ chip("植生図", vegOn, v=>{ vegOn = v; updateBase(); }), chip("特徴的な地質", geoOn, v=>{ geoOn = v; updateBase(); }) ]),
-      // ラベル＝地図上の文字（見どころ名・山名・市町名・エリア名）をすべて出す／消す。消すと地形だけを眺められる
-      grp([ chip("ラベル", true, v=>{ document.body.classList.toggle("no-labels", !v); if (v) refresh(); }) ])
-    );
+    bar.append(grp([   // 植生図・特徴的な地質・ラベルを1つの枠に1行で
+      chip("植生図", vegOn, v=>{ vegOn = v; updateBase(); }),
+      chip("特徴的な地質", geoOn, v=>{ geoOn = v; updateBase(); }),
+      // ラベル＝地図上の文字と印（見どころ名・山名・市町名・エリア名・●▲）をすべて出す／消す。消すと地形だけを眺められる
+      chip("ラベル", true, v=>{ document.body.classList.toggle("no-labels", !v); if (v) refresh(); }),
+    ]));
     map.getContainer().appendChild(bar);
     L.DomEvent.disableClickPropagation(bar); L.DomEvent.disableScrollPropagation(bar);
   }
