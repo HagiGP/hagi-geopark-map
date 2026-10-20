@@ -492,7 +492,7 @@ body.touring #map { left: 0; bottom: 0; }
 }
 /* 極狭幅：タイトル文字は省略しロゴで代替（見どころボタンと現在地を優先） */
 @media (max-width: 380px) {
-  #appbar h1 { display: none; }
+  #appbar h1 { font-size: 16px; letter-spacing: 0; }   /* 細い画面でも名前は出す（少し小さく） */
   #appbar { gap: 8px; padding: 0 10px; }
 }
 /* 横向き・低い画面（スマホの横持ち）：アイコンを少し小さく */
