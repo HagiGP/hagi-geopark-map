@@ -991,6 +991,11 @@ function flyToSite(o){
   map.flyTo(c, z, {duration:.7});
   map.once("moveend", ()=> openSite(o, { pan:false }));
 }
+// 地図上の印と同じ見た目（種類の色＋縁取り色）の小さな丸
+function siteDot(o){
+  const d = SITE_CATS[o.cat] || {};
+  return `<span class="site-dot" style="background:${d.fill};box-shadow:0 0 0 1.5px ${d.outline || "#fff"},0 0 0 2.5px rgba(0,0,0,.28)"></span>`;
+}
 // 一覧の1項目（距離はGPS取得後のみ表示）
 function makePoiItem(o){
   const li = document.createElement("li"); li.className="poi-item"; li.dataset.name=o.name;
@@ -1093,7 +1098,7 @@ function buildAreaGuide(){
         const el = document.createElement("div"); el.className="vp-card"+(o?" vp-link":"");
         el.innerHTML = `<span class="vp-kind">${esc(vp.vp)}</span>`+
                        `<span class="vp-notice">${esc(vp.notice)}</span>`+
-                       `<span class="vp-site">📍 ${esc(vp.site)}</span>`;
+                       `<span class="vp-site">${o ? siteDot(o) : "📍 "}${esc(vp.site)}</span>`;   // 地図上の印と同じ色・縁取りの丸
         if (o) el.onclick = ()=> flyToSite(o);
         vpWrap.appendChild(el);
       });
