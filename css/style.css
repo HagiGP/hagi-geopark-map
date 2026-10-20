@@ -636,3 +636,4 @@ body.touring .leaflet-pane-place-pane, body.touring .leaflet-pane-arealabel-pane
 /* 地域紹介のカードの中の「見どころ一覧」（たためる） */
 .area-card-body .site-area { margin: 10px 0 2px; }
 .area-card-body .site-area-head { padding: 8px 10px; }
+#areaList { padding-top: 8px; }   /* 説明文をなくしたぶん、最初のカードの上に少し余白 */

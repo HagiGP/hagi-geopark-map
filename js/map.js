@@ -1075,9 +1075,6 @@ function buildAreaGuide(){
     listEl.appendChild(ul);
     return;
   }
-  const intro = document.createElement("p"); intro.className = "list-intro";
-  intro.textContent = "萩ジオパークの4つの地域を「大地と人のつながり」で紹介しています。地域を選ぶと、地図がその地域へ寄ります。";
-  listEl.appendChild(intro);
   AREAS.forEach(a=>{
     const card = document.createElement("div"); card.className="area-card"; card.dataset.id=a.id;
     if (openCards.includes(a.id)) card.classList.add("open");
