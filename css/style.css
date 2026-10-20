@@ -469,14 +469,16 @@ body.touring #map { left: 0; bottom: 0; }
   }
   #map { left: 0; bottom: var(--dock); }
   #panel {
-    top: auto; left: 0; right: 0; bottom: var(--dock); width: auto; max-width: none; height: 33vh;   /* 開くと画面の約3分の1（JSの PANEL_LOW と同じ）。中を下へ送ろうとすると上まで広がる */
+    top: auto; left: 0; right: 0; bottom: var(--dock); width: auto; max-width: none; height: 33vh; height: 33dvh;   /* 開くと画面の約3分の1（JSの PANEL_LOW と同じ）。中を下へ送ろうとすると上まで広がる */
     transition: transform .22s ease, height .22s ease;
     border-radius: 16px 16px 0 0; box-shadow: 0 -4px 16px rgba(0,0,0,.24);
     transform: translateY(calc(100% + var(--dock)));
   }
 }
 @media (orientation: portrait) {
-  #panel.tall { height: calc(100vh - var(--bar-h) - var(--dock) - 24px); }
+  /* 広げた状態：スマホのブラウザは 100vh がアドレスバーの分だけ実際の画面より高く、上がヘッダーの下に潜ってしまうので、
+     実際に見えている高さ（dvh）で計算する（対応していない古いブラウザは vh のまま） */
+  #panel.tall { height: calc(100vh - var(--bar-h) - var(--dock) - 24px); height: calc(100dvh - var(--bar-h) - var(--dock) - 16px); }
   #panel .panel-head { cursor: pointer; position: relative; padding-top: 14px; }
   #panel .panel-head::before {   /* つまみ（タップで広げる目印） */
     content: ""; position: absolute; left: 50%; top: 5px; transform: translateX(-50%);
