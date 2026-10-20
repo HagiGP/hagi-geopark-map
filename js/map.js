@@ -831,9 +831,7 @@ function buildControls(){
         Object.keys(SITE_CATS).map(n=>
           `<label><input type="checkbox" class="lp-cat" data-cat="${n}" ${catOn[n]?"checked":""}> ${n}</label>`).join("");
     }
-    body += `<div class="lp-sec">凡例</div>`+
-      `<div class="lp-legend">`+
-      `<div class="lp-hint">丸をタップすると詳細が開きます。${staff ? "（運営モード）" : ""}</div>`+
+    body += `<div class="lp-legend">`+   // タブの見出しが「凡例」なので、中の「凡例」見出しと説明文は出さない
       `<div class="lp-legend-sub">見どころの種類</div>${siteLegendRows()}`+
       `<div class="lp-legend-sub">特徴的な地質</div>${geoLegendRows()}`+
       `</div>`;
