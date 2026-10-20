@@ -283,8 +283,10 @@ function pointPopup(o){
   h += `<h3>${esc(p.name)}</h3>`;
   if (p["見出し"]) h += `<p class="popup-lead">${esc(p["見出し"])}</p>`;   // 「大地と人のつながり」の見出し
   if (p.name) h += `<img class="popup-photo" src="${photoSrc(p.name)}" alt="" onerror="this.style.display='none'">`;   // 写真（無ければ出さない）
+  // 経路の行き先：データに「経路緯度」「経路経度」があればそこ（滝の上など、印の場所に車や徒歩で着けない所は、麓の入口などを指定）
   const ll = o.marker.getLatLng();
-  const route = `https://www.google.com/maps/dir/?api=1&destination=${ll.lat},${ll.lng}`;
+  const dest = (p["経路緯度"] && p["経路経度"]) ? `${p["経路緯度"]},${p["経路経度"]}` : `${ll.lat},${ll.lng}`;
+  const route = `https://www.google.com/maps/dir/?api=1&destination=${dest}`;
   let actions = `<a href="${route}" target="_blank" rel="noopener">🧭 経路</a>`;
   if (staff && p.name){
     actions += `<button class="popup-qrbtn" data-name="${esc(p.name)}">🔗 QR</button>`;
