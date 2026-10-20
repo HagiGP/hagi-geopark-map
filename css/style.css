@@ -606,5 +606,7 @@ body.touring #mapToggles { display: none; }
   #mapToggles { left: 8px; right: 60px; bottom: 34px; gap: 5px; }
   #mapToggles .mt-chip { padding: 4px 5px; font-size: 11.5px; gap: 5px; }
 }
-/* 「ラベル」OFF：地図上の文字をすべて隠す（印・地形は残す） */
+/* 「ラベル」OFF：地図上の文字も印（●・▲）もすべて隠し、地形だけを眺められるように */
 body.no-labels .poi-label, body.no-labels .place-label, body.no-labels .area-label { display: none !important; }
+body.no-labels .leaflet-pane[class*="leaflet-pane-cat-"], body.no-labels .leaflet-pane-labels-pane,
+body.no-labels .leaflet-pane-place-pane, body.no-labels .leaflet-pane-arealabel-pane { visibility: hidden !important; }
