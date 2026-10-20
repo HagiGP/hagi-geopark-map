@@ -635,5 +635,7 @@ body.touring .leaflet-pane-place-pane, body.touring .leaflet-pane-arealabel-pane
 .site-dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin: 0 7px 0 3px; vertical-align: -1px; }
 /* 地域紹介のカードの中の「見どころ一覧」（たためる） */
 .area-card-body .site-area { margin: 10px 0 2px; }
-.area-card-body .site-area-head { padding: 8px 10px; }
+.area-card-body .site-area-head { padding: 8px 10px; background: var(--ac, #555); color: #fff; border-left: 0; }   /* 地域の色で塗り、白抜きの文字で地域の見出しと見分ける */
+.area-card-body .site-area-head::after { color: #fff; }
+.area-card-body .site-area { border-color: var(--ac, #ddd); }
 #areaList { padding-top: 8px; }   /* 説明文をなくしたぶん、最初のカードの上に少し余白 */

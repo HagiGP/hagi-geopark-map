@@ -1034,6 +1034,7 @@ function appendSiteList(body, a){
   const inArea = allMarkers.filter(o=> o.area===a.id && !LIST_EXCLUDE.has(o.name) && siteEligible(o));
   if (!inArea.length) return;
   const sec = document.createElement("div"); sec.className = "site-area"; sec.dataset.id = a.id;
+  sec.style.setProperty("--ac", a.color);
   const head = document.createElement("div"); head.className = "site-area-head";
   head.style.setProperty("--ac", a.color); head.textContent = "見どころ一覧";
   head.onclick = ()=> sec.classList.toggle("open");   // 長いので最初はたたんでおく
