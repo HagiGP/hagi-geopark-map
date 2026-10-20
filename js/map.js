@@ -991,6 +991,12 @@ function flyToSite(o){
   map.flyTo(c, z, {duration:.7});
   map.once("moveend", ()=> openSite(o, { pan:false }));
 }
+// 地図上の名前と同じ文字色・縁取り色（縁取りは細めの8方向の影で）
+function siteTextStyle(o){
+  const d = SITE_CATS[o.cat] || {}, b = d.buf || "#fff";
+  const ring = [[1,0],[-1,0],[0,1],[0,-1],[1,1],[-1,1],[1,-1],[-1,-1]].map(([x,y])=> `${x*1.2}px ${y*1.2}px 0 ${b}`).join(",");
+  return `color:${d.lbl || "#333"};text-shadow:${ring}`;
+}
 // 地図上の印と同じ見た目（種類の色＋縁取り色）の小さな丸
 function siteDot(o){
   const d = SITE_CATS[o.cat] || {};
@@ -1098,7 +1104,7 @@ function buildAreaGuide(){
         const el = document.createElement("div"); el.className="vp-card"+(o?" vp-link":"");
         el.innerHTML = `<span class="vp-kind">${esc(vp.vp)}</span>`+
                        `<span class="vp-notice">${esc(vp.notice)}</span>`+
-                       `<span class="vp-site"${o ? ` style="color:${SITE_CATS[o.cat]?.lbl || "#333"}"` : ""}>${o ? siteDot(o) : "📍 "}${esc(vp.site)}</span>`;   // 地図上の印・名前と同じ色
+                       `<span class="vp-site"${o ? ` style="${siteTextStyle(o)}"` : ""}>${o ? siteDot(o) : "📍 "}${esc(vp.site)}</span>`;   // 地図上の印・名前と同じ色
         if (o) el.onclick = ()=> flyToSite(o);
         vpWrap.appendChild(el);
       });
