@@ -267,7 +267,7 @@ function makeLabel(def, p, clickMarker, smallGeo){
   if (clickMarker){
     el.style.pointerEvents = "auto";
     el.style.cursor = "pointer";
-    el.addEventListener("click", e=>{ e.stopPropagation(); clickMarker.openPopup(); });
+    el.addEventListener("click", e=>{ e.stopPropagation(); clickMarker.fire("click"); });
   }
   map.getPane("pane-labels").appendChild(el);
   return el;
@@ -396,12 +396,34 @@ function showPhotoUpload(name){
   saveBtn.onclick = async ()=>{ if (!blob) return; saveBtn.disabled = true; await savePhoto(name, blob); close(); };
 }
 
-// ポップアップ内の「QR」「写真」ボタンを配線（HTML文字列なのでopen時に付ける）
-map.on("popupopen", e=>{
-  const root = e.popup.getElement(); if (!root) return;
-  const qb = root.querySelector(".popup-qrbtn");    if (qb) qb.onclick = ()=> showSiteQR(qb.dataset.name);
-  const pb = root.querySelector(".popup-photobtn"); if (pb) pb.onclick = ()=> showPhotoUpload(pb.dataset.name);
-});
+// ---- 見どころの詳細：地図の印や名前をタップすると、パネル（タブ）に写真・説明・経路を出す ----
+// 一覧から来たときは「◀ みどころに戻る」で一覧へ戻れる。選んだ印は丸で囲む
+const selRing = L.marker([0, 0], { interactive:false, keyboard:false, pane:"pane-labels",
+  icon: L.divIcon({ className:"", iconSize:[40,40], iconAnchor:[20,20], html:`<div class="sel-ring"></div>` }) });
+let siteBackTab = null;
+function openSite(o, { pan = true } = {}){
+  if (openTab && openTab !== "site") siteBackTab = openTab;
+  else if (!openTab) siteBackTab = null;
+  const box = document.getElementById("siteDetail");
+  const back = siteBackTab ? `<button class="site-back">◀ ${esc(TAB_TITLES[siteBackTab])}に戻る</button>` : "";
+  box.innerHTML = back + pointPopup(o);
+  box.querySelector(".site-back")?.addEventListener("click", ()=> showTab(siteBackTab, { pan:false }));
+  const qb = box.querySelector(".popup-qrbtn");    if (qb) qb.onclick = ()=> showSiteQR(qb.dataset.name);
+  const pb = box.querySelector(".popup-photobtn"); if (pb) pb.onclick = ()=> showPhotoUpload(pb.dataset.name);
+  TAB_TITLES.site = SITE_GROUPS.find(g=> g.cats.includes(o.cat))?.label || "見どころ";
+  showTab("site", { pan:false });   // 地図は下の revealOnMap で必要なときだけ動かす
+  lowerPanel();
+  const ll = o.marker.getLatLng();
+  selRing.setLatLng(ll).addTo(map);
+  if (pan) revealOnMap(ll);
+}
+// その地点がパネルに隠れていたら、見えている部分の真ん中へ動かす
+function revealOnMap(ll){
+  const sz = map.getSize(), [l, b] = openTab ? panelCover() : [0, 0];
+  const p = map.latLngToContainerPoint(ll), m = 50;
+  if (p.x > l + m && p.x < sz.x - m && p.y > m && p.y < sz.y - b - m) return;
+  map.panBy([p.x - (l + sz.x) / 2, p.y - (sz.y - b) / 2], { duration:.4 });
+}
 
 // ディープリンク（?site=名前 / ?area=id）で対象を開く
 function openDeepLink(){
@@ -413,7 +435,7 @@ function openDeepLink(){
     const o = allMarkers.find(x=> x.name === siteName);
     if (o){
       const z = Math.min(map.getMaxZoom(), Math.max(15, Math.ceil(o.def.minZoom)));
-      const show = ()=>{ refresh(); if (siteLayer.hasLayer(o.marker)) o.marker.openPopup(); };
+      const show = ()=>{ refresh(); openSite(o, { pan:false }); };
       map.once("moveend", show);       // 移動完了後に確実に開く
       map.setView(o.marker.getLatLng(), z);
       setTimeout(show, 400);           // moveendが来ない場合の保険
@@ -685,8 +707,8 @@ function buildSiteCategory(name, def, gj){
     const o = { marker:m, cat:name, def, rank, area:p.area||null, name:p.name||"", props:p,
                 hub:!!def.hub, viewpoint:null, labelSide: LABEL_LEFT.has(p.name) ? "left" : null };
     const small = name === "ジオサイト" && !GEO_BIG_RANKS.includes(rank);
-    m.bindPopup(()=> pointPopup(o), { maxWidth:340, minWidth:300 });
-    if (p.name) o.labelEl = makeLabel(def, p, m, small);   // ラベルタップでもポップアップ
+    m.on("click", ()=> openSite(o));   // 詳しい情報は、ふき出しではなくパネル（タブ）に出す
+    if (p.name) o.labelEl = makeLabel(def, p, m, small);   // ラベルタップでも同じ
     allMarkers.push(o);
   });
 }
@@ -946,7 +968,7 @@ function flyToSite(o){
     c = map.unproject(map.project(c, z).subtract([w/2, 0]), z);   // パネルの幅の半分だけ中心を左へ＝サイトは右寄りに見える
   }
   map.flyTo(c, z, {duration:.7});
-  map.once("moveend", ()=> o.marker.openPopup());
+  map.once("moveend", ()=> openSite(o, { pan:false }));
 }
 // 一覧の1項目（距離はGPS取得後のみ表示）
 function makePoiItem(o){
@@ -1068,7 +1090,7 @@ function openAreaCard(id){
 }
 
 // ---- メニュー（ドック）とパネルの開閉 ----
-const TAB_TITLES = { sites:"みどころ", areas:"地域解説", food:"食と大地", legend:"凡例" };
+const TAB_TITLES = { sites:"みどころ", areas:"地域解説", food:"食と大地", legend:"凡例", site:"見どころ" };
 const isMobile = ()=> window.matchMedia("(max-width: 760px)").matches;      // 解説の写真の窓の配置など
 const isPortrait = ()=> window.matchMedia("(orientation: portrait)").matches;   // メニューの配置（縦長＝下・横長＝左）
 let openTab = null;
@@ -1098,6 +1120,7 @@ function showTab(name, { pan = true } = {}){
   const panel = document.getElementById("panel");
   panel.classList.add("open"); panel.setAttribute("aria-hidden", "false");
   panel.querySelector(".panel-body").scrollTop = 0;
+  if (name !== "site") selRing.remove();
   if (typeof setFoodMode === "function") setFoodMode(name === "food");   // 食と大地＝地図を産地の印に切り替える
   if (AREAS.length) requestAnimationFrame(positionAreaLabels);   // パネルに隠れない所へエリアの札を寄せ直す
 }
@@ -1107,6 +1130,7 @@ function closeTab({ pan = true } = {}){
   document.querySelectorAll(".dock-btn").forEach(b=> b.classList.remove("on"));
   const panel = document.getElementById("panel");
   panel.classList.remove("open", "tall"); panel.setAttribute("aria-hidden", "true");
+  selRing.remove();
   if (typeof setFoodMode === "function") setFoodMode(false);
   if (AREAS.length) requestAnimationFrame(positionAreaLabels);
 }
