@@ -607,9 +607,13 @@ body.touring #mapToggles { display: none; }
   #mapToggles .mt-chip { padding: 4px 5px; font-size: 11.5px; gap: 5px; }
 }
 /* 「ラベル」OFF：地図上の文字も印（●・▲）もすべて隠し、地形だけを眺められるように */
-body.no-labels .poi-label, body.no-labels .place-label, body.no-labels .area-label { display: none !important; }
+/* 「地図で解説を見る」の間（body.touring）も同じく、地図の文字と印を消す（解説の名札・指差しは別の層なので残る） */
+body.no-labels .poi-label, body.no-labels .place-label, body.no-labels .area-label,
+body.touring .poi-label, body.touring .place-label, body.touring .area-label { display: none !important; }
 body.no-labels .leaflet-pane[class*="leaflet-pane-cat-"], body.no-labels .leaflet-pane-labels-pane,
-body.no-labels .leaflet-pane-place-pane, body.no-labels .leaflet-pane-arealabel-pane { visibility: hidden !important; }
+body.no-labels .leaflet-pane-place-pane, body.no-labels .leaflet-pane-arealabel-pane,
+body.touring .leaflet-pane[class*="leaflet-pane-cat-"], body.touring .leaflet-pane-labels-pane,
+body.touring .leaflet-pane-place-pane, body.touring .leaflet-pane-arealabel-pane { visibility: hidden !important; }
 #mapToggles .mt-grp { flex-wrap: nowrap; }
 /* 読みやすく押しやすい大きさ（指で押せる高さ36px以上）。スマホは画面幅いっぱいまで使い、右下の＋−・現在地ボタンは帯の上へ逃がす */
 #mapToggles .mt-chip { min-height: 36px; padding: 6px 7px; gap: 7px; font-size: 13.5px; }
