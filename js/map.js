@@ -1098,7 +1098,7 @@ function buildAreaGuide(){
         const el = document.createElement("div"); el.className="vp-card"+(o?" vp-link":"");
         el.innerHTML = `<span class="vp-kind">${esc(vp.vp)}</span>`+
                        `<span class="vp-notice">${esc(vp.notice)}</span>`+
-                       `<span class="vp-site">${o ? siteDot(o) : "📍 "}${esc(vp.site)}</span>`;   // 地図上の印と同じ色・縁取りの丸
+                       `<span class="vp-site"${o ? ` style="color:${SITE_CATS[o.cat]?.lbl || "#333"}"` : ""}>${o ? siteDot(o) : "📍 "}${esc(vp.site)}</span>`;   // 地図上の印・名前と同じ色
         if (o) el.onclick = ()=> flyToSite(o);
         vpWrap.appendChild(el);
       });
