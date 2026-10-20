@@ -417,12 +417,13 @@ function openSite(o, { pan = true } = {}){
   selRing.setLatLng(ll).addTo(map);
   if (pan) revealOnMap(ll);
 }
-// その地点がパネルに隠れていたら、見えている部分の真ん中へ動かす
+// タップした地点を、いつも「パネルに隠れていない部分」の真ん中へ動かす（動いたり動かなかったりしないように）
 function revealOnMap(ll){
   const sz = map.getSize(), [l, b] = openTab ? panelCover() : [0, 0];
-  const p = map.latLngToContainerPoint(ll), m = 50;
-  if (p.x > l + m && p.x < sz.x - m && p.y > m && p.y < sz.y - b - m) return;
-  map.panBy([p.x - (l + sz.x) / 2, p.y - (sz.y - b) / 2], { duration:.4 });
+  const p = map.latLngToContainerPoint(ll);
+  const dx = p.x - (l + sz.x) / 2, dy = p.y - (sz.y - b) / 2;
+  if (Math.abs(dx) < 2 && Math.abs(dy) < 2) return;   // すでに真ん中
+  map.panBy([dx, dy], { duration:.4 });
 }
 
 // ディープリンク（?site=名前 / ?area=id）で対象を開く
