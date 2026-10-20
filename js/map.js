@@ -629,7 +629,7 @@ function injectLabelStyles(){
 }
 
 // ---- 読み込み ----
-const DATAV = "?d=92";   // geojson更新時にbump（ブラウザキャッシュ回避）
+const DATAV = "?d=93";   // geojson更新時にbump（ブラウザキャッシュ回避）
 const fetchGj = def => fetch("data/"+def.file+DATAV).then(r=>r.json());
 Promise.all([
   fetch("data/areas.geojson"+DATAV).then(r=>r.json()),
