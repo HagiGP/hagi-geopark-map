@@ -791,6 +791,7 @@ function resetView(){
   if (openTab){
     const [l, b] = panelCover();
     c = map.unproject(map.project(h.center, h.zoom).add([-l / 2, b / 2]), h.zoom);
+    panelShift = [l, b];   // 閉じたときに半分戻して、全体がちょうど中央に来るように
   }
   map.flyTo(c, h.zoom, { duration:.8 });
   document.querySelectorAll(".area-card").forEach(el=> el.classList.remove("open"));
@@ -1118,9 +1119,17 @@ const PANEL_LOW = 0.33;
 function lowerPanel(){ if (isPortrait()) document.getElementById("panel").classList.remove("tall"); }
 function raisePanel(){ if (isPortrait() && openTab) document.getElementById("panel").classList.add("tall"); }
 // パネルを開く／閉じるとき、見ていた場所がパネルに隠れないよう、地図を半分だけずらす
+// 閉じるときは、開いたときにずらした分だけ戻す（スマホで上まで広げてから閉じても、広げた高さの分まで余計に動かさない）
+let panelShift = null;
 function shiftForPanel(opening){
-  const [l, b] = panelCover(), s = opening ? 1 : -1;
-  map.panBy([-l / 2 * s, b / 2 * s], { duration:.25 });
+  if (opening){
+    const [l, b] = panelCover();
+    panelShift = [l, b];
+    map.panBy([-l / 2, b / 2], { duration:.25 });
+  } else if (panelShift){
+    const [l, b] = panelShift; panelShift = null;
+    map.panBy([l / 2, -b / 2], { duration:.25 });
+  }
 }
 function showTab(name, { pan = true } = {}){
   if (!openTab && pan) shiftForPanel(true);   // 閉じていたパネルを開くときだけずらす（タブの切り替えではずらさない）
