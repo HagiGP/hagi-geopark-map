@@ -816,7 +816,7 @@ function geoLegendRows(){
   return GEO_LEGEND.map(g=>{
     const mark = g.type==="ellipse"
       ? `<svg class="lg-mark" width="18" height="14" viewBox="0 0 18 14"><ellipse cx="9" cy="7" rx="7.5" ry="5" fill="none" stroke="#555" stroke-width="1.4" stroke-dasharray="3 2"/></svg>`
-      : `<span class="dot" style="background:${g.color}"></span>`;
+      : `<span class="dot sq" style="background:${g.color}"></span>`;   // 地質は四角（■）で、見どころの丸（●）と見分ける
     return `<div class="row">${mark}<span>${esc(g.label)}${g.desc ? `<small class="lg-desc">${esc(g.desc)}</small>` : ""}</span></div>`;
   }).join("");
 }
@@ -832,7 +832,7 @@ function buildControls(){
           `<label><input type="checkbox" class="lp-cat" data-cat="${n}" ${catOn[n]?"checked":""}> ${n}</label>`).join("");
     }
     body += `<div class="lp-legend">`+   // タブの見出しが「凡例」なので、中の「凡例」見出しと説明文は出さない
-      `<div class="lp-legend-sub">見どころの種類</div>${siteLegendRows()}`+
+      siteLegendRows()+
       `<div class="lp-legend-sub">特徴的な地質</div>${geoLegendRows()}`+
       `</div>`;
     div.innerHTML = `<div class="lp-body">${body}</div>`;
