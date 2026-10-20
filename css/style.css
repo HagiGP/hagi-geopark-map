@@ -608,11 +608,12 @@ body.touring #mapToggles { display: none; }
 }
 /* 「ラベル」OFF：地図上の文字も印（●・▲）もすべて隠し、地形だけを眺められるように */
 /* 「地図で解説を見る」の間（body.touring）も同じく、地図の文字と印を消す（解説の名札・指差しは別の層なので残る） */
+/*   ただし解説の間も山名（▲と名前）だけは残す */
 body.no-labels .poi-label, body.no-labels .place-label, body.no-labels .area-label,
-body.touring .poi-label, body.touring .place-label, body.touring .area-label { display: none !important; }
+body.touring .poi-label:not(.lbl-yama), body.touring .place-label, body.touring .area-label { display: none !important; }
 body.no-labels .leaflet-pane[class*="leaflet-pane-cat-"], body.no-labels .leaflet-pane-labels-pane,
 body.no-labels .leaflet-pane-place-pane, body.no-labels .leaflet-pane-arealabel-pane,
-body.touring .leaflet-pane[class*="leaflet-pane-cat-"], body.touring .leaflet-pane-labels-pane,
+body.touring .leaflet-pane[class*="leaflet-pane-cat-"]:not(.leaflet-pane-cat-yama-pane),
 body.touring .leaflet-pane-place-pane, body.touring .leaflet-pane-arealabel-pane { visibility: hidden !important; }
 #mapToggles .mt-grp { flex-wrap: nowrap; }
 /* 読みやすく押しやすい大きさ（指で押せる高さ36px以上）。スマホは画面幅いっぱいまで使い、右下の＋−・現在地ボタンは帯の上へ逃がす */

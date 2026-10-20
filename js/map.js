@@ -504,9 +504,12 @@ function placeLabels(){
   const gap = 3;
   // 表示中マーカーを集める（layerPoint座標＝ラベル層と同じ空間）
   const vis = [];
+  // 「地図で解説を見る」の間は山名だけを残す（ほかの名前は配置もしない＝山名が押しのけられないように）
+  const touringNow = document.body.classList.contains("touring");
+  const keep = o => !touringNow || o.cat === "山名";
   const collect = (o, layer) => {
     if (!o.labelEl) return;
-    if (!layer.hasLayer(o.marker)) { o.labelEl.style.display = "none"; return; }
+    if (!layer.hasLayer(o.marker) || !keep(o)) { o.labelEl.style.display = "none"; return; }
     const lp = map.latLngToLayerPoint(o.marker.getLatLng());
     const rad = o.def.msize*PX_MM/2 + o.def.outmm*PX_MM;
     vis.push({ el:o.labelEl, prio:o.def.prio, x:lp.x, y:lp.y, r:rad, side:o.labelSide });
@@ -519,7 +522,7 @@ function placeLabels(){
   // 全マーカーの丸を障害物に（名前なしマーカーも含む）
   const dots = [];
   const addDot = (o, layer) => {
-    if (!layer.hasLayer(o.marker)) return;
+    if (!layer.hasLayer(o.marker) || !keep(o)) return;
     const lp = map.latLngToLayerPoint(o.marker.getLatLng());
     dots.push({ x:lp.x, y:lp.y, r:o.def.msize*PX_MM/2 + o.def.outmm*PX_MM });
   };
