@@ -822,13 +822,7 @@ function geoLegendRows(){
 function buildControls(){
   {
     const div = document.createElement("div"); div.className = "layers-panel";
-    let body =
-      `<div class="lp-sec">背景（大地の見方）</div>`+
-      `<label><input type="checkbox" id="lp-veg" checked> 植生図</label>`+
-      `<label><input type="checkbox" id="lp-geo" checked> 特徴的な地質</label>`+
-      `<div class="lp-sec">地図の目印</div>`+
-      Object.keys(REF_CATS).map(n=>
-        `<label><input type="checkbox" class="lp-ref" data-cat="${n}" ${refOn[n]?"checked":""}> ${n}</label>`).join("");
+    let body = "";   // 背景・地図の目印の切り替えは、地図の下部の帯（#mapToggles）に常時表示
     if (staff){
       body += `<div class="lp-sec">サイト種別（運営）</div>`+
         Object.keys(SITE_CATS).map(n=>
@@ -844,13 +838,26 @@ function buildControls(){
     document.getElementById("legendBox").appendChild(div);
   }
 
-  document.getElementById("lp-veg").addEventListener("change", e=>{ vegOn=e.target.checked; updateBase(); });
-  document.getElementById("lp-geo").addEventListener("change", e=>{ geoOn=e.target.checked; updateBase(); });
+  // ---- 地図の下部：背景（植生図・特徴的な地質）と地図の目印の切り替え（押すたびにON/OFF） ----
+  {
+    const bar = document.createElement("div"); bar.id = "mapToggles";
+    const chip = (label, on, fn)=>{
+      const b = document.createElement("button"); b.className = "mt-chip" + (on ? " on" : ""); b.textContent = label;
+      b.setAttribute("aria-pressed", on);
+      b.onclick = ()=>{ const v = !b.classList.contains("on"); b.classList.toggle("on", v); b.setAttribute("aria-pressed", v); fn(v); };
+      return b;
+    };
+    const grp = (name, chips)=>{ const g = document.createElement("div"); g.className = "mt-grp";
+      g.innerHTML = `<span class="mt-name">${name}</span>`; chips.forEach(c=> g.appendChild(c)); return g; };
+    bar.append(
+      grp("背景", [ chip("植生図", vegOn, v=>{ vegOn = v; updateBase(); }), chip("特徴的な地質", geoOn, v=>{ geoOn = v; updateBase(); }) ]),
+      grp("目印", Object.keys(REF_CATS).map(n=> chip(n, refOn[n], v=>{ refOn[n] = v; refresh(); })))
+    );
+    map.getContainer().appendChild(bar);
+    L.DomEvent.disableClickPropagation(bar); L.DomEvent.disableScrollPropagation(bar);
+  }
   document.querySelectorAll(".lp-cat").forEach(cb=>{
     cb.addEventListener("change", e=>{ catOn[e.target.dataset.cat]=e.target.checked; refresh(); });
-  });
-  document.querySelectorAll(".lp-ref").forEach(cb=>{
-    cb.addEventListener("change", e=>{ refOn[e.target.dataset.cat]=e.target.checked; refresh(); });
   });
 
   L.control.scale({ imperial:false }).addTo(map);
@@ -1120,7 +1127,7 @@ function showTab(name, { pan = true } = {}){
   document.querySelectorAll("#panel .tab").forEach(s=> s.classList.toggle("on", s.dataset.tab === name));
   document.getElementById("panelTitle").textContent = TAB_TITLES[name] || "";
   const panel = document.getElementById("panel");
-  panel.classList.add("open"); panel.setAttribute("aria-hidden", "false");
+  panel.classList.add("open"); panel.setAttribute("aria-hidden", "false"); document.body.classList.add("panel-open");
   panel.querySelector(".panel-body").scrollTop = 0;
   if (name !== "site") selRing.remove();
   if (typeof setFoodMode === "function") setFoodMode(name === "food");   // 食と大地＝地図を産地の印に切り替える
@@ -1131,7 +1138,7 @@ function closeTab({ pan = true } = {}){
   openTab = null;
   document.querySelectorAll(".dock-btn").forEach(b=> b.classList.remove("on"));
   const panel = document.getElementById("panel");
-  panel.classList.remove("open", "tall"); panel.setAttribute("aria-hidden", "true");
+  panel.classList.remove("open", "tall"); panel.setAttribute("aria-hidden", "true"); document.body.classList.remove("panel-open");
   selRing.remove();
   if (typeof setFoodMode === "function") setFoodMode(false);
   if (AREAS.length) requestAnimationFrame(positionAreaLabels);
