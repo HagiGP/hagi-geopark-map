@@ -77,7 +77,7 @@ body.staff #appbar { background: #595857; }   /* 運営モード＝墨色でひ�
   display: flex; align-items: center; justify-content: space-between; gap: 8px; cursor: pointer;
   padding: 9px 10px 9px 12px; border-left: 5px solid var(--ac, #1b6a4b); font-weight: 700; font-size: 13.5px;
 }
-.site-area-head::after { content: "▸"; color: #999; font-size: 12px; transition: transform .15s; }
+.site-area-head::after { content: "▸"; color: #999; font-size: 24px; line-height: 1; transition: transform .15s; }
 .site-area.open .site-area-head::after { transform: rotate(90deg); }
 .site-area-body { display: none; padding: 2px 8px 8px; }
 .site-area.open .site-area-body { display: block; }
@@ -98,9 +98,9 @@ body.staff #appbar { background: #595857; }   /* 運営モード＝墨色でひ�
   display: flex; flex-direction: column; gap: 1px;
 }
 .area-card-head:hover { background: #fafafa; }
-.area-card-head::after { content: "▸"; color: #999; font-size: 12px; position: absolute; right: 12px; top: 50%; transform: translateY(-50%); transition: transform .15s; }
+.area-card-head::after { content: "▸"; color: #999; font-size: 24px; line-height: 1; position: absolute; right: 12px; top: 50%; transform: translateY(-50%); transition: transform .15s; }
 .area-card.open .area-card-head::after { transform: translateY(-50%) rotate(90deg); }
-.area-card-head { padding-right: 28px; }
+.area-card-head { padding-right: 40px; }
 .area-card-head b { font-size: 13.5px; }
 .area-card-head span { font-size: 11px; color: #666; }
 .area-card-body { display: none; padding: 4px 10px 8px; }
@@ -639,3 +639,6 @@ body.touring .leaflet-pane-place-pane, body.touring .leaflet-pane-arealabel-pane
 .area-card-body .site-area-head::after { color: #fff; }
 .area-card-body .site-area { border-color: var(--ac, #ddd); }
 #areaList { padding-top: 8px; }   /* 説明文をなくしたぶん、最初のカードの上に少し余白 */
+/* 食と大地の各品にも、開く・たたむの目印（ほかの一覧と同じ大きさ） */
+.food-head::after { content: "▸"; margin-left: auto; color: #999; font-size: 24px; line-height: 1; transition: transform .15s; }
+.food-item.open .food-head::after { transform: rotate(90deg); }
