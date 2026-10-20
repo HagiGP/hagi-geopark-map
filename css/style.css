@@ -633,3 +633,6 @@ body.touring .leaflet-pane-place-pane, body.touring .leaflet-pane-arealabel-pane
 .lp-legend .dot.sq { border-radius: 2px; opacity: .8; }   /* 地図の上の色（陰影と重なって淡く見える）に近づける */
 .lp-legend > .row:first-child { margin-top: 6px; }
 .site-dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin: 0 7px 0 3px; vertical-align: -1px; }
+/* 地域紹介のカードの中の「見どころ一覧」（たためる） */
+.area-card-body .site-area { margin: 10px 0 2px; }
+.area-card-body .site-area-head { padding: 8px 10px; }

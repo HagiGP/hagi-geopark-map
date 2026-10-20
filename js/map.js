@@ -1027,17 +1027,45 @@ function appendStory(body, a, s){
   sec.innerHTML = `<h4>${esc(s.label)}</h4>${paras}`;
   body.appendChild(sec);
 }
-function buildSidebar(){ buildSites(); buildAreaGuide(); }
+function buildSidebar(){ buildAreaGuide(); }
 
-// みどころ：検索＋（現在地があれば近い順）＋エリアごとにたためる種類別の一覧
-function buildSites(){
-  const listEl = document.getElementById("poiList"); listEl.innerHTML = "";
+// エリアの見どころ一覧（種類ごとの見出し付き。LIST_EXCLUDEは地図には残すが一覧から外す）
+function appendSiteList(body, a){
+  const inArea = allMarkers.filter(o=> o.area===a.id && !LIST_EXCLUDE.has(o.name) && siteEligible(o));
+  if (!inArea.length) return;
+  const sec = document.createElement("div"); sec.className = "site-area"; sec.dataset.id = a.id;
+  const head = document.createElement("div"); head.className = "site-area-head";
+  head.style.setProperty("--ac", a.color); head.textContent = "見どころ一覧";
+  head.onclick = ()=> sec.classList.toggle("open");   // 長いので最初はたたんでおく
+  const list = document.createElement("div"); list.className = "site-area-body";
+  SITE_GROUPS.forEach(g=>{
+    const items = inArea.filter(o=> g.cats.includes(o.cat))
+                        .sort((x,y)=> rankWeight(x.rank)-rankWeight(y.rank) || x.name.localeCompare(y.name,"ja"));
+    if (!items.length) return;
+    const gh = document.createElement("div"); gh.className="site-group-head";
+    gh.style.setProperty("--gc", SITE_CATS[g.cats[0]].fill);   // 種類の色の帯（白抜き文字）で、下のサイト名と見分ける
+    gh.textContent = g.label;
+    list.appendChild(gh);
+    const ul = document.createElement("ul"); ul.className="site-list";
+    items.forEach(o=> ul.appendChild(makePoiItem(o)));
+    list.appendChild(ul);
+  });
+  sec.append(head, list); body.appendChild(sec);
+}
+
+// 地域紹介：4エリアのカード（テーマ・リード文・解説ボタン・視点・見どころ一覧）。現在地があれば近い順にも並べられる
+function buildAreaGuide(){
+  const listEl = document.getElementById("areaList");
+  // 作り直しても（現在地の取得後など）、開いていたカード・一覧はそのまま
+  const openCards = [...listEl.querySelectorAll(".area-card.open")].map(el=> el.dataset.id);
+  const openLists = [...listEl.querySelectorAll(".site-area.open")].map(el=> el.dataset.id);
+  listEl.innerHTML = "";
   if (myLatLng){   // 現在地取得後：近い順トグル
-    const t = document.createElement("button");
-    t.className = "near-toggle" + (nearSort ? " on" : "");
-    t.textContent = nearSort ? "◂ エリア別に戻す" : "現在地から近い順に並べる";
-    t.onclick = ()=>{ nearSort = !nearSort; buildSites(); };
-    listEl.appendChild(t);
+    const tg = document.createElement("button");
+    tg.className = "near-toggle" + (nearSort ? " on" : "");
+    tg.textContent = nearSort ? "◂ 地域別に戻す" : "現在地から近い順に並べる";
+    tg.onclick = ()=>{ nearSort = !nearSort; buildAreaGuide(); };
+    listEl.appendChild(tg);
   }
   if (nearSort && myLatLng){   // 近い順モード：全サイトを距離順のフラットな一覧に
     const items = allMarkers.filter(o=> catOn[o.cat] && siteEligible(o))
@@ -1047,38 +1075,12 @@ function buildSites(){
     listEl.appendChild(ul);
     return;
   }
-  AREAS.forEach(a=>{
-    const sec = document.createElement("div"); sec.className = "site-area"; sec.dataset.id = a.id;
-    const head = document.createElement("div"); head.className = "site-area-head";
-    head.style.setProperty("--ac", a.color); head.textContent = a.name;
-    head.onclick = ()=>{ if (sec.classList.toggle("open")) flyToArea(a.id); };   // 開いたらそのエリアへ寄る
-    const body = document.createElement("div"); body.className = "site-area-body";
-    // サイト一覧を「分類ごと」に見出し付きで整理（LIST_EXCLUDEは地図には残すが一覧から外す）
-    const inArea = allMarkers.filter(o=> o.area===a.id && !LIST_EXCLUDE.has(o.name) && siteEligible(o));
-    SITE_GROUPS.forEach(g=>{
-      const items = inArea.filter(o=> g.cats.includes(o.cat))
-                          .sort((x,y)=> rankWeight(x.rank)-rankWeight(y.rank) || x.name.localeCompare(y.name,"ja"));
-      if (!items.length) return;
-      const gh = document.createElement("div"); gh.className="site-group-head";
-      gh.style.setProperty("--gc", SITE_CATS[g.cats[0]].fill);   // 種類の色の帯（白抜き文字）で、下のサイト名と見分ける
-      gh.textContent = g.label;
-      body.appendChild(gh);
-      const ul = document.createElement("ul"); ul.className="site-list";
-      items.forEach(o=> ul.appendChild(makePoiItem(o)));
-      body.appendChild(ul);
-    });
-    sec.append(head, body); listEl.appendChild(sec);
-  });
-}
-
-// 地域解説：4エリアのカード（リード文・解説ボタン・エリア説明・視点）
-function buildAreaGuide(){
-  const listEl = document.getElementById("areaList"); listEl.innerHTML = "";
   const intro = document.createElement("p"); intro.className = "list-intro";
-  intro.textContent = "萩ジオパークの4つのエリアを「大地と人のつながり」で紹介しています。エリアを選ぶと、地図がそのエリアへ寄ります。";
+  intro.textContent = "萩ジオパークの4つの地域を「大地と人のつながり」で紹介しています。地域を選ぶと、地図がその地域へ寄ります。";
   listEl.appendChild(intro);
   AREAS.forEach(a=>{
     const card = document.createElement("div"); card.className="area-card"; card.dataset.id=a.id;
+    if (openCards.includes(a.id)) card.classList.add("open");
     const head = document.createElement("div"); head.className="area-card-head";
     head.style.setProperty("--ac", a.color);
     head.innerHTML = `<b>${esc(a.name)}</b><span>${esc(a.theme)}</span>`;
@@ -1111,6 +1113,8 @@ function buildAreaGuide(){
       body.appendChild(vpWrap);
     }
     AREA_STORY.slice(2).forEach(s=> appendStory(body, a, s));   // めぐり方（視点の後）
+    appendSiteList(body, a);
+    if (openLists.includes(a.id)) body.querySelector(".site-area")?.classList.add("open");
     card.appendChild(body);
     listEl.appendChild(card);
   });
@@ -1122,7 +1126,7 @@ function openAreaCard(id){
 }
 
 // ---- メニュー（ドック）とパネルの開閉 ----
-const TAB_TITLES = { sites:"みどころ", areas:"地域解説", food:"食と大地", legend:"凡例", site:"見どころ" };
+const TAB_TITLES = { areas:"地域紹介", food:"食と大地", legend:"凡例", site:"見どころ" };
 const isMobile = ()=> window.matchMedia("(max-width: 760px)").matches;      // 解説の写真の窓の配置など
 const isPortrait = ()=> window.matchMedia("(orientation: portrait)").matches;   // メニューの配置（縦長＝下・横長＝左）
 let openTab = null;
