@@ -281,12 +281,7 @@ function pointPopup(o){
   if (staff && p["ランク"]) h += `<span class="popup-badge" style="background:${rankColor(p["ランク"])}">${esc(p["ランク"])}</span>`;
   if (staff && p["主要"]==="Y") h += `<span class="popup-badge" style="background:#714B34">主要</span>`;
   h += `<h3>${esc(p.name)}</h3>`;
-  if (p["見出し"]) h += `<p class="popup-lead">${esc(p["見出し"])}</p>`;   // 「大地と人のつながり」の見出し
-  if (p["説明"]) h += `<p class="popup-desc">${esc(p["説明"])}</p>`;
-  const pics = [];
-  if (p["駐車場"]==="Y")   pics.push(`<span class="picto">🅿️ 駐車場</span>`);
-  if (p["現地解説"]==="Y") pics.push(`<span class="picto">🪧 現地解説</span>`);
-  if (pics.length) h += `<div class="popup-picto">${pics.join("")}</div>`;
+  // 経路ボタン・駐車場などは名前のすぐ下に（解説文の長さに左右されず、同じ位置に出るように）
   const ll = o.marker.getLatLng();
   const route = `https://www.google.com/maps/dir/?api=1&destination=${ll.lat},${ll.lng}`;
   let actions = `<a href="${route}" target="_blank" rel="noopener">🧭 経路</a>`;
@@ -294,7 +289,12 @@ function pointPopup(o){
     actions += `<button class="popup-qrbtn" data-name="${esc(p.name)}">🔗 QR</button>`;
     actions += `<button class="popup-photobtn" data-name="${esc(p.name)}">📷 写真</button>`;
   }
-  h += `<div class="popup-actions">${actions}</div>`;
+  const pics = [];
+  if (p["駐車場"]==="Y")   pics.push(`<span class="picto">🅿️ 駐車場</span>`);
+  if (p["現地解説"]==="Y") pics.push(`<span class="picto">🪧 現地解説</span>`);
+  h += `<div class="popup-actions">${actions}${pics.join("")}</div>`;
+  if (p["見出し"]) h += `<p class="popup-lead">${esc(p["見出し"])}</p>`;   // 「大地と人のつながり」の見出し
+  if (p["説明"]) h += `<p class="popup-desc">${esc(p["説明"])}</p>`;
   return h;
 }
 
