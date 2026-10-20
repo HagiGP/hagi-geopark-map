@@ -281,6 +281,7 @@ function pointPopup(o){
   if (staff && p["ランク"]) h += `<span class="popup-badge" style="background:${rankColor(p["ランク"])}">${esc(p["ランク"])}</span>`;
   if (staff && p["主要"]==="Y") h += `<span class="popup-badge" style="background:#714B34">主要</span>`;
   h += `<h3>${esc(p.name)}</h3>`;
+  if (p["見出し"]) h += `<p class="popup-lead">${esc(p["見出し"])}</p>`;   // 「大地と人のつながり」の見出し
   if (p["説明"]) h += `<p class="popup-desc">${esc(p["説明"])}</p>`;
   const pics = [];
   if (p["駐車場"]==="Y")   pics.push(`<span class="picto">🅿️ 駐車場</span>`);
@@ -626,7 +627,7 @@ function injectLabelStyles(){
 }
 
 // ---- 読み込み ----
-const DATAV = "?d=90";   // geojson更新時にbump（ブラウザキャッシュ回避）
+const DATAV = "?d=91";   // geojson更新時にbump（ブラウザキャッシュ回避）
 const fetchGj = def => fetch("data/"+def.file+DATAV).then(r=>r.json());
 Promise.all([
   fetch("data/areas.geojson"+DATAV).then(r=>r.json()),
