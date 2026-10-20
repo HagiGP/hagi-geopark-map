@@ -941,17 +941,23 @@ function toggleStaff(){
   location.assign(u.toString());   // パネル・一覧を作り直す（簡潔・確実）
 }
 (function bindLogoLongPress(){
+  // スマホでは、押している途中でブラウザが長押しを横取りすると touchend が来ず（touchcancel になり）、
+  // タイマーが残って数秒後に勝手に切り替わることがあった。→ ポインターイベントにまとめ、
+  // 離した・取り消された・外れたら必ず止める。タイマーが鳴った時点でまだ押していなければ切り替えない
   const brand = document.getElementById("brand");
   if (!brand) return;
-  let timer = null;
-  const start = ()=>{ clearTimeout(timer); timer = setTimeout(()=>{ timer=null; toggleStaff(); }, 3000); };
-  const cancel = ()=>{ if (timer){ clearTimeout(timer); timer=null; } };
-  brand.addEventListener("touchstart", start, { passive:true });
-  brand.addEventListener("touchend", cancel);
-  brand.addEventListener("touchmove", cancel);
-  brand.addEventListener("mousedown", start);
-  brand.addEventListener("mouseup", cancel);
-  brand.addEventListener("mouseleave", cancel);
+  brand.style.touchAction = "none"; brand.style.webkitTouchCallout = "none"; brand.style.userSelect = "none";
+  brand.querySelectorAll("img").forEach(im=>{ im.draggable = false; });
+  let timer = null, pressing = false;
+  const start = e=>{
+    if (e.pointerType === "mouse" && e.button !== 0) return;
+    pressing = true; clearTimeout(timer);
+    timer = setTimeout(()=>{ timer = null; if (pressing){ pressing = false; toggleStaff(); } }, 3000);
+  };
+  const cancel = ()=>{ pressing = false; if (timer){ clearTimeout(timer); timer = null; } };
+  brand.addEventListener("pointerdown", start);
+  ["pointerup", "pointercancel", "pointerleave", "lostpointercapture"].forEach(ev=> brand.addEventListener(ev, cancel));
+  window.addEventListener("blur", cancel); document.addEventListener("visibilitychange", cancel);
   brand.addEventListener("contextmenu", e=> e.preventDefault());
 })();
 
