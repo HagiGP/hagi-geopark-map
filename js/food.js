@@ -54,7 +54,11 @@ function buildFoodTab(){
                        `<span class="food-title">${esc(it.title)}</span>`;
       head.onclick = ()=> foodOpenId === it.id ? closeFood() : openFood(it.id);
       const body = document.createElement("div"); body.className = "food-body";
-      body.innerHTML = `<p>${esc(it.text)}</p>`;
+      // 写真（img/food/）。2枚以上は横にスライドして見る
+      const ph = (it.photos || []).map(f=> `<img src="img/food/${encodeURIComponent(f)}${PHOTOV}" alt="" loading="lazy" onerror="this.remove()">`).join("");
+      body.innerHTML = (ph ? `<div class="food-photos${it.photos.length > 1 ? " multi" : ""}">${ph}</div>` +
+                              (it.photos.length > 1 ? `<div class="food-photos-hint">写真 ${it.photos.length}枚（横にスライド）</div>` : "") : "") +
+                       `<p>${esc(it.text)}</p>`;
       const b = document.createElement("button"); b.className = "tour-start";   // 食の解説（字幕で地図を動かしながら）
       b.innerHTML = `<span class="ts-icon">▶</span>地図で解説を見る`;
       b.onclick = e=>{ e.stopPropagation(); startFoodTour(it.id); };

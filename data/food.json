@@ -150,7 +150,11 @@
     ]
    }
   ],
-  "nopoint": true
+  "nopoint": true,
+  "photos": [
+   "natsumikan.jpg",
+   "natsumikan-2.jpg"
+  ]
  },
  {
   "id": "aji",
@@ -431,7 +435,10 @@
     ]
    }
   ],
-  "nopoint": true
+  "nopoint": true,
+  "photos": [
+   "aji.jpg"
+  ]
  },
  {
   "id": "wakame",
@@ -512,7 +519,10 @@
     ]
    }
   ],
-  "nopoint": true
+  "nopoint": true,
+  "photos": [
+   "wakame.jpg"
+  ]
  },
  {
   "id": "kamaboko",
@@ -667,7 +677,10 @@
     ]
    }
   ],
-  "nopoint": true
+  "nopoint": true,
+  "photos": [
+   "kamaboko.jpg"
+  ]
  },
  {
   "id": "sazae",
@@ -766,7 +779,12 @@
     ]
    }
   ],
-  "nopoint": true
+  "nopoint": true,
+  "photos": [
+   "sazae.jpg",
+   "sazae-2.jpg",
+   "sazae-3.jpg"
+  ]
  },
  {
   "id": "tamanegi",
@@ -875,6 +893,9 @@
   "offset": [
    14,
    12
+  ],
+  "photos": [
+   "tamanegi.jpg"
   ]
  },
  {
@@ -1138,6 +1159,9 @@
      131.6003
     ]
    }
+  ],
+  "photos": [
+   "ika.jpg"
   ]
  },
  {
@@ -1307,6 +1331,9 @@
      131.643
     ]
    }
+  ],
+  "photos": [
+   "iriko.jpg"
   ]
  },
  {
@@ -1423,6 +1450,9 @@
      131.5989
     ]
    }
+  ],
+  "photos": [
+   "mukaku.jpg"
   ]
  },
  {
@@ -1509,6 +1539,9 @@
      131.6387
     ]
    }
+  ],
+  "photos": [
+   "soba.jpg"
   ]
  },
  {
@@ -1936,6 +1969,9 @@
   "offset": [
    -15,
    8
+  ],
+  "photos": [
+   "sake.jpg"
   ]
  },
  {
@@ -2038,6 +2074,9 @@
   "offset": [
    15,
    -8
+  ],
+  "photos": [
+   "daikon.jpg"
   ]
  },
  {
@@ -2123,6 +2162,9 @@
      }
     ]
    }
+  ],
+  "photos": [
+   "ringo.jpg"
   ]
  },
  {
@@ -2258,6 +2300,9 @@
      131.728
     ]
    }
+  ],
+  "photos": [
+   "kome.jpg"
   ]
  },
  {
