@@ -636,7 +636,7 @@ function injectLabelStyles(){
 }
 
 // ---- 読み込み ----
-const DATAV = "?d=97";   // geojson更新時にbump（ブラウザキャッシュ回避）
+const DATAV = "?d=98";   // geojson更新時にbump（ブラウザキャッシュ回避）
 const fetchGj = def => fetch("data/"+def.file+DATAV).then(r=>r.json());
 Promise.all([
   fetch("data/areas.geojson"+DATAV).then(r=>r.json()),
@@ -840,6 +840,7 @@ function buildControls(){
     }
     body += `<div class="lp-legend">`+   // タブの見出しが「凡例」なので、中の「凡例」見出しと説明文は出さない
       siteLegendRows()+
+      (staff ? `<div class="row"><span class="dot" style="background:rgba(46,139,87,.25);box-shadow:0 0 0 1.5px #2e8b57"></span><span>生態学的サイト<small class="lg-desc">運営モードのみ。位置は大まかな範囲（半径約1km）</small></span></div>` : "")+
       `<div class="lp-legend-sub">特徴的な地質</div>${geoLegendRows()}`+
       `</div>`;
     div.innerHTML = `<div class="lp-body">${body}</div>`;
@@ -1211,3 +1212,34 @@ L.DomEvent.disableClickPropagation(document.getElementById("panel"));
 L.DomEvent.disableScrollPropagation(document.getElementById("panel"));
 document.getElementById("resetView").onclick = resetView;   // 上部帯「全体」ボタン
 map.on("click", ()=>{ if (isPortrait() && openTab) closeTab(); });   // 縦長：地図をタップしたらパネルを閉じる
+
+// ---- 生態学的サイト（運営モードのときだけ表示） ----
+// 乱獲などを防ぐため、データには正確な位置を載せず、約1km単位に丸めた中心と半径の「大まかな範囲」だけを持つ。
+// ネットで調べても出てこない場所は、データにも入れない（D:\qgis\萩ジオパーク\map_ecological.csv の「地図に出す」＝N）
+if (staff){
+  map.createPane("pane-cat-eco"); map.getPane("pane-cat-eco").style.zIndex = 400;
+  fetch("data/ecological.geojson" + DATAV).then(r=> r.json()).then(gj=>{
+    gj.features.forEach(f=>{
+      const [lon, lat] = f.geometry.coordinates, p = f.properties;
+      const c = L.circle([lat, lon], { radius: p.radius || 1000, pane:"pane-cat-eco", color:"#2e8b57", weight:2, dashArray:"6 5",
+        fillColor:"#2e8b57", fillOpacity:.12 }).addTo(map);
+      c.bindTooltip(p.name, { permanent:true, direction:"center", className:"eco-label", pane:"pane-cat-eco" });
+      c.on("click", ()=> openEco(p));
+    });
+  }).catch(e=> console.error("ecological load failed", e));
+}
+function openEco(p){
+  if (openTab && openTab !== "site") siteBackTab = openTab; else if (!openTab) siteBackTab = null;
+  const box = document.getElementById("siteDetail");
+  const back = siteBackTab ? `<button class="site-back">◀ ${esc(TAB_TITLES[siteBackTab])}に戻る</button>` : "";
+  let h = back + `<h3>${esc(p.name)}</h3>`;
+  if (p["法的保護"]) h += `<div class="popup-prot">${p["法的保護"].split(/[、，,]/).map(s=> `<span>${esc(s.trim())}</span>`).join("")}</div>`;
+  if (p["見出し"]) h += `<p class="popup-lead">${esc(p["見出し"])}</p>`;
+  if (p["保全対象"]) h += `<p class="popup-desc"><b>保全対象：</b>${esc(p["保全対象"])}</p>`;
+  if (p["説明"]) h += `<p class="popup-desc">${esc(p["説明"])}</p>`;
+  h += `<p class="eco-note">運営モードのみの表示です。生息地を守るため、位置は大まかな範囲（半径約1km）で示しています。</p>`;
+  box.innerHTML = h;
+  box.querySelector(".site-back")?.addEventListener("click", ()=> showTab(siteBackTab, { pan:false }));
+  TAB_TITLES.site = "生態学的サイト";
+  showTab("site", { pan:false }); lowerPanel();
+}

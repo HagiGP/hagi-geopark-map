@@ -645,3 +645,7 @@ body.touring .leaflet-pane-place-pane, body.touring .leaflet-pane-arealabel-pane
 /* 見どころの詳細：法的保護の札（名前のすぐ下） */
 .popup-prot { display: flex; flex-wrap: wrap; gap: 4px; margin: -2px 0 8px; }
 .popup-prot span { font-size: calc(11px + 1pt); font-weight: 700; color: #6b4a14; background: #fbf3e2; border: 1px solid #e3cd9c; border-radius: 3px; padding: 1px 7px; }
+/* 生態学的サイト（運営モードのみ） */
+.leaflet-tooltip.eco-label { background: rgba(255,255,255,.85); border: 1px solid #2e8b57; color: #1f5e3b; font-weight: 700; font-size: 11px; padding: 1px 6px; box-shadow: none; }
+.leaflet-tooltip.eco-label::before { display: none; }
+.eco-note { font-size: calc(11px + 1pt); color: #777; margin-top: 10px; }
