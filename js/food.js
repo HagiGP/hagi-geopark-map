@@ -131,13 +131,22 @@ map.on("moveend", ()=>{   // 広域表示の切り替えなどで見どころが
   if (foodMode) foodHidePanes().forEach(p=>{ const pn = map.getPane(p); if (pn) pn.style.display = "none"; });
 });
 
+// 1場面目以外に写真を出す場面：[場面の番号（0始まり）, 写真のファイル名, 写真の説明]
+const PHOTO_AT = {
+  sazae: [[1, "sazae-3.jpg", "海士の素潜り漁"], [2, "sazae-2.jpg", "ウニ"]],
+  natsumikan: [[4, "natsumikan-2.jpg", "萩の夏みかん"]],
+};
 // ---- 食の解説：解説文を1文ずつ場面にして、「産品 → なぜ → 大地」の順に地図を動かす ----
 // 1場面目＝産地に寄って指差し／2場面目以降＝育てた大地を示す（最後の場面で名札も）
 function startFoodTour(id){
   const it = FOOD.find(x=> x.id === id); if (!it) return;
   const land = (it.shape || []).concat(it.ring || []);
   if (it.scenes){   // 場面を書いてある品：字幕と地図の動き（矢印・名札など）はデータのとおり
-    const out = it.scenes.map(sc=> ({ ...sc }));
+    const out = it.scenes.map(sc=> ({ ...sc, photo:false }));   // 写真は下で決めた場面だけに出す
+    // 産品の写真：1場面目（産品の紹介）に1枚目を出す。PHOTO_AT で、ほかの写真を出す場面を指定できる
+    const fp = f=> `img/food/${encodeURIComponent(f)}${PHOTOV}`;
+    if ((it.photos || []).length && out[0]){ out[0].photo = fp(it.photos[0]); out[0].photoCaption = it.title; }
+    (PHOTO_AT[it.id] || []).forEach(([k, f, cap])=>{ if (out[k] && (it.photos || []).includes(f)){ out[k].photo = fp(f); out[k].photoCaption = cap; } });
     // nopoint＝とれる範囲が広い・店がいくつもある品は、締めでも指差ししない
     if (it.close) out.push({ text: it.close, fit:[it.at].concat(land), shape: it.shape || [], ring: it.ring || [], point: it.nopoint ? null : it.at, label: it.label || [] });
     beginTour({ name: it.title, tour: out }, foodShapes);

@@ -166,7 +166,7 @@ function showScene(i){
 function scenePhoto(sc){
   if (sc.photo === false) return null;
   const p = sc.photo || (typeof sc.point === "string" ? sc.point : null); if (!p) return null;
-  const isPath = /[\/.]/.test(p) && /\.(jpe?g|png|webp|svg)$/i.test(p);
+  const isPath = /[\/.]/.test(p) && /\.(jpe?g|png|webp|svg)(\?.*)?$/i.test(p);   // 末尾の ?p=… （写真の版）も許す
   return { src: isPath ? p : photoSrc(p), caption: sc.photoCaption || (isPath ? "" : p), diagram: /^img\/tour\//.test(p) };   // img/tour/ の図（模式図）は切り取らず全体を見せる
 }
 const photoWidth = sc=> scenePhoto(sc)?.diagram ? 380 : 300;   // 模式図は少し大きめ（CSSと合わせる）
