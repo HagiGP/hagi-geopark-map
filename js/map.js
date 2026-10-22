@@ -281,6 +281,8 @@ function pointPopup(o){
   if (staff && p["主要"]==="Y") h += `<span class="popup-badge" style="background:#714B34">主要</span>`;
   // 並び：名前 → 見出し → 写真 → 経路ボタン等 → 解説（ボタンは解説文の長さに左右されない位置に）
   h += `<h3>${esc(p.name)}</h3>`;
+  // 法的保護（国定公園・天然記念物など）：名前のすぐ下に札で（2018年のサイトリストより）
+  if (p["法的保護"]) h += `<div class="popup-prot">${p["法的保護"].split(/[、，,]/).map(s=> s.trim()).filter(Boolean).map(s=> `<span>${esc(s)}</span>`).join("")}</div>`;
   if (p["見出し"]) h += `<p class="popup-lead">${esc(p["見出し"])}</p>`;   // 「大地と人のつながり」の見出し
   if (p.name) h += `<img class="popup-photo" src="${photoSrc(p.name)}" alt="" onerror="this.style.display='none'">`;   // 写真（無ければ出さない）
   // 経路の行き先：データに「経路緯度」「経路経度」があればそこ（滝の上など、印の場所に車や徒歩で着けない所は、麓の入口などを指定）
@@ -634,7 +636,7 @@ function injectLabelStyles(){
 }
 
 // ---- 読み込み ----
-const DATAV = "?d=96";   // geojson更新時にbump（ブラウザキャッシュ回避）
+const DATAV = "?d=97";   // geojson更新時にbump（ブラウザキャッシュ回避）
 const fetchGj = def => fetch("data/"+def.file+DATAV).then(r=>r.json());
 Promise.all([
   fetch("data/areas.geojson"+DATAV).then(r=>r.json()),

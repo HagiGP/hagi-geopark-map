@@ -642,3 +642,6 @@ body.touring .leaflet-pane-place-pane, body.touring .leaflet-pane-arealabel-pane
 /* 食と大地の各品にも、開く・たたむの目印（ほかの一覧と同じ大きさ） */
 .food-head::after { content: "▸"; margin-left: auto; color: #999; font-size: 24px; line-height: 1; transition: transform .15s; }
 .food-item.open .food-head::after { transform: rotate(90deg); }
+/* 見どころの詳細：法的保護の札（名前のすぐ下） */
+.popup-prot { display: flex; flex-wrap: wrap; gap: 4px; margin: -2px 0 8px; }
+.popup-prot span { font-size: calc(11px + 1pt); font-weight: 700; color: #6b4a14; background: #fbf3e2; border: 1px solid #e3cd9c; border-radius: 3px; padding: 1px 7px; }
