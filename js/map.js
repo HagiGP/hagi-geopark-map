@@ -840,7 +840,7 @@ function buildControls(){
     }
     body += `<div class="lp-legend">`+   // タブの見出しが「凡例」なので、中の「凡例」見出しと説明文は出さない
       siteLegendRows()+
-      (staff ? `<div class="row"><span class="dot" style="background:#2e8b57;box-shadow:0 0 0 1.5px #fff"></span><span>生態学的サイト<small class="lg-desc">運営モードのみ。印の位置は大まかなもの（約1km単位）</small></span></div>` : "")+
+      (staff ? `<div class="row"><span class="eco-name lg">生態</span><span>生態学的サイト<small class="lg-desc">運営モードのみ。場所をぼかすため点は打たず、名前を大まかな位置（約1km単位）に表示</small></span></div>` : "")+
       `<div class="lp-legend-sub">特徴的な地質</div>${geoLegendRows()}`+
       `</div>`;
     div.innerHTML = `<div class="lp-body">${body}</div>`;
@@ -1222,10 +1222,9 @@ if (staff){
     const layer = L.layerGroup();
     gj.features.forEach(f=>{
       const [lon, lat] = f.geometry.coordinates, p = f.properties;
-      // 印は大まかな位置（約1km単位に丸めた点）に。見た目はほかの見どころと同じ丸＋名前
+      // 点（印）は打たず、名前だけを大まかな位置（約1km単位に丸めた所）に置く＝場所をぼかす
       const m = L.marker([lat, lon], { pane:"pane-cat-eco", keyboard:false, title:p.name,
-        icon: L.divIcon({ className:"", iconSize:[14,14], iconAnchor:[7,7], html:`<div class="eco-dot"></div>` }) });
-      m.bindTooltip(p.name, { permanent:true, direction:"right", offset:[6,0], className:"eco-label", pane:"pane-cat-eco" });
+        icon: L.divIcon({ className:"", iconSize:null, html:`<div class="eco-name">${esc(p.name)}</div>` }) });
       m.on("click", ()=> openEco(p));
       m.addTo(layer);
     });
@@ -1243,7 +1242,7 @@ function openEco(p){
   if (p["見出し"]) h += `<p class="popup-lead">${esc(p["見出し"])}</p>`;
   if (p["保全対象"]) h += `<p class="popup-desc"><b>保全対象：</b>${esc(p["保全対象"])}</p>`;
   if (p["説明"]) h += `<p class="popup-desc">${esc(p["説明"])}</p>`;
-  h += `<p class="eco-note">運営モードのみの表示です。生息地を守るため、印の位置は大まかなもの（約1km単位）です。</p>`;
+  h += `<p class="eco-note">運営モードのみの表示です。生息地を守るため、名前の位置は大まかなもの（約1km単位）です。</p>`;
   box.innerHTML = h;
   box.querySelector(".site-back")?.addEventListener("click", ()=> showTab(siteBackTab, { pan:false }));
   TAB_TITLES.site = "生態学的サイト";
