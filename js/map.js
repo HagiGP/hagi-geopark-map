@@ -303,7 +303,9 @@ function pointPopup(o){
 // ---- 写真：命名規則で紐付け（img/sites/<サイト名>.jpg）。無ければ自動で非表示 ----
 function sanitizeName(s){ return String(s).replace(/[\\/:*?"<>|]/g, "_").trim(); }
 function photoFile(name){ return sanitizeName(name) + ".jpg"; }
-function photoSrc(name){ return "img/sites/" + encodeURIComponent(photoFile(name)); }
+// 写真を差し替えたら PHOTOV を上げる（サービスワーカーが古い写真を出し続けないように）
+const PHOTOV = "?p=2";
+function photoSrc(name){ return "img/sites/" + encodeURIComponent(photoFile(name)) + PHOTOV; }
 
 // ディープリンクURL（?site=名前 / ?area=id）＝看板QRの貼り先
 function siteLink(name){ return location.origin + location.pathname + "?site=" + encodeURIComponent(name); }
