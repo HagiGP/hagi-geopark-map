@@ -1232,7 +1232,7 @@ if (staff){
       m.on("click", ()=> openEco(p));
       m.addTo(layer);
     });
-    const ECO_MINZ = SITE_CATS["文化サイト"].minZoom;   // 文化サイトと同じ縮尺から出す
+    const ECO_MINZ = SITE_CATS["文化サイト"].minZoom + 2;   // 文化サイトより2段階寄ってから出す（12.3 → 14.3）
     const sync = ()=>{ const on = map.getZoom() >= ECO_MINZ; if (on && !map.hasLayer(layer)) layer.addTo(map); else if (!on && map.hasLayer(layer)) layer.remove(); };
     map.on("zoomend", sync); sync();
   }).catch(e=> console.error("ecological load failed", e));
