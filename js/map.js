@@ -840,7 +840,7 @@ function buildControls(){
     }
     body += `<div class="lp-legend">`+   // タブの見出しが「凡例」なので、中の「凡例」見出しと説明文は出さない
       siteLegendRows()+
-      (staff ? `<div class="row"><span class="dot" style="background:rgba(46,139,87,.25);box-shadow:0 0 0 1.5px #2e8b57"></span><span>生態学的サイト<small class="lg-desc">運営モードのみ。位置は大まかな範囲（半径約1km）</small></span></div>` : "")+
+      (staff ? `<div class="row"><span class="dot" style="background:#2e8b57;box-shadow:0 0 0 1.5px #fff"></span><span>生態学的サイト<small class="lg-desc">運営モードのみ。印の位置は大まかなもの（約1km単位）</small></span></div>` : "")+
       `<div class="lp-legend-sub">特徴的な地質</div>${geoLegendRows()}`+
       `</div>`;
     div.innerHTML = `<div class="lp-body">${body}</div>`;
@@ -1219,13 +1219,19 @@ map.on("click", ()=>{ if (isPortrait() && openTab) closeTab(); });   // 縦長�
 if (staff){
   map.createPane("pane-cat-eco"); map.getPane("pane-cat-eco").style.zIndex = 400;
   fetch("data/ecological.geojson" + DATAV).then(r=> r.json()).then(gj=>{
+    const layer = L.layerGroup();
     gj.features.forEach(f=>{
       const [lon, lat] = f.geometry.coordinates, p = f.properties;
-      const c = L.circle([lat, lon], { radius: p.radius || 1000, pane:"pane-cat-eco", color:"#2e8b57", weight:2, dashArray:"6 5",
-        fillColor:"#2e8b57", fillOpacity:.12 }).addTo(map);
-      c.bindTooltip(p.name, { permanent:true, direction:"center", className:"eco-label", pane:"pane-cat-eco" });
-      c.on("click", ()=> openEco(p));
+      // 印は大まかな位置（約1km単位に丸めた点）に。見た目はほかの見どころと同じ丸＋名前
+      const m = L.marker([lat, lon], { pane:"pane-cat-eco", keyboard:false, title:p.name,
+        icon: L.divIcon({ className:"", iconSize:[14,14], iconAnchor:[7,7], html:`<div class="eco-dot"></div>` }) });
+      m.bindTooltip(p.name, { permanent:true, direction:"right", offset:[6,0], className:"eco-label", pane:"pane-cat-eco" });
+      m.on("click", ()=> openEco(p));
+      m.addTo(layer);
     });
+    const ECO_MINZ = SITE_CATS["文化サイト"].minZoom;   // 文化サイトと同じ縮尺から出す
+    const sync = ()=>{ const on = map.getZoom() >= ECO_MINZ; if (on && !map.hasLayer(layer)) layer.addTo(map); else if (!on && map.hasLayer(layer)) layer.remove(); };
+    map.on("zoomend", sync); sync();
   }).catch(e=> console.error("ecological load failed", e));
 }
 function openEco(p){
@@ -1237,7 +1243,7 @@ function openEco(p){
   if (p["見出し"]) h += `<p class="popup-lead">${esc(p["見出し"])}</p>`;
   if (p["保全対象"]) h += `<p class="popup-desc"><b>保全対象：</b>${esc(p["保全対象"])}</p>`;
   if (p["説明"]) h += `<p class="popup-desc">${esc(p["説明"])}</p>`;
-  h += `<p class="eco-note">運営モードのみの表示です。生息地を守るため、位置は大まかな範囲（半径約1km）で示しています。</p>`;
+  h += `<p class="eco-note">運営モードのみの表示です。生息地を守るため、印の位置は大まかなもの（約1km単位）です。</p>`;
   box.innerHTML = h;
   box.querySelector(".site-back")?.addEventListener("click", ()=> showTab(siteBackTab, { pan:false }));
   TAB_TITLES.site = "生態学的サイト";

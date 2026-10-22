@@ -649,3 +649,6 @@ body.touring .leaflet-pane-place-pane, body.touring .leaflet-pane-arealabel-pane
 .leaflet-tooltip.eco-label { background: rgba(255,255,255,.85); border: 1px solid #2e8b57; color: #1f5e3b; font-weight: 700; font-size: 11px; padding: 1px 6px; box-shadow: none; }
 .leaflet-tooltip.eco-label::before { display: none; }
 .eco-note { font-size: calc(11px + 1pt); color: #777; margin-top: 10px; }
+.eco-dot { width: 14px; height: 14px; border-radius: 50%; background: #2e8b57; box-shadow: 0 0 0 2px #fff, 0 1px 3px rgba(0,0,0,.4); cursor: pointer; }
+.leaflet-tooltip.eco-label { background: none; border: 0; box-shadow: none; padding: 0; color: #1f5e3b; font-weight: 700; font-size: 12px;
+  text-shadow: 1.5px 0 0 #fff, -1.5px 0 0 #fff, 0 1.5px 0 #fff, 0 -1.5px 0 #fff, 1px 1px 0 #fff, -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff; }
