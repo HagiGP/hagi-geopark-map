@@ -656,3 +656,6 @@ body.touring .leaflet-pane-place-pane, body.touring .leaflet-pane-arealabel-pane
 .eco-name { transform: translate(-50%, -50%); white-space: nowrap; cursor: pointer; color: #1f6e43; font-weight: 700; font-style: italic; font-size: 12.5px;
   text-shadow: 1.5px 0 0 #fff, -1.5px 0 0 #fff, 0 1.5px 0 #fff, 0 -1.5px 0 #fff, 1px 1px 0 #fff, -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff; }
 .eco-name.lg { transform: none; font-size: 11px; flex-shrink: 0; margin-top: 1px; }
+/* 生態学的サイトの名前は、白地＋緑の枠の長方形で囲う（ほかの名前と見分ける） */
+.eco-name { font-style: normal; text-shadow: none; color: #1f5e3b; font-size: 11.5px; background: rgba(255,255,255,.88); border: 1.5px solid #2e8b57; border-radius: 3px; padding: 1px 6px; }
+.eco-name.lg { font-size: 10px; padding: 0 4px; }

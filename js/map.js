@@ -1217,14 +1217,18 @@ map.on("click", ()=>{ if (isPortrait() && openTab) closeTab(); });   // 縦長�
 // 乱獲などを防ぐため、データには正確な位置を載せず、約1km単位に丸めた中心と半径の「大まかな範囲」だけを持つ。
 // ネットで調べても出てこない場所は、データにも入れない（D:\qgis\萩ジオパーク\map_ecological.csv の「地図に出す」＝N）
 if (staff){
-  map.createPane("pane-cat-eco"); map.getPane("pane-cat-eco").style.zIndex = 400;
+  map.createPane("pane-cat-eco"); map.getPane("pane-cat-eco").style.zIndex = 650;   // 見どころの名前より上（枠が隠れないように）
   fetch("data/ecological.geojson" + DATAV).then(r=> r.json()).then(gj=>{
     const layer = L.layerGroup();
+    // 丸めた位置が同じもの（笠山の3か所など）は、名前を縦に並べて重ならないように
+    const same = {}, seen = {};
+    gj.features.forEach(f=>{ const k = f.geometry.coordinates.join(","); same[k] = (same[k] || 0) + 1; });
     gj.features.forEach(f=>{
       const [lon, lat] = f.geometry.coordinates, p = f.properties;
+      const k = f.geometry.coordinates.join(","), i = seen[k] = (seen[k] || 0) + 1, dy = (i - (same[k] + 1) / 2) * 22;
       // 点（印）は打たず、名前だけを大まかな位置（約1km単位に丸めた所）に置く＝場所をぼかす
       const m = L.marker([lat, lon], { pane:"pane-cat-eco", keyboard:false, title:p.name,
-        icon: L.divIcon({ className:"", iconSize:null, html:`<div class="eco-name">${esc(p.name)}</div>` }) });
+        icon: L.divIcon({ className:"", iconSize:null, html:`<div class="eco-name" style="margin-top:${dy}px">${esc(p.name)}</div>` }) });
       m.on("click", ()=> openEco(p));
       m.addTo(layer);
     });
