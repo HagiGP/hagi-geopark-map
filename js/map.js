@@ -437,6 +437,7 @@ function revealOnMap(ll){
 function openDeepLink(){
   const params = new URLSearchParams(location.search);
   const areaId = params.get("area"), siteName = params.get("site"), tourId = params.get("tour");
+  if (tourId === "overview"){ startOverviewTour(); return; }   // ?tour=overview ＝全体の概要の解説から始める
   if (tourId && areaById[tourId]){ startTour(tourId); return; }   // ?tour=ryu ＝解説から始める（講演・授業用）
   if (areaId && areaById[areaId]){ enterArea(areaId); return; }
   if (siteName){
@@ -636,7 +637,7 @@ function injectLabelStyles(){
 }
 
 // ---- 読み込み ----
-const DATAV = "?d=101";   // geojson更新時にbump（ブラウザキャッシュ回避）
+const DATAV = "?d=102";   // geojson更新時にbump（ブラウザキャッシュ回避）
 const fetchGj = def => fetch("data/"+def.file+DATAV).then(r=>r.json());
 Promise.all([
   fetch("data/areas.geojson"+DATAV).then(r=>r.json()),
@@ -1081,6 +1082,11 @@ function buildAreaGuide(){
     listEl.appendChild(ul);
     return;
   }
+  // いちばん上に、萩ジオパーク全体の概要を地図で見る解説
+  const ob = document.createElement("button"); ob.className = "tour-start overview-start";
+  ob.innerHTML = `<span class="ts-icon">▶</span>萩ジオパークの概要を地図で見る`;
+  ob.onclick = ()=> startOverviewTour();
+  listEl.appendChild(ob);
   AREAS.forEach(a=>{
     const card = document.createElement("div"); card.className="area-card"; card.dataset.id=a.id;
     if (openCards.includes(a.id)) card.classList.add("open");

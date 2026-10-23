@@ -37,6 +37,13 @@ function startTour(id){
   const a = areaById[id]; if (!a || !(a.tour||[]).length) return;
   loadTourShapes(id).then(shapes=> beginTour(a, shapes));
 }
+// 萩ジオパーク全体の概要の解説（data/tour_overview.geojson に図形と場面をまとめてある）
+function startOverviewTour(){
+  fetch(`data/tour_overview.geojson${DATAV}`).then(r=> r.json()).then(gj=>{
+    const m = {}; (gj.features || []).forEach(f=> m[f.properties.id] = f);
+    beginTour({ name: gj.name || "萩ジオパークの概要", tour: gj.tour || [] }, m);
+  }).catch(e=> console.error("overview tour load failed", e));
+}
 // 解説を始める。a＝{ name（字幕の窓の見出し）, tour（場面の配列） }、shapes＝{ 図形id: GeoJSON feature }
 function beginTour(a, shapes){
   loadPixelFont();
