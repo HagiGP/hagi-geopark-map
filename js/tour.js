@@ -37,11 +37,31 @@ function startTour(id){
   const a = areaById[id]; if (!a || !(a.tour||[]).length) return;
   loadTourShapes(id).then(shapes=> beginTour(a, shapes));
 }
+// 陰影図（GEOPARK_BOUNDS）の外が画面に出ないよう、ズームの下限と中心を調整する（homeView と同じ考え方）
+function keepInsideTiles(center, zoom, keepZoom){
+  const z = keepZoom ? zoom : Math.max(zoom, map.getBoundsZoom(GEOPARK_BOUNDS, true) + 0.05);
+  const half = map.getSize().divideBy(2), PAD = 2;
+  const nw = map.project(GEOPARK_BOUNDS.getNorthWest(), z), se = map.project(GEOPARK_BOUNDS.getSouthEast(), z);
+  const c = map.project(center, z);
+  const cl = (v, lo, hi)=> lo > hi ? (lo + hi) / 2 : Math.max(lo, Math.min(hi, v));
+  c.x = cl(c.x, nw.x + half.x + PAD, se.x - half.x - PAD);
+  c.y = cl(c.y, nw.y + half.y + PAD, se.y - half.y - PAD);
+  return [map.unproject(c, z), z];
+}
+// その中心・ズームで、範囲 b が（字幕の窓などの余白を除いた）画面に収まるか
+function boundsVisible(b, center, z, opt){
+  const sz = map.getSize(), c = map.project(center, z);
+  const tl = L.point(opt.paddingTopLeft || [0,0]), br = L.point(opt.paddingBottomRight || [0,0]);
+  const nw = map.project(b.getNorthWest(), z).subtract(c).add(sz.divideBy(2)), se = map.project(b.getSouthEast(), z).subtract(c).add(sz.divideBy(2));
+  const tol = 40;   // 少しなら余白に入ってもよい
+  return nw.x >= tl.x - tol && nw.y >= tl.y - tol && se.x <= sz.x - br.x + tol && se.y <= sz.y - br.y + tol;
+}
 // 萩ジオパーク全体の概要の解説（data/tour_overview.geojson に図形と場面をまとめてある）
 function startOverviewTour(){
   fetch(`data/tour_overview.geojson${DATAV}`).then(r=> r.json()).then(gj=>{
     const m = {}; (gj.features || []).forEach(f=> m[f.properties.id] = f);
     beginTour({ name: gj.name || "萩ジオパークの概要", tour: gj.tour || [] }, m);
+    if (tour) tour.keepInside = true;   // 概要の解説は、陰影図の外を出さない
   }).catch(e=> console.error("overview tour load failed", e));
 }
 // 解説を始める。a＝{ name（字幕の窓の見出し）, tour（場面の配列） }、shapes＝{ 図形id: GeoJSON feature }
@@ -147,10 +167,20 @@ function showScene(i){
       const padR = tour.photoOk[i] && !isMobile() ? (innerWidth - box.offsetWidth) / 2 + photoWidth(sc) + 30 : 40;
       const padB2 = tour.photoOk[i] && isMobile() ? padB + 170 : padB;
       tour.target = [b, { paddingTopLeft:[50,80], paddingBottomRight:[padR,padB2], maxZoom:14 }];
-      map.flyToBounds(b, { ...tour.target[1], duration:1.0 });
+      let { center, zoom } = map._getBoundsCenterZoom(b, tour.target[1]);
+      if (tour.keepInside && !sc.gsi){   // 陰影図の外をできるだけ出さない（ただし見せたい範囲が字幕などに隠れるなら、範囲を優先）
+        // 写真の窓は右下の一部だけなので、収まらないときは写真の窓の上まで使ってよいことにする
+        const loose = { ...tour.target[1], paddingBottomRight:[40, padB] };
+        const [c2, z2] = keepInsideTiles(center, zoom), [c3] = keepInsideTiles(center, zoom, true);   // c3：ズームはそのまま中心だけ寄せる
+        const pick = [[c2, z2, tour.target[1]], [c3, zoom, tour.target[1]], [c2, z2, loose], [c3, zoom, loose]]
+          .find(([c, z, o])=> sc.fill || boundsVisible(b, c, z, o));   // fill：範囲より陰影図で埋めるのを優先
+        if (pick) [center, zoom] = pick;
+      }
+      tour.view = [center, zoom];
+      map.flyTo(center, zoom, { duration:1.0 });
     }
   }
-  else tour.target = null;
+  else { tour.target = null; tour.view = null; }
   hidePhoto();
   const t0 = Date.now();
   const draw = ()=>{
@@ -159,7 +189,7 @@ function showScene(i){
     if (map._animatingZoom || map._flyToFrame){
       if (Date.now() - t0 < 2500){ setTimeout(draw, 150); return; }
       map.stop();   // 飛行が終わらない（端末が重い・画面が裏にある等）→ 目的の表示へ一気に移す
-      if (tour.target) map.fitBounds(tour.target[0], { ...tour.target[1], animate:false });
+      if (tour.view) map.setView(tour.view[0], tour.view[1], { animate:false });
     }
     if (tour._drawn === i) return;   // moveend と保険のタイマーの二重実行を防ぐ
     dropLeaving(); drawSceneMarks(sc); showPhoto(sc, i);
@@ -206,7 +236,7 @@ function drawSceneMarks(sc){
     const color = f.properties.color || "#d9481c";   // 既定は溶岩の赤橙
     const pr = f.properties, outline = pr.outline !== false;   // 図形ごとに濃さ・枠線を変えられる
     L.geoJSON(f, { interactive:false, pane:"tourShapePane",
-      style:{ color, weight: outline ? 3 : 0, dashArray:"8 6", fillColor:color, fillOpacity: sc.shapeOpacity ?? pr.fillOpacity ?? .28,
+      style:{ color, weight: outline ? (pr.weight || 3) : 0, dashArray: pr.dash === false ? null : "8 6", fillColor:color, fillOpacity: sc.shapeOpacity ?? pr.fillOpacity ?? .28,
               className: outline ? "tour-shape" : "" } }).addTo(grp);
   });
   // 線は配列の配列で「組」に分けると、組ごとに順番に描く（例：[["本流"],["支流A","支流B"]]）
