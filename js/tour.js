@@ -72,6 +72,7 @@ function endTour(){
   Object.values(tour.keep).forEach(g=> g._dead = true);
   document.getElementById("tourBox")?.remove();
   hidePhoto();
+  tourGSI = false;
   document.body.classList.remove("touring");
   refresh();
   map.invalidateSize();
@@ -123,6 +124,7 @@ function tourTarget(name){
 
 function showScene(i){
   const sc = tour.scenes[i]; tour.i = i;
+  if (tourGSI !== !!sc.gsi){ tourGSI = !!sc.gsi; refresh(); }   // gsi:true の場面は陰影・植生を出さず地理院地図だけ
   const box = document.getElementById("tourBox");
   box.querySelector(".tb-count").textContent = `${i+1}／${tour.scenes.length}`;
   box.querySelector(".tb-prev").style.visibility = i ? "visible" : "hidden";

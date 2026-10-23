@@ -476,6 +476,7 @@ function siteEligible(o){
   return false;                           // 展望のB/無は一般モードで隠す
 }
 
+let tourGSI = false;   // 解説の場面で「地理院地図だけ」にするとき true（tour.js が切り替える）
 function refresh(){
   const z = map.getZoom();
   // 画像タイル（詳細）モードは「z11以上 かつ 表示中心がジオパークのタイル域内」のときだけ。
@@ -483,7 +484,8 @@ function refresh(){
   const overGeopark = GEOPARK_BOUNDS.contains(map.getCenter());
   // 解説中は広域表示に切り替えない（大きく引く場面でも陰影図と見どころを残す）
   const touring = document.body.classList.contains("touring");
-  setWideMode(!touring && (z < WIDE_Z || !overGeopark));
+  // 解説中は広域表示に切り替えない。ただし場面で gsi:true のときは地理院地図だけにする（概要の解説の冒頭など）
+  setWideMode(touring ? tourGSI : (z < WIDE_Z || !overGeopark));
   if (wideMode) return;   // 広域モードは詳細（マーカー・ラベル）を出さない
   // サイト：ランク等で「見せる対象」を絞り、QGISの表示ズーム(def.minZoom)で「出現」を制御
   allMarkers.forEach(o=>{
@@ -637,7 +639,7 @@ function injectLabelStyles(){
 }
 
 // ---- 読み込み ----
-const DATAV = "?d=102";   // geojson更新時にbump（ブラウザキャッシュ回避）
+const DATAV = "?d=104";   // geojson更新時にbump（ブラウザキャッシュ回避）
 const fetchGj = def => fetch("data/"+def.file+DATAV).then(r=>r.json());
 Promise.all([
   fetch("data/areas.geojson"+DATAV).then(r=>r.json()),
