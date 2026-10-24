@@ -706,7 +706,7 @@ body.no-labels .leaflet-pane.leaflet-pane-patrol-pane, body.no-labels [class*="p
 .pt-pend { margin-left: 6px; font-size: 11px; background: #e8893b; color: #fff; border-radius: 3px; padding: 0 4px; }
 .pt-text { white-space: pre-wrap; margin-top: 2px; color: #333; }
 .pt-log a { font-size: 12px; }
-.pt-record { width: 100%; padding: 10px; border: 0; border-radius: 8px; background: #595857; color: #fff; font: 900 15px var(--heavy); cursor: pointer; }
+.pt-record { width: 100%; padding: 10px; border: 0; border-radius: 8px; background: #15507a; color: #fff; font: 900 15px var(--heavy); cursor: pointer; }
 .pt-form { text-align: left; }
 .pt-form .qr-ttl, .pt-form .qr-name { text-align: center; }
 .pt-f { display: block; font-size: 12px; color: #666; font-weight: 700; margin-bottom: 8px; }
