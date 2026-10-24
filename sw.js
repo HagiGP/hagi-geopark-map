@@ -34,6 +34,8 @@ self.addEventListener("activate", (e) => {
 self.addEventListener("fetch", (e) => {
   const req = e.request;
   if (req.method !== "GET") return;
+  // スプレッドシート（Apps Script）からの読み込みは毎回最新を取る（キャッシュしない。オフライン時は各ページが自分で前回分を使う）
+  if (/script\.google(usercontent)?\.com/.test(req.url)) return;
 
   // ページ本体（index.html）はネット優先＝更新を確実に反映。オフライン時はキャッシュ
   if (req.mode === "navigate") {

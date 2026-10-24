@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>萩ジオパーク サイトデータベース</title>
+  <meta name="description" content="萩ジオパークのジオサイト・文化サイト・生態サイト・神社・展望地・解説板の一覧" />
+  <link rel="icon" type="image/png" sizes="32x32" href="img/favicon-32.png" />
+  <link rel="stylesheet"
+        href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+        crossorigin="" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+          integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+          crossorigin=""></script>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@700;900&display=swap" />
+  <link rel="stylesheet" href="css/db.css?v=3" />
+</head>
+<body>
+  <header id="appbar">
+    <a id="brand" href="./" title="萩ジオパーク マップへ"><img src="img/logo-badge.png" alt="萩ジオパーク" /></a>
+    <h1>サイトデータベース</h1>
+    <a id="toMap" href="./">地図</a>
+  </header>
+
+  <div id="tools">
+    <div id="kinds" role="tablist"></div>
+    <div class="row">
+      <input id="q" type="search" placeholder="名前・見出し・説明で検索" autocomplete="off" />
+      <select id="fChiku"><option value="">地区：すべて</option></select>
+      <select id="fArea"><option value="">地域紹介：すべて</option></select>
+      <select id="fRank"><option value="">ランク：すべて</option></select>
+      <select id="fProt"><option value="">法的保護：すべて</option></select>
+      <select id="fPatrol" hidden><option value="">点検：すべて</option><option value="bad">問題あり</option><option value="old">点検切れ</option></select>
+      <label class="chk"><input id="fPhoto" type="checkbox" /> 写真あり</label>
+    </div>
+    <div class="row meta">
+      <span id="count"></span>
+      <span id="updated"></span>
+      <span class="sp"></span>
+      <div id="views"><button data-v="card" class="on">カード</button><button data-v="table">表</button></div>
+      <button id="csv">CSVで保存</button>
+    </div>
+  </div>
+
+  <main id="list"><p class="loading">読み込み中…</p></main>
+
+  <div id="detail" hidden>
+    <div class="dt-card">
+      <button class="dt-close" aria-label="閉じる">×</button>
+      <div class="dt-body"></div>
+    </div>
+  </div>
+
+  <script src="js/db.js?v=1"></script>
+</body>
+</html>
