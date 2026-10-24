@@ -96,12 +96,14 @@ function intervalMonths(id){
   const hit = r.sheet === "解説板" ? iv.find(x=> x["対象"] === "解説板") : iv.find(x=> x["対象"] === "ジオサイト" && x["ランク"] === r["ランク"]);
   return hit ? Number(hit["月"]) : 12;
 }
+// 点検の数え始めの日。まだ記録の無いサイトは、この日に点検したものとして期限を数える（パトロールを始めた日）
+const PATROL_START = new Date("2026-10-24T00:00:00+09:00");
 function stateOf(id){
   const logs = logsOf(id), last = logs[0] || null;
-  const due = last ? new Date(last.time) : null;
-  if (due) due.setMonth(due.getMonth() + intervalMonths(id));
-  const over = due ? Math.floor((Date.now() - due) / 864e5) : null;
-  return { last, logs, problem: last?.state === "問題あり", overdue: !last || over > 0, overDays: over };
+  const due = new Date(last ? last.time : PATROL_START);
+  due.setMonth(due.getMonth() + intervalMonths(id));
+  const over = Math.floor((Date.now() - due) / 864e5);
+  return { last, logs, problem: last?.state === "問題あり", overdue: over > 0, overDays: over };
 }
 
 // ---- 地図の印 ----
@@ -133,7 +135,7 @@ function render(){
   const items = [...pt.byMarker.entries()].map(([o, id])=> ({ o, id, s: stateOf(id) }));
   const bad = items.filter(x=> x.s.problem).sort((a, b)=> b.s.last.time - a.s.last.time);
   const old = items.filter(x=> !x.s.problem && x.s.overdue)
-    .sort((a, b)=> (b.s.last ? b.s.overDays : 1e9) - (a.s.last ? a.s.overDays : 1e9) || a.o.name.localeCompare(b.o.name, "ja"));
+    .sort((a, b)=> b.s.overDays - a.s.overDays || a.o.name.localeCompare(b.o.name, "ja"));
   const info = pt.status ? `${fmtDay(new Date(pt.status.fetched))} ${new Date(pt.status.fetched).toTimeString().slice(0,5)} に取得` : "まだ読み込んでいません";
   h += `<div class="pt-sync"><span>${esc(info)}${queue.length ? `・<b>未送信 ${queue.length}件</b>` : ""}</span><button class="pt-reload">↻ 更新</button></div>`;
   if (pt.status){
@@ -158,8 +160,7 @@ function render(){
 function ptItem({ o, id, s }){
   let sub;
   if (s.problem) sub = `${fmtDay(s.last.time)} ${esc(s.last.who || "")}：${esc((s.last.text || "").split("\n")[0] || "（内容なし）")}`;
-  else if (!s.last) sub = "未点検";
-  else sub = `${s.overDays}日超過（最終 ${fmtDay(s.last.time)}）`;
+  else sub = `${s.overDays}日超過（${s.last ? "最終 " + fmtDay(s.last.time) : "未点検"}）`;
   const dot = `<span class="poi-dot" style="background:${SITE_CATS[o.cat].fill}"></span>`;
   return `<li class="pt-item" data-id="${esc(id)}">${dot}<span class="pt-name">${esc(o.name)}<small>${sub}${s.last?.pending ? "・未送信" : ""}</small></span></li>`;
 }

@@ -83,20 +83,21 @@ function filtered(){
 }
 
 // ---- 点検の状態（運営の端末だけ） ----
+const PATROL_START = new Date("2026-10-24T00:00:00+09:00");   // 点検の数え始めの日（地図の js/patrol.js と同じ）。記録の無いサイトはこの日から数える
 const parseTime = s=> s ? new Date(String(s).replace(" ", "T") + ":00+09:00") : null;
 const fmtDay = d=> `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
 function patrolOf(r){
   if (!st.status || !/^[GK]-/.test(r.ID)) return null;
   const logs = st.status.logs.filter(l=> l["対象ID"] === r.ID).sort((a, b)=> parseTime(b["日時"]) - parseTime(a["日時"]));
   const iv = st.status.intervals.find(x=> r.種類 === "解説板" ? x["対象"] === "解説板" : x["対象"] === "ジオサイト" && x["ランク"] === r["ランク"]);
-  const last = logs[0], due = last ? parseTime(last["日時"]) : null;
-  if (due) due.setMonth(due.getMonth() + (iv ? Number(iv["月"]) : 12));
-  return { logs, last, problem: last?.["状態"] === "問題あり", overdue: !last || Date.now() > due };
+  const last = logs[0], due = last ? parseTime(last["日時"]) : new Date(PATROL_START);
+  due.setMonth(due.getMonth() + (iv ? Number(iv["月"]) : 12));
+  return { logs, last, problem: last?.["状態"] === "問題あり", overdue: Date.now() > due };
 }
 function patrolTag(r){
   const p = patrolOf(r); if (!p) return "";
   if (p.problem) return `<span class="ptag bad">問題あり ${fmtDay(parseTime(p.last["日時"]))}</span>`;
-  if (!p.last) return `<span class="ptag old">未点検</span>`;
+  if (!p.last) return `<span class="ptag ${p.overdue ? "old" : "none"}">${p.overdue ? "点検切れ（未点検）" : "未点検"}</span>`;
   return `<span class="ptag ${p.overdue ? "old" : "ok"}">${p.overdue ? "点検切れ" : "問題なし"} ${fmtDay(parseTime(p.last["日時"]))}</span>`;
 }
 

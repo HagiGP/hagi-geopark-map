@@ -46,7 +46,7 @@ select { padding: 6px 4px; border: 1px solid #ccc; border-radius: 8px; font-size
 .cp { display: flex; flex-wrap: wrap; gap: 4px; }
 .cp span { font-size: 11px; background: #f3efe2; color: #6b5a2b; border-radius: 3px; padding: 1px 6px; }
 .cp .ptag, .ptag { font-size: 11px; border-radius: 3px; padding: 1px 6px; color: #fff; white-space: nowrap; }
-.ptag.bad { background: #d6453c; } .ptag.old { background: #e8893b; } .ptag.ok { background: #4c9a6b; }
+.ptag.bad { background: #d6453c; } .ptag.old { background: #e8893b; } .ptag.ok { background: #4c9a6b; } .ptag.none { background: #aaa; }
 
 .tbl-wrap { overflow-x: auto; background: #fff; border-radius: 10px; box-shadow: 0 1px 3px rgba(0,0,0,.12); }
 .tbl { border-collapse: collapse; width: 100%; font-size: 13px; }
