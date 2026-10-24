@@ -164,7 +164,7 @@ function showScene(i){
     if (b.isValid()){
       const padB = box.offsetHeight + 60;   // 字幕の窓＋名札・矢じりが窓に隠れないぶん
       // 写真の窓のぶんも空ける（PC＝右下、スマホ＝字幕の上）
-      // photoTop：PCで写真の窓を右上に出す場面（右下に見せたい場所があるとき）は、右側をあけない
+      // photoTop：PCで写真の窓を左上に出す場面（右下に見せたい場所があるとき）は、右側をあけない
       const padR = tour.photoOk[i] && !isMobile() && !sc.photoTop ? (innerWidth - box.offsetWidth) / 2 + photoWidth(sc) + 30 : 40;
       const padB2 = tour.photoOk[i] && isMobile() ? padB + 170 : padB;
       tour.target = [b, { paddingTopLeft:[50,80], paddingBottomRight:[padR,padB2], maxZoom:14 }];
@@ -221,7 +221,7 @@ function showPhoto(sc, i){
     w.innerHTML = `<img alt="">`+(ph.caption ? `<figcaption></figcaption>` : "");
     w.querySelector("img").src = ph.src;
     if (ph.caption) w.querySelector("figcaption").textContent = ph.caption;
-    if (sc.photoTop && !isMobile()){ w.style.top = "70px"; w.style.right = "12px"; }   // 右上の隅（ヘッダーの下）
+    if (sc.photoTop && !isMobile()){ w.style.top = "70px"; w.style.left = "12px"; w.style.right = "auto"; }   // 左上の隅（ヘッダーの下。萩の北西は海なので地名とぶつからない）
     else w.style.bottom = (document.getElementById("tourBox").offsetHeight + 30) + "px";
     w.onclick = e=>{ e.stopPropagation(); w.classList.toggle("big"); };   // タップで拡大／戻す
     L.DomEvent.disableClickPropagation(w);
