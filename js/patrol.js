@@ -93,7 +93,8 @@ function logsOf(id){
 function intervalMonths(id){
   const r = pt.rows[id]; if (!r) return 12;
   const iv = pt.status?.intervals || [];
-  const hit = r.sheet === "解説板" ? iv.find(x=> x["対象"] === "解説板") : iv.find(x=> x["対象"] === "ジオサイト" && x["ランク"] === r["ランク"]);
+  const rank = r.sheet === "解説板" ? "A" : r["ランク"];   // 解説板はランクA扱い（ジオサイトのAと同じ間隔）
+  const hit = iv.find(x=> x["対象"] === "ジオサイト" && x["ランク"] === rank);
   return hit ? Number(hit["月"]) : 12;
 }
 // 点検の数え始めの日。まだ記録の無いサイトは、この日に点検したものとして期限を数える（パトロールを始めた日）

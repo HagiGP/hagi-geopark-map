@@ -89,7 +89,8 @@ const fmtDay = d=> `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}
 function patrolOf(r){
   if (!st.status || !/^[GK]-/.test(r.ID)) return null;
   const logs = st.status.logs.filter(l=> l["対象ID"] === r.ID).sort((a, b)=> parseTime(b["日時"]) - parseTime(a["日時"]));
-  const iv = st.status.intervals.find(x=> r.種類 === "解説板" ? x["対象"] === "解説板" : x["対象"] === "ジオサイト" && x["ランク"] === r["ランク"]);
+  const rank = r.種類 === "解説板" ? "A" : r["ランク"];   // 解説板はランクA扱い（地図の js/patrol.js と同じ）
+  const iv = st.status.intervals.find(x=> x["対象"] === "ジオサイト" && x["ランク"] === rank);
   const last = logs[0], due = last ? parseTime(last["日時"]) : new Date(PATROL_START);
   due.setMonth(due.getMonth() + (iv ? Number(iv["月"]) : 12));
   return { logs, last, problem: last?.["状態"] === "問題あり", overdue: Date.now() > due };
