@@ -149,7 +149,6 @@ const follows = sc=> sc.followLine || (isMobile() && sc.mfollowLine);   // カ�
 
 function showScene(i){
   const sc = tour.scenes[i]; tour.i = i;
-  pageSound();
   if (tourGSI !== !!sc.gsi){ tourGSI = !!sc.gsi; refresh(); }   // gsi:true の場面は陰影・植生を出さず地理院地図だけ
   const box = document.getElementById("tourBox");
   box.querySelector(".tb-count").textContent = `${i+1}／${tour.scenes.length}`;
@@ -528,10 +527,6 @@ function tone(f, at = 0, len = 0.045, vol = 0.14){
 function blip(force){   // 文字送りの音（少しずつ高さを変えて、機械的になりすぎないように）
   if (!force && !soundOn()) return;
   try { tone(440 + Math.random() * 80); } catch(e){}
-}
-function pageSound(){   // 場面が切り替わるときの音（ピロン）
-  if (!soundOn()) return;
-  try { tone(523, 0, 0.07, 0.12); tone(784, 0.07, 0.11, 0.12); } catch(e){}
 }
 function typeText(text){
   stopTyping();
