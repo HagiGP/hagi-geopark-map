@@ -456,6 +456,7 @@ body.touring #map { left: 0; bottom: 0; }
   #tourPhoto.top.big img { height: auto; max-height: 60vh; object-fit: contain; }
   #tourPhoto.top.big figcaption { white-space: normal; }
   .tour-label { font-size: 13px; padding: 4px 7px 3px; letter-spacing: .06em; }
+  .tour-ring { width: 30px; height: 30px; border-width: 3px; }   /* スマホは丸を小さく（瀬などがいくつも並ぶと丸ばかりが目立つ） */
 }
 @media (prefers-reduced-motion: reduce) {
   .tour-ring, .tour-point, .tour-shape, #tourBox .tb-next, .tour-start .ts-icon { animation: none; }

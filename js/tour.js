@@ -169,14 +169,21 @@ function showScene(i){
       // 「見せる範囲」＝画面から、字幕の窓（下）・写真の窓・名札が切れないぶん（左右）を除いた所
       const padB = box.offsetHeight + (mob ? 36 : 60);
       const base = { pos:"", t: mob ? 64 : 80, l: mob ? 44 : 50, r: mob ? 44 : 40, b: padB };
-      let cands = [base];
+      let cands = [base], corners = null;
       if (hasPhoto && mob) cands = [{ ...base, pos:"top", t: MOB_PHOTO_BOTTOM + 12 }];   // スマホ：写真は上部
       else if (hasPhoto){
         // PCの写真の窓は四隅のどこかに置ける。その横（列）か上下（帯）を除いた所を見せる範囲として、
         // 見せたい場所を真ん中に置けて、いちばん大きく見せられる組み合わせを選ぶ（東寄りの場所なら写真は左、など）
         const ph = photoHeight(sc, i), pw = photoWidth(sc), side = (innerWidth - box.offsetWidth) / 2;
         const lowTop = size.y - (box.offsetHeight + 30) - ph;   // 下の写真の窓の上端
+        corners = {   // 写真の窓を置ける四隅（画面上の四角。showPhoto の置き方と合わせる）
+          br: [size.x - Math.max(12, side) - pw, lowTop, size.x - Math.max(12, side), lowTop + ph],
+          bl: [Math.max(12, side), lowTop, Math.max(12, side) + pw, lowTop + ph],
+          tr: [size.x - 12 - pw, 70, size.x - 12, 70 + ph],
+          tl: [12, 70, 12 + pw, 70 + ph],
+        };
         cands = [
+          { ...base, pos:"auto" },   // 字幕の窓だけを除いた広い範囲。写真の窓は、見せたい場所と重ならない隅へ
           { ...base, pos:"br", r: side + pw + 30 }, { ...base, pos:"br", b: size.y - lowTop + 16 },
           { ...base, pos:"bl", l: side + pw + 30 }, { ...base, pos:"bl", b: size.y - lowTop + 16 },
           { ...base, pos:"tr", r: 12 + pw + 30 },   { ...base, pos:"tr", t: 70 + ph + 16 },
@@ -184,6 +191,11 @@ function showScene(i){
         ];
       }
       const p0 = map.project(b.getNorthWest(), 0), p1 = map.project(b.getSouthEast(), 0);
+      // 写真の窓と重ねたくないもの＝この場面で実際に描くもの（指差し・図形・矢印・丸・名札）。無ければ範囲全体
+      const focus = L.latLngBounds([]);
+      [].concat(sc.point ? [sc.point] : [], sc.points || [], sc.shape || [], [].concat(sc.line || []).flat(), sc.ring || [], labelsOf(sc).map(lb=> lb.at))
+        .forEach(n=>{ const t = tourTarget(n); if (t) focus.extend(t); });
+      if (!focus.isValid()) focus.extend(b);
       // ある見せる範囲 a で、どの倍率・中心にするか（スライドするなら行き先も）と、その良さ
       const plan = (a, bump = 0)=>{
         const aw = Math.max(size.x - a.l - a.r, 80), ah = Math.max(size.y - a.t - a.b, 80);
@@ -220,7 +232,20 @@ function showScene(i){
         // 良さ：陰影図の端で中心を寄せられず、見せたい場所が真ん中からずれるほど減点。大きく見せられるほど加点
         const d = (c, p)=> map.project(c, z).distanceTo(map.project(at(p), z));
         const shift = d(c0, from) + (c1 ? d(c1, to) : 0);   // スライドの始まり・終わりそれぞれで、端に止められた分
-        return { a, aw, ah, z, c0, c1, shift, score: zFit * 120 - shift };
+        // 見せたい範囲が画面のどこに来るか（スライドするなら始まりと終わりを合わせた範囲）
+        const fn = map.project(focus.getNorthWest(), z), fs = map.project(focus.getSouthEast(), z);
+        const scr = c=>{ const o = map.project(c, z).subtract(size.divideBy(2)); return [fn.x - o.x - 24, fn.y - o.y - 24, fs.x - o.x + 24, fs.y - o.y + 24]; };
+        const r0 = scr(c0), r1 = c1 ? scr(c1) : r0;
+        const rect = [Math.min(r0[0], r1[0]), Math.min(r0[1], r1[1]), Math.max(r0[2], r1[2]), Math.max(r0[3], r1[3])];
+        let pos = a.pos, score = zFit * 120 - shift;
+        if (pos === "auto"){   // 見せたい範囲と重ならない隅のうち、いちばん離れた隅。どの隅も重なるなら、この案は使わない
+          const cx = (rect[0] + rect[2]) / 2, cy = (rect[1] + rect[3]) / 2, M = 10;
+          const free = Object.entries(corners).filter(([, q])=> q[2] + M < rect[0] || q[0] - M > rect[2] || q[3] + M < rect[1] || q[1] - M > rect[3])
+            .sort(([, p], [, q])=> Math.hypot((q[0] + q[2]) / 2 - cx, (q[1] + q[3]) / 2 - cy) - Math.hypot((p[0] + p[2]) / 2 - cx, (p[1] + p[3]) / 2 - cy));
+          if (free.length){ pos = free[0][0]; score += 60; }   // 広い範囲で見せられるなら、それを優先
+          else score = -1e9;
+        }
+        return { a: { ...a, pos }, aw, ah, z, c0, c1, shift, score };
       };
       let P = cands.map(a=> plan(a)).sort((x, y)=> y.score - x.score)[0];
       // 陰影図の端に近くて真ん中に置けないときは、少し寄せると置けることがある（寄せた分は必要ならスライド）
@@ -337,11 +362,12 @@ function drawSceneMarks(sc){
     });
     delay += dur;
   });
+  const RING = isMobile() ? 30 : 56;   // 丸の大きさ（CSS の .tour-ring と合わせる。スマホは小さく）
   (sc.ring||[]).forEach(n=>{   // サイト名 or [緯度,経度]
     const ll = Array.isArray(n) ? L.latLng(n[0], n[1]) : allMarkers.find(x=> x.name === n)?.marker.getLatLng();
     if (!ll) return;
     L.marker(ll, { interactive:false, pane:"tourPane", keyboard:false,
-      icon:L.divIcon({ className:"", iconSize:[56,56], iconAnchor:[28,28], html:`<div class="tour-ring"></div>` }) }).addTo(tour.layer);
+      icon:L.divIcon({ className:"", iconSize:[RING,RING], iconAnchor:[RING/2,RING/2], html:`<div class="tour-ring"></div>` }) }).addTo(tour.layer);
   });
   labelsOf(sc).forEach(lb=>{   // 地名ラベル（例：{"text":"須佐湾","at":[34.628,131.594]}）
     L.marker(lb.at, { interactive:false, pane:"tourPane", keyboard:false,
