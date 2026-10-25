@@ -168,7 +168,7 @@ function showScene(i){
     if (b.isValid()){
       const hasPhoto = tour.photoOk[i], size = map.getSize();
       // 「見せる範囲」＝画面から、字幕の窓（下）・写真の窓・名札が切れないぶん（左右）を除いた所
-      const padB = box.offsetHeight + (mob ? 36 : 60);
+      const padB = box.offsetHeight + (mob ? 36 : 44);   // 字幕の窓＋名札・矢じりが窓にかからないぶん
       const base = { pos:"", t: mob ? 64 : 80, l: mob ? 44 : 50, r: mob ? 44 : 40, b: padB };
       let cands = [base], corners = null;
       if (hasPhoto && mob) cands = [{ ...base, pos:"top", t: MOB_PHOTO_BOTTOM + 12 }];   // スマホ：写真は上部
@@ -228,6 +228,8 @@ function showScene(i){
           }
           from = L.point(fx, fy); to = L.point(tx, ty);
         }
+        // スライドが小さすぎる（はみ出しがわずか）なら、スライドせずに真ん中に合わせる（はみ出しを両側に振り分ける）
+        if (to && map.project(at(from), z).distanceTo(map.project(at(to), z)) <= 60){ from = mid; to = null; }
         let c0 = at(from), c1 = to ? at(to) : null;
         if (tour.keepInside && !sc.gsi){ c0 = keepInsideTiles(c0, z, true)[0]; if (c1) c1 = keepInsideTiles(c1, z, true)[0]; }
         // 良さ：陰影図の端で中心を寄せられず、見せたい場所が真ん中からずれるほど減点。大きく見せられるほど加点
