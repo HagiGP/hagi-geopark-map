@@ -279,9 +279,9 @@ function showScene(i){
     if (tour._drawn === i) return;   // moveend と保険のタイマーの二重実行を防ぐ
     dropLeaving(); drawSceneMarks(sc); showPhoto(sc, i);
     tour._drawn = i;
-    if (tour.pan) setTimeout(()=>{   // 図形・名札が出てから、ゆっくりスライド（約70px/秒、3〜10秒）
+    if (tour.pan) setTimeout(()=>{   // 図形・名札が出てから、スライド（約150px/秒、2〜6秒）
       if (!tour || tour.i !== i || !tour.pan) return;
-      map.panTo(tour.pan.to, { animate:true, duration: Math.min(10, Math.max(3, tour.pan.dist / 70)), easeLinearity:1 });
+      map.panTo(tour.pan.to, { animate:true, duration: Math.min(6, Math.max(2, tour.pan.dist / 150)), easeLinearity:1 });
     }, 1200);
   };
   map.once("moveend", draw); setTimeout(draw, 1150);   // 移動後に描く（移動しない場面の保険）
@@ -331,17 +331,48 @@ function showPhoto(sc, i){
 }
 
 function drawSceneMarks(sc){
-  (sc.shape||[]).forEach(id=>{
-    const f = tour.shapes[id]; if (!f) return;
-    const key = shapeKey(sc, id); if (tour.keep[key]) return;
-    const grp = tour.keep[key] = L.layerGroup().addTo(tour.keepLayer);
-    const color = f.properties.color || "#d9481c";   // 既定は溶岩の赤橙
-    const pr = f.properties, outline = pr.outline !== false;   // 図形ごとに濃さ・枠線を変えられる
-    L.geoJSON(f, { interactive:false, pane:"tourShapePane", renderer:tourRenderer,
-      style:{ color, weight: outline ? (pr.weight || 3) : 0, dashArray: pr.dash === false ? null : "8 6", fillColor:color, fillOpacity: sc.shapeOpacity ?? pr.fillOpacity ?? .28,
-              className: outline ? "tour-shape" : "" } }).addTo(grp);
-  });
+  // shapeSteps：矢印を描き終えてから、組ごとに順に出す図形（例：[["火山"],["湖"]]＝川の矢印→火山→湖）。名札も step:番号 で同じ組と一緒に出せる
+  const steps = (sc.shapeSteps || []).map(g=> [].concat(g)), later = new Set(steps.flat());
+  (sc.shape||[]).filter(id=> !later.has(id)).forEach(id=> addTourShape(sc, id));
   // 線は配列の配列で「組」に分けると、組ごとに順番に描く（例：[["本流"],["支流A","支流B"]]）
+  const delay = drawSceneLines(sc);
+  const sceneNo = tour.i;
+  steps.forEach((g, k)=> setTimeout(()=>{
+    if (!tour || tour.i !== sceneNo) return;
+    g.forEach(id=> addTourShape(sc, id));
+    labelsOf(sc).filter(lb=> lb.step === k + 1).forEach(addTourLabel);
+  }, delay + 500 + k * 1500));
+  const RING = isMobile() ? 30 : 56;   // 丸の大きさ（CSS の .tour-ring と合わせる。スマホは小さく）
+  (sc.ring||[]).forEach(n=>{   // サイト名 or [緯度,経度]
+    const ll = Array.isArray(n) ? L.latLng(n[0], n[1]) : allMarkers.find(x=> x.name === n)?.marker.getLatLng();
+    if (!ll) return;
+    L.marker(ll, { interactive:false, pane:"tourPane", keyboard:false,
+      icon:L.divIcon({ className:"", iconSize:[RING,RING], iconAnchor:[RING/2,RING/2], html:`<div class="tour-ring"></div>` }) }).addTo(tour.layer);
+  });
+  labelsOf(sc).filter(lb=> !lb.step).forEach(addTourLabel);   // 地名ラベル（例：{"text":"須佐湾","at":[34.628,131.594]}）
+  // 指差し：point＝1か所（サイト名 or [緯度,経度]）、points＝何か所も（[[緯度,経度], …]）
+  [].concat(sc.point ? [sc.point] : [], sc.points || []).forEach(p=>{
+    const ll = Array.isArray(p) ? L.latLng(p[0], p[1]) : allMarkers.find(x=> x.name === p)?.marker.getLatLng();
+    if (ll) L.marker(ll, { interactive:false, pane:"tourPane", keyboard:false,
+      icon:L.divIcon({ className:"", iconSize:[36,36], iconAnchor:[18,46], html:`<div class="tour-point">${POINTER_SVG}</div>` }) }).addTo(tour.layer);
+  });
+}
+function addTourLabel(lb){
+  L.marker(lb.at, { interactive:false, pane:"tourPane", keyboard:false,
+    icon:L.divIcon({ className:"", iconSize:null, iconAnchor:[0,0], html:`<div class="tour-label">${esc(lb.text)}</div>` }) }).addTo(tour.layer);
+}
+function addTourShape(sc, id){
+  const f = tour.shapes[id]; if (!f) return;
+  const key = shapeKey(sc, id); if (tour.keep[key]) return;
+  const grp = tour.keep[key] = L.layerGroup().addTo(tour.keepLayer);
+  const color = f.properties.color || "#d9481c";   // 既定は溶岩の赤橙
+  const pr = f.properties, outline = pr.outline !== false;   // 図形ごとに濃さ・枠線を変えられる
+  L.geoJSON(f, { interactive:false, pane:"tourShapePane", renderer:tourRenderer,
+    style:{ color, weight: outline ? (pr.weight || 3) : 0, dashArray: pr.dash === false ? null : "8 6", fillColor:color, fillOpacity: sc.shapeOpacity ?? pr.fillOpacity ?? .28,
+            className: outline ? "tour-shape" : "" } }).addTo(grp);
+}
+// 矢印を組ごとに順に描く。描き終わるまでの時間(ms)を返す
+function drawSceneLines(sc){
   const groups = [].concat(sc.line || []).some(Array.isArray)
     ? sc.line.map(g=> [].concat(g)) : [[].concat(sc.line || [])];
   let delay = 0;
@@ -365,23 +396,7 @@ function drawSceneMarks(sc){
     });
     delay += dur;
   });
-  const RING = isMobile() ? 30 : 56;   // 丸の大きさ（CSS の .tour-ring と合わせる。スマホは小さく）
-  (sc.ring||[]).forEach(n=>{   // サイト名 or [緯度,経度]
-    const ll = Array.isArray(n) ? L.latLng(n[0], n[1]) : allMarkers.find(x=> x.name === n)?.marker.getLatLng();
-    if (!ll) return;
-    L.marker(ll, { interactive:false, pane:"tourPane", keyboard:false,
-      icon:L.divIcon({ className:"", iconSize:[RING,RING], iconAnchor:[RING/2,RING/2], html:`<div class="tour-ring"></div>` }) }).addTo(tour.layer);
-  });
-  labelsOf(sc).forEach(lb=>{   // 地名ラベル（例：{"text":"須佐湾","at":[34.628,131.594]}）
-    L.marker(lb.at, { interactive:false, pane:"tourPane", keyboard:false,
-      icon:L.divIcon({ className:"", iconSize:null, iconAnchor:[0,0], html:`<div class="tour-label">${esc(lb.text)}</div>` }) }).addTo(tour.layer);
-  });
-  // 指差し：point＝1か所（サイト名 or [緯度,経度]）、points＝何か所も（[[緯度,経度], …]）
-  [].concat(sc.point ? [sc.point] : [], sc.points || []).forEach(p=>{
-    const ll = Array.isArray(p) ? L.latLng(p[0], p[1]) : allMarkers.find(x=> x.name === p)?.marker.getLatLng();
-    if (ll) L.marker(ll, { interactive:false, pane:"tourPane", keyboard:false,
-      icon:L.divIcon({ className:"", iconSize:[36,36], iconAnchor:[18,46], html:`<div class="tour-point">${POINTER_SVG}</div>` }) }).addTo(tour.layer);
-  });
+  return delay;
 }
 
 const shapeKey = (sc, id)=> `s:${id}:${sc.shapeOpacity ?? ""}`;   // 濃さが変わる場面では描き直す
