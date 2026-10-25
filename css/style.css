@@ -393,6 +393,8 @@ body.touring #map { left: 0; bottom: 0; }
 }
 #tourBox .tb-head { display: flex; align-items: center; gap: 10px; font-size: 13px; color: #ffd84a; margin-bottom: 6px; }
 #tourBox .tb-count { color: #aaa; font-size: 12px; }
+#tourBox .tb-sound { margin-left: auto; background: none; border: 0; font-size: 15px; cursor: pointer; padding: 2px 6px; line-height: 1; }
+#tourBox .tb-sound + .tb-close { margin-left: 0; }
 #tourBox .tb-close {
   margin-left: auto; background: none; border: 0; color: #fff; font: inherit; font-size: 16px;
   cursor: pointer; padding: 2px 6px;

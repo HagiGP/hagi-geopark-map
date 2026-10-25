@@ -99,12 +99,16 @@ function buildTourBox(){
   const box = document.createElement("div"); box.id = "tourBox";
   box.innerHTML =
     `<div class="tb-head"><span class="tb-title"></span><span class="tb-count"></span>`+
+    `<button class="tb-sound" aria-label="文字の音"></button>`+
     `<button class="tb-close" aria-label="解説を終わる">✕</button></div>`+
     `<div class="tb-text" aria-live="polite"></div>`+
     `<div class="tb-nav"><button class="tb-prev">◀ もどる</button><span class="tb-next">▼</span></div>`;
   document.body.appendChild(box);
   box.querySelector(".tb-title").textContent = tour.area.name;
   box.querySelector(".tb-close").onclick = e=>{ e.stopPropagation(); endTour(); };
+  const sb = box.querySelector(".tb-sound"), showSound = ()=>{ sb.textContent = soundOn() ? "🔊" : "🔇"; sb.title = soundOn() ? "文字の音：あり" : "文字の音：なし"; };
+  showSound();
+  sb.onclick = e=>{ e.stopPropagation(); setSound(!soundOn()); showSound(); if (soundOn()) blip(true); };
   box.querySelector(".tb-prev").onclick = e=>{ e.stopPropagation(); prevScene(); };
   box.onclick = ()=> nextScene();
   L.DomEvent.disableClickPropagation(box); L.DomEvent.disableScrollPropagation(box);
@@ -164,7 +168,7 @@ function showScene(i){
   if (fit && fit.length){
     const b = L.latLngBounds([]);
     fit.forEach(n=>{ const t = tourTarget(n); if (t) b.extend(t); });
-    if (!follows(sc) && !(mob && sc.mfit)) labelsOf(sc).forEach(lb=> b.extend(lb.at));   // 名札も画面に入れる（矢印を追う場面・スマホ用の範囲は除く）
+    if (!follows(sc) && !(mob && sc.mfit)) labelsOf(sc).filter(lb=> !lb.nofit).forEach(lb=> b.extend(lb.at));   // 名札も画面に入れる（矢印を追う場面・スマホ用の範囲・nofit の名札は除く）
     if (b.isValid()){
       const hasPhoto = tour.photoOk[i], size = map.getSize();
       // 「見せる範囲」＝画面から、字幕の窓（下）・写真の窓・名札が切れないぶん（左右）を除いた所
@@ -194,7 +198,7 @@ function showScene(i){
       const p0 = map.project(b.getNorthWest(), 0), p1 = map.project(b.getSouthEast(), 0);
       // 写真の窓と重ねたくないもの＝この場面で実際に描くもの（指差し・図形・矢印・丸・名札）。無ければ範囲全体
       const focus = L.latLngBounds([]);
-      [].concat(sc.point ? [sc.point] : [], sc.points || [], sc.shape || [], [].concat(sc.line || []).flat(), sc.ring || [], labelsOf(sc).map(lb=> lb.at))
+      [].concat(sc.point ? [sc.point] : [], sc.points || [], sc.shape || [], [].concat(sc.line || []).flat(), sc.ring || [], labelsOf(sc).filter(lb=> !lb.nofit).map(lb=> lb.at))
         .forEach(n=>{ const t = tourTarget(n); if (t) focus.extend(t); });
       if (!focus.isValid()) focus.extend(b);
       // ある見せる範囲 a で、どの倍率・中心にするか（スライドするなら行き先も）と、その良さ
@@ -344,7 +348,14 @@ function drawSceneMarks(sc){
   });
   steps.forEach((g, k)=> setTimeout(()=>{
     if (!tour || tour.i !== sceneNo) return;
-    g.forEach(id=> id.startsWith("-") ? fadeTourItem(sc, id.slice(1)) : addTourShape(sc, id));
+    g.forEach(id=>{
+      if (id.startsWith("-")) fadeTourItem(sc, id.slice(1));   // "-id"：消す
+      else if (id.startsWith("=")){   // "=id"：矢印を描き終えた形で一瞬で出す（長い矢印の一部だけを残すときなど）
+        const lid = id.slice(1); if (!tour.shapes[lid] || tour.keep["l:" + lid]) return;
+        drawArrowLine(lid, 0, tour.keep["l:" + lid] = L.layerGroup().addTo(tour.keepLayer), true);
+      }
+      else addTourShape(sc, id);
+    });
     labelsOf(sc).filter(lb=> lb.step === k + 1).forEach(addTourLabel);
   }, delay + 500 + k * 1500));
   const RING = isMobile() ? 30 : 56;   // 丸の大きさ（CSS の .tour-ring と合わせる。スマホは小さく）
@@ -418,7 +429,7 @@ function drawSceneLines(sc, onGroup){
 const shapeKey = (sc, id)=> `s:${id}:${sc.shapeOpacity ?? ""}`;   // 濃さが変わる場面では描き直す
 
 // 線を始点から描き、先端の矢じりを一緒に進める。delay ms 後に描き始め、描き終わるまでの時間(ms)を返す
-function drawArrowLine(id, delay, grp){
+function drawArrowLine(id, delay, grp, instant){
   const lc = tour.shapes[id].properties.color || "#b3200f";   // 線の色（既定は赤。川は青など）
   const ln = L.geoJSON(tour.shapes[id], { interactive:false, pane:"tourShapePane", renderer:tourRenderer,
     style:{ color:lc, weight:6, opacity:.95, lineCap:"round", className:"tour-line" } }).addTo(grp);
@@ -428,7 +439,7 @@ function drawArrowLine(id, delay, grp){
     const along = lineSampler(l.getLatLngs());
     const short = along.px < 260;   // 短い矢印（季節風など）は小さめ・途中の矢じりなし
     p.style.strokeDasharray = 1e6; p.style.strokeDashoffset = 1e6;   // 描き始めるまで隠す
-    const D = short ? 1400 : 3200, sceneNo = tour.i; total = Math.max(total, D);
+    const D = instant ? 1 : short ? 1400 : 3200, sceneNo = tour.i; total = Math.max(total, D);
     const ease = t=> t<.5 ? 2*t*t : 1-Math.pow(-2*t+2,2)/2;
     setTimeout(()=>{
       if (!tour || grp._dead) return;
@@ -500,6 +511,21 @@ function finishTyping(){
   const el = document.querySelector("#tourBox .tb-text"); if (el) el.textContent = tour.fullText;
   document.getElementById("tourBox")?.classList.remove("typing");
 }
+// ---- 文字送りの音（ピロピロ）：音声ファイルは使わず、その場で短い電子音を作る。最初は音なし（字幕の窓の🔇で切り替え、端末に覚える） ----
+let tourAudio = null;
+function soundOn(){ try { return localStorage.getItem("hagiTourSound") === "1"; } catch(e){ return false; } }
+function setSound(on){ try { localStorage.setItem("hagiTourSound", on ? "1" : "0"); } catch(e){} }
+function blip(force){
+  if (!force && !soundOn()) return;
+  try {
+    if (!tourAudio) tourAudio = new (window.AudioContext || window.webkitAudioContext)();
+    if (tourAudio.state === "suspended") tourAudio.resume();
+    const ctx = tourAudio, t = ctx.currentTime, o = ctx.createOscillator(), g = ctx.createGain();
+    o.type = "square"; o.frequency.value = 880 + Math.random() * 160;   // 少しずつ高さを変えて、機械的になりすぎないように
+    g.gain.setValueAtTime(0.035, t); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.045);
+    o.connect(g).connect(ctx.destination); o.start(t); o.stop(t + 0.05);
+  } catch(e){}
+}
 function typeText(text){
   stopTyping();
   const el = document.querySelector("#tourBox .tb-text"); tour.fullText = text;
@@ -508,6 +534,7 @@ function typeText(text){
   document.getElementById("tourBox").classList.add("typing");
   tour.typing = setInterval(()=>{
     n++; el.textContent = text.slice(0, n);
+    if (n % 2 && !/\s/.test(text[n - 1])) blip();   // 2文字に1回、ピッと鳴らす（音ありのときだけ）
     if (n >= text.length) finishTyping();
   }, 45);
 }
