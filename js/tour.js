@@ -522,7 +522,7 @@ function blip(force){
     if (tourAudio.state === "suspended") tourAudio.resume();
     const ctx = tourAudio, t = ctx.currentTime, o = ctx.createOscillator(), g = ctx.createGain();
     o.type = "square"; o.frequency.value = 880 + Math.random() * 160;   // 少しずつ高さを変えて、機械的になりすぎないように
-    g.gain.setValueAtTime(0.035, t); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.045);
+    g.gain.setValueAtTime(0.14, t); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.045);
     o.connect(g).connect(ctx.destination); o.start(t); o.stop(t + 0.05);
   } catch(e){}
 }
