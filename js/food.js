@@ -80,8 +80,9 @@ function openFood(id){
   const b = L.latLngBounds([it.at]);
   (it.shape || []).forEach(sid=>{
     const f = foodShapes[sid]; if (!f) return;
+    const c = f.properties.keepColor ? f.properties.color : "#ffc800";   // ふだんは黄色。keepColor の図形（高山＝紫）はその色のまま
     const lyr = L.geoJSON(f, { interactive:false, pane:"foodShapePane",
-      style:{ color:"#ffc800", weight:3, dashArray:"8 6", fillColor:"#ffc800", fillOpacity:.38, className:"tour-shape" } }).addTo(foodMarks);
+      style:{ color:c, weight:3, dashArray:"8 6", fillColor:c, fillOpacity:.38, className:"tour-shape" } }).addTo(foodMarks);
     b.extend(lyr.getBounds());
   });
   (it.ring || []).forEach(ll=>{
