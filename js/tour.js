@@ -11,6 +11,7 @@
      label 地名ラベル [{ "text":"須佐湾", "at":[緯度,経度] }]
      followLine true なら、line の組ごとに地図がその組の範囲へ移って描く（長い流れを寄りぎみに見せる）。mfollowLine はスマホのときだけ
      mfit スマホ（縦長の狭い画面）のときに寄せる範囲（無ければ fit）
+     noPan true なら、収まらなくてもスライドしない（全体が入る倍率のまま）
      photo 写真（サイト名 or 画像パス。false で出さない。省略時は point のサイトの写真）
    fit・ring などの名前の代わりに [緯度,経度] も使える
    操作：窓をタップ／→・Space・Enter・PageDown＝次へ、←・PageUp＝戻る、Esc＝終わる（講演のプレゼンリモコン対応） */
@@ -203,7 +204,7 @@ function showScene(i){
         const zFit = Math.min(zW, zH, 14);
         // ふだんは全体が入る倍率。全体を入れると引きすぎる（panComfortZoom 未満）場面だけ、少し寄せてスライドする
         let z = zFit;
-        if (!follows(sc) && !sc.gsi && zFit < panComfortZoom() - 0.25) z = Math.min(panComfortZoom(), zFit + PAN_MAX_ZOOM);
+        if (!follows(sc) && !sc.gsi && !sc.noPan && zFit < panComfortZoom() - 0.25) z = Math.min(panComfortZoom(), zFit + PAN_MAX_ZOOM);
         z = Math.min(14, z + bump);
         if (tour.keepInside && !sc.gsi) z = Math.max(z, map.getBoundsZoom(GEOPARK_BOUNDS, true) + 0.05);   // 陰影図の外を出さない倍率まで
         const off = L.point((a.l + size.x - a.r) / 2 - size.x / 2, (a.t + size.y - a.b) / 2 - size.y / 2);   // 見せる範囲の中心のずれ
@@ -211,7 +212,7 @@ function showScene(i){
         const at = p=> map.unproject(p.subtract(off), z);   // 地図上の点 p を「見せる範囲」の真ん中に置くときの中心
         const overX = (se.x - nw.x) - aw, overY = (se.y - nw.y) - ah;
         let from = mid, to = null;
-        if (!follows(sc) && (overX > 8 || overY > 8)){   // 収まらない向き（斜めなら両方）に、端から端へ
+        if (!follows(sc) && !sc.noPan && (overX > 8 || overY > 8)){   // 収まらない向き（斜めなら両方）に、端から端へ（noPan の場面はスライドしない）
           // 矢印のある場面は、矢印の出発点の側から始める（矢印の流れと同じ向きに動く）。無ければ西→東・北→南
           const l0 = [].concat(sc.line || []).flat()[0], g = l0 && tour.shapes[l0]?.geometry;
           const c = g && (g.type === "LineString" ? g.coordinates[0] : g.type === "MultiLineString" ? g.coordinates[0][0] : null);
@@ -249,7 +250,7 @@ function showScene(i){
       };
       let P = cands.map(a=> plan(a)).sort((x, y)=> y.score - x.score)[0];
       // 陰影図の端に近くて真ん中に置けないときは、少し寄せると置けることがある（寄せた分は必要ならスライド）
-      if (P.shift > 150 && !follows(sc) && !sc.gsi){
+      if (P.shift > 150 && !follows(sc) && !sc.gsi && !sc.noPan){
         const Q = [0.5, 1, 1.5].map(k=> plan(P.a, k)).sort((x, y)=> x.shift - y.shift)[0];
         if (Q.shift < P.shift * 0.6) P = Q;
       }
