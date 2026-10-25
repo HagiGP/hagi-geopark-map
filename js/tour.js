@@ -331,15 +331,20 @@ function showPhoto(sc, i){
 }
 
 function drawSceneMarks(sc){
-  // shapeSteps：矢印を描き終えてから、組ごとに順に出す図形（例：[["火山"],["湖"]]＝川の矢印→火山→湖）。名札も step:番号 で同じ組と一緒に出せる
+  // shapeSteps：矢印を描き終えてから、組ごとに順に出す図形（例：[["火山"],["湖"]]＝川の矢印→火山→湖）。
+  //   名札も step:番号 で同じ組と一緒に出せる。"-id" と書くと、その矢印・図形をそこで消す（例："-下流"＝せき止められた先の川）
+  // hideAfterLine：矢印の組（1から数える）を描き終えたところで消す図形・矢印（例：{"1": ["湖"]}＝水が抜けて湖が消える）
   const steps = (sc.shapeSteps || []).map(g=> [].concat(g)), later = new Set(steps.flat());
   (sc.shape||[]).filter(id=> !later.has(id)).forEach(id=> addTourShape(sc, id));
   // 線は配列の配列で「組」に分けると、組ごとに順番に描く（例：[["本流"],["支流A","支流B"]]）
-  const delay = drawSceneLines(sc);
   const sceneNo = tour.i;
+  const delay = drawSceneLines(sc, (gi, at)=>{
+    const ids = (sc.hideAfterLine || {})[gi + 1]; if (!ids) return;
+    setTimeout(()=>{ if (tour && tour.i === sceneNo) ids.forEach(id=> fadeTourItem(sc, id)); }, at + 300);
+  });
   steps.forEach((g, k)=> setTimeout(()=>{
     if (!tour || tour.i !== sceneNo) return;
-    g.forEach(id=> addTourShape(sc, id));
+    g.forEach(id=> id.startsWith("-") ? fadeTourItem(sc, id.slice(1)) : addTourShape(sc, id));
     labelsOf(sc).filter(lb=> lb.step === k + 1).forEach(addTourLabel);
   }, delay + 500 + k * 1500));
   const RING = isMobile() ? 30 : 56;   // 丸の大きさ（CSS の .tour-ring と合わせる。スマホは小さく）
@@ -371,8 +376,18 @@ function addTourShape(sc, id){
     style:{ color, weight: outline ? (pr.weight || 3) : 0, dashArray: pr.dash === false ? null : "8 6", fillColor:color, fillOpacity: sc.shapeOpacity ?? pr.fillOpacity ?? .28,
             className: outline ? "tour-shape" : "" } }).addTo(grp);
 }
-// 矢印を組ごとに順に描く。描き終わるまでの時間(ms)を返す
-function drawSceneLines(sc){
+// 解説の図形・矢印を、ふっと消す（湖の水が抜けた、川がせき止められた、など）
+function fadeTourItem(sc, id){
+  const key = tour.keep["l:" + id] ? "l:" + id : shapeKey(sc, id), grp = tour.keep[key]; if (!grp) return;
+  const els = [];
+  const collect = l=>{ if (l.eachLayer) l.eachLayer(collect); const el = l.getElement?.(); if (el) els.push(el); };
+  collect(grp);
+  els.forEach(el=>{ el.style.transition = "opacity 1.4s"; el.style.opacity = "0"; });
+  delete tour.keep[key];
+  setTimeout(()=>{ grp._dead = true; grp.remove(); }, 1500);
+}
+// 矢印を組ごとに順に描く。描き終わるまでの時間(ms)を返す。onGroup(組の番号, その組を描き終える時刻) を組ごとに呼ぶ
+function drawSceneLines(sc, onGroup){
   const groups = [].concat(sc.line || []).some(Array.isArray)
     ? sc.line.map(g=> [].concat(g)) : [[].concat(sc.line || [])];
   let delay = 0;
@@ -395,6 +410,7 @@ function drawSceneLines(sc){
       dur = Math.max(dur, drawArrowLine(id, delay, grp));
     });
     delay += dur;
+    onGroup?.(gi, delay);
   });
   return delay;
 }
