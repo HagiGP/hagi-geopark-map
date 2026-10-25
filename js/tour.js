@@ -71,9 +71,9 @@ function beginTour(a, shapes){
     map.invalidateSize();   // メニューの帯を隠して地図を全面に
     buildTourBox();
     // 写真を先読み（表示が速くなり、写真のある場面は地図をその分ずらして収められる）
-    tour.photoOk = {};
+    tour.photoOk = {}; tour.photoSize = {};
     tour.scenes.forEach((sc,k)=>{ const ph = scenePhoto(sc); if (!ph) return;
-      const im = new Image(); im.onload = ()=>{ if (tour) tour.photoOk[k] = true; }; im.src = ph.src; });
+      const im = new Image(); im.onload = ()=>{ if (tour){ tour.photoOk[k] = true; tour.photoSize[k] = [im.naturalWidth, im.naturalHeight]; } }; im.src = ph.src; });
     setTimeout(()=> showScene(0), 240);
   }
 }
@@ -135,8 +135,9 @@ function tourTarget(name){
   return null;
 }
 
-const PAN_MAX_ZOOM = 1.6;
-const PAN_COMFORT_ZOOM = 11.6;   // 解説で見せるとき、少なくともこのくらいまでは寄せたい倍率（全体が入る倍率がこれより低いときは寄せてスライド）   // スライドするとき、全体が収まる倍率から最大どれだけ寄せるか
+// 全体が入る倍率がこれより低い（引きすぎ）ときだけ、ここまで寄せてスライドする。スマホは画面が小さく、同じ倍率でも見える範囲が狭いので低め
+const panComfortZoom = ()=> isMobile() ? 10.4 : 11;
+const PAN_MAX_ZOOM = 1;   // そのとき、全体が入る倍率から最大どれだけ寄せるか
 const MOB_PHOTO_BOTTOM = 52 + 8 + 196;   // スマホの写真の窓（上部）の下端（ヘッダー＋余白＋写真の窓の高さ。CSSと合わせる）
 const labelsOf = sc=> (isMobile() && sc.mlabel) || sc.label || [];   // 名札（スマホは mlabel があればそちら：寄せた範囲の中に置き直したもの）
 const follows = sc=> sc.followLine || (isMobile() && sc.mfollowLine);   // カメラが矢印を追う場面か
@@ -158,59 +159,80 @@ function showScene(i){
   // 地図の表示：画面から字幕の窓・写真の窓を除いた「見せる範囲」の真ん中に、目的の場所を置く。
   // 全体を入れると引きすぎる場面は、少し寄せて、端から端へゆっくりスライドする（寄ったまま全体を見せる）
   const mob = isMobile(), fit = (mob && sc.mfit) || sc.fit;
-  tour.pan = null;
+  tour.pan = null; tour.photoPos = "";
   if (fit && fit.length){
     const b = L.latLngBounds([]);
     fit.forEach(n=>{ const t = tourTarget(n); if (t) b.extend(t); });
     if (!follows(sc) && !(mob && sc.mfit)) labelsOf(sc).forEach(lb=> b.extend(lb.at));   // 名札も画面に入れる（矢印を追う場面・スマホ用の範囲は除く）
     if (b.isValid()){
       const hasPhoto = tour.photoOk[i], size = map.getSize();
-      // 余白：字幕の窓（下）、写真の窓（PC＝右下の列、photoTop＝左上の列、スマホ＝上）、名札が切れないぶん（左右）
+      // 「見せる範囲」＝画面から、字幕の窓（下）・写真の窓・名札が切れないぶん（左右）を除いた所
       const padB = box.offsetHeight + (mob ? 36 : 60);
-      let padT = mob ? 64 : 80, padL = mob ? 44 : 50, padR = mob ? 44 : 40;
-      if (hasPhoto && mob) padT = MOB_PHOTO_BOTTOM + 12;
-      else if (hasPhoto && sc.photoTop) padL = 12 + photoWidth(sc) + 30;
-      else if (hasPhoto) padR = (innerWidth - box.offsetWidth) / 2 + photoWidth(sc) + 30;
-      tour.target = [b, { paddingTopLeft:[padL, padT], paddingBottomRight:[padR, padB], maxZoom:14 }];
-      const aw = Math.max(size.x - padL - padR, 80), ah = Math.max(size.y - padT - padB, 80);
+      const base = { pos:"", t: mob ? 64 : 80, l: mob ? 44 : 50, r: mob ? 44 : 40, b: padB };
+      let cands = [base];
+      if (hasPhoto && mob) cands = [{ ...base, pos:"top", t: MOB_PHOTO_BOTTOM + 12 }];   // スマホ：写真は上部
+      else if (hasPhoto){
+        // PCの写真の窓は四隅のどこかに置ける。その横（列）か上下（帯）を除いた所を見せる範囲として、
+        // 見せたい場所を真ん中に置けて、いちばん大きく見せられる組み合わせを選ぶ（東寄りの場所なら写真は左、など）
+        const ph = photoHeight(sc, i), pw = photoWidth(sc), side = (innerWidth - box.offsetWidth) / 2;
+        const lowTop = size.y - (box.offsetHeight + 30) - ph;   // 下の写真の窓の上端
+        cands = [
+          { ...base, pos:"br", r: side + pw + 30 }, { ...base, pos:"br", b: size.y - lowTop + 16 },
+          { ...base, pos:"bl", l: side + pw + 30 }, { ...base, pos:"bl", b: size.y - lowTop + 16 },
+          { ...base, pos:"tr", r: 12 + pw + 30 },   { ...base, pos:"tr", t: 70 + ph + 16 },
+          { ...base, pos:"tl", l: 12 + pw + 30 },   { ...base, pos:"tl", t: 70 + ph + 16 },
+        ];
+      }
       const p0 = map.project(b.getNorthWest(), 0), p1 = map.project(b.getSouthEast(), 0);
-      const zW = Math.log2(aw / Math.max(p1.x - p0.x, 1e-6)), zH = Math.log2(ah / Math.max(p1.y - p0.y, 1e-6));
-      const zFit = Math.min(zW, zH, 14);
-      let z = zFit;
-      const zPan = Math.min(Math.max(zW, zH), zFit + PAN_MAX_ZOOM, 14);   // 片方の向きはちょうど収まる倍率（寄せすぎない）
-      if (!follows(sc) && !sc.gsi){
-        // 全体が入る倍率が低すぎる（広い範囲が小さくしか見えない）ときは、縦横どちらも収まらなくても寄せて斜めにスライドする
-        const zMin = Math.min(zFit + 1, PAN_COMFORT_ZOOM);
-        z = Math.max(zPan - zFit >= 0.35 ? zPan : zFit, zMin);
-      }
-      if (tour.keepInside && !sc.gsi) z = Math.max(z, map.getBoundsZoom(GEOPARK_BOUNDS, true) + 0.05);   // 陰影図の外を出さない倍率まで
-      // 見せる範囲の中心が、画面の中心からどれだけずれているか
-      const off = L.point((padL + size.x - padR) / 2 - size.x / 2, (padT + size.y - padB) / 2 - size.y / 2);
-      const nw = map.project(b.getNorthWest(), z), se = map.project(b.getSouthEast(), z), mid = nw.add(se).divideBy(2);
-      const at = p=> map.unproject(p.subtract(off), z);   // 地図上の点 p を「見せる範囲」の真ん中に置くときの中心
-      const overX = (se.x - nw.x) - aw, overY = (se.y - nw.y) - ah;
-      let from = mid, to = null;
-      if (!follows(sc) && (overX > 8 || overY > 8)){   // 収まらない向き（斜めなら両方）に、端から端へ
-        // 矢印のある場面は、矢印の出発点の側から始める（矢印の流れと同じ向きに動く）。無ければ西→東・北→南
-        const l0 = [].concat(sc.line || []).flat()[0], g = l0 && tour.shapes[l0]?.geometry;
-        const c = g && (g.type === "LineString" ? g.coordinates[0] : g.type === "MultiLineString" ? g.coordinates[0][0] : null);
-        const anc = c ? map.project([c[1], c[0]], z) : null;
-        const ends = (lo, hi, a)=> a != null && Math.abs(a - lo) > Math.abs(a - hi) ? [hi, lo] : [lo, hi];
-        const [fx, tx] = overX > 8 ? ends(nw.x + aw / 2, se.x - aw / 2, anc?.x) : [mid.x, mid.x];
-        let [fy, ty] = overY > 8 ? ends(nw.y + ah / 2, se.y - ah / 2, anc?.y) : [mid.y, mid.y];
-        if (!anc && overX > 8 && overY > 8){   // 斜め：見せたい地点が右上がりに並ぶなら南西→北東、右下がりなら北西→南東
-          const pts = fit.concat(labelsOf(sc).map(lb=> lb.at)).map(n=> tourTarget(n)).filter(Boolean)
-            .map(x=> map.project(x.getCenter ? x.getCenter() : x, z));
-          const mx = pts.reduce((s, p)=> s + p.x, 0) / pts.length, my = pts.reduce((s, p)=> s + p.y, 0) / pts.length;
-          const cov = pts.reduce((s, p)=> s + (p.x - mx) * (p.y - my), 0);
-          if (cov < 0) [fy, ty] = [ty, fy];   // 右上がり（西が南）：南から始める
+      // ある見せる範囲 a で、どの倍率・中心にするか（スライドするなら行き先も）と、その良さ
+      const plan = (a, bump = 0)=>{
+        const aw = Math.max(size.x - a.l - a.r, 80), ah = Math.max(size.y - a.t - a.b, 80);
+        const zW = Math.log2(aw / Math.max(p1.x - p0.x, 1e-6)), zH = Math.log2(ah / Math.max(p1.y - p0.y, 1e-6));
+        const zFit = Math.min(zW, zH, 14);
+        // ふだんは全体が入る倍率。全体を入れると引きすぎる（panComfortZoom 未満）場面だけ、少し寄せてスライドする
+        let z = zFit;
+        if (!follows(sc) && !sc.gsi && zFit < panComfortZoom() - 0.25) z = Math.min(panComfortZoom(), zFit + PAN_MAX_ZOOM);
+        z = Math.min(14, z + bump);
+        if (tour.keepInside && !sc.gsi) z = Math.max(z, map.getBoundsZoom(GEOPARK_BOUNDS, true) + 0.05);   // 陰影図の外を出さない倍率まで
+        const off = L.point((a.l + size.x - a.r) / 2 - size.x / 2, (a.t + size.y - a.b) / 2 - size.y / 2);   // 見せる範囲の中心のずれ
+        const nw = map.project(b.getNorthWest(), z), se = map.project(b.getSouthEast(), z), mid = nw.add(se).divideBy(2);
+        const at = p=> map.unproject(p.subtract(off), z);   // 地図上の点 p を「見せる範囲」の真ん中に置くときの中心
+        const overX = (se.x - nw.x) - aw, overY = (se.y - nw.y) - ah;
+        let from = mid, to = null;
+        if (!follows(sc) && (overX > 8 || overY > 8)){   // 収まらない向き（斜めなら両方）に、端から端へ
+          // 矢印のある場面は、矢印の出発点の側から始める（矢印の流れと同じ向きに動く）。無ければ西→東・北→南
+          const l0 = [].concat(sc.line || []).flat()[0], g = l0 && tour.shapes[l0]?.geometry;
+          const c = g && (g.type === "LineString" ? g.coordinates[0] : g.type === "MultiLineString" ? g.coordinates[0][0] : null);
+          const anc = c ? map.project([c[1], c[0]], z) : null;
+          const ends = (lo, hi, v)=> v != null && Math.abs(v - lo) > Math.abs(v - hi) ? [hi, lo] : [lo, hi];
+          const [fx, tx] = overX > 8 ? ends(nw.x + aw / 2, se.x - aw / 2, anc?.x) : [mid.x, mid.x];
+          let [fy, ty] = overY > 8 ? ends(nw.y + ah / 2, se.y - ah / 2, anc?.y) : [mid.y, mid.y];
+          if (!anc && overX > 8 && overY > 8){   // 斜め：見せたい地点が右上がりに並ぶなら南西→北東、右下がりなら北西→南東
+            const pts = fit.concat(labelsOf(sc).map(lb=> lb.at)).map(n=> tourTarget(n)).filter(Boolean)
+              .map(x=> map.project(x.getCenter ? x.getCenter() : x, z));
+            const mx = pts.reduce((s, q)=> s + q.x, 0) / pts.length, my = pts.reduce((s, q)=> s + q.y, 0) / pts.length;
+            if (pts.reduce((s, q)=> s + (q.x - mx) * (q.y - my), 0) < 0) [fy, ty] = [ty, fy];   // 右上がり：南から始める
+          }
+          from = L.point(fx, fy); to = L.point(tx, ty);
         }
-        from = L.point(fx, fy); to = L.point(tx, ty);
+        let c0 = at(from), c1 = to ? at(to) : null;
+        if (tour.keepInside && !sc.gsi){ c0 = keepInsideTiles(c0, z, true)[0]; if (c1) c1 = keepInsideTiles(c1, z, true)[0]; }
+        // 良さ：陰影図の端で中心を寄せられず、見せたい場所が真ん中からずれるほど減点。大きく見せられるほど加点
+        const d = (c, p)=> map.project(c, z).distanceTo(map.project(at(p), z));
+        const shift = d(c0, from) + (c1 ? d(c1, to) : 0);   // スライドの始まり・終わりそれぞれで、端に止められた分
+        return { a, aw, ah, z, c0, c1, shift, score: zFit * 120 - shift };
+      };
+      let P = cands.map(a=> plan(a)).sort((x, y)=> y.score - x.score)[0];
+      // 陰影図の端に近くて真ん中に置けないときは、少し寄せると置けることがある（寄せた分は必要ならスライド）
+      if (P.shift > 150 && !follows(sc) && !sc.gsi){
+        const Q = [0.5, 1, 1.5].map(k=> plan(P.a, k)).sort((x, y)=> x.shift - y.shift)[0];
+        if (Q.shift < P.shift * 0.6) P = Q;
       }
-      let c0 = at(from), c1 = to ? at(to) : null;
-      if (tour.keepInside && !sc.gsi){ c0 = keepInsideTiles(c0, z, true)[0]; if (c1) c1 = keepInsideTiles(c1, z, true)[0]; }
+      const { z, c0, c1, a:A } = P;
+      tour.photoPos = A.pos;
+      tour.target = [b, { paddingTopLeft:[A.l, A.t], paddingBottomRight:[A.r, A.b], maxZoom:14 }];
       const dist = c1 ? map.project(c0, z).distanceTo(map.project(c1, z)) : 0;
-      if (dist > 24) tour.pan = { to:c1, z, dist };
+      if (dist > 60) tour.pan = { to:c1, z, dist };   // ごく小さな動きはスライドしない
       tour.view = [c0, z];
       map.flyTo(c0, z, { duration:1.0 });
     }
@@ -248,6 +270,12 @@ function scenePhoto(sc){
   return { src: isPath ? p : photoSrc(p), caption: sc.photoCaption || (isPath ? "" : p), diagram: /^img\/tour\//.test(p) };   // img/tour/ の図（模式図）は切り取らず全体を見せる
 }
 const photoWidth = sc=> scenePhoto(sc)?.diagram ? 380 : 300;   // 模式図は少し大きめ（CSSと合わせる）
+// PCの写真の窓の高さ（CSSと合わせる：枠の内側の幅に縮めた写真。写真は最大220px、模式図は全体＋見出しの行）
+function photoHeight(sc, i){
+  const ph = scenePhoto(sc), [w, h] = tour.photoSize[i] || [4, 3], inner = photoWidth(sc) - 16;
+  const imgH = ph?.diagram ? inner * h / w : Math.min(220, inner * h / w);
+  return imgH + 14 + (ph?.caption ? 24 : 0);
+}
 function hidePhoto(){ document.querySelectorAll("#tourPhoto").forEach(el=> el.remove()); }
 function showPhoto(sc, i){
   const ph = scenePhoto(sc); if (!ph) return;
@@ -260,8 +288,13 @@ function showPhoto(sc, i){
     w.querySelector("img").src = ph.src;
     if (ph.caption) w.querySelector("figcaption").textContent = ph.caption;
     if (isMobile()) w.classList.add("top");   // スマホ：上部に写真（タップで大きく）。地図は下の残りで、必要ならスライドして見せる
-    else if (sc.photoTop){ w.style.top = "70px"; w.style.left = "12px"; w.style.right = "auto"; }   // 左上の隅（ヘッダーの下。萩の北西は海なので地名とぶつからない）
-    else w.style.bottom = (document.getElementById("tourBox").offsetHeight + 30) + "px";
+    else {   // PC：場面ごとに選んだ隅（showScene の見せる範囲の選び方と合わせる）。下の隅は字幕の窓の上、上の隅はヘッダーの下
+      const pos = tour.photoPos || "br", boxEl = document.getElementById("tourBox");
+      const side = Math.max(12, (innerWidth - boxEl.offsetWidth) / 2);
+      if (pos[0] === "b") w.style.bottom = (boxEl.offsetHeight + 30) + "px"; else w.style.top = "70px";
+      if (pos[1] === "l"){ w.style.left = (pos[0] === "b" ? side : 12) + "px"; w.style.right = "auto"; }
+      else w.style.right = (pos[0] === "b" ? side : 12) + "px";
+    }
     w.onclick = e=>{ e.stopPropagation(); w.classList.toggle("big"); };   // タップで拡大／戻す
     L.DomEvent.disableClickPropagation(w);
     document.body.appendChild(w);
