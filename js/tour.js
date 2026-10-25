@@ -40,14 +40,15 @@ function startTour(id){
   loadTourShapes(id).then(shapes=> beginTour(a, shapes));
 }
 // 陰影図（GEOPARK_BOUNDS）の外が画面に出ないよう、ズームの下限と中心を調整する（homeView と同じ考え方）
-function keepInsideTiles(center, zoom, keepZoom){
+// hideBottom：画面の下のこの高さ(px)は字幕の窓に隠れて見えないので、陰影図の外になってもよい（スマホ：窓が横幅いっぱい）
+function keepInsideTiles(center, zoom, keepZoom, hideBottom = 0){
   const z = keepZoom ? zoom : Math.max(zoom, map.getBoundsZoom(GEOPARK_BOUNDS, true) + 0.05);
   const half = map.getSize().divideBy(2), PAD = 2;
   const nw = map.project(GEOPARK_BOUNDS.getNorthWest(), z), se = map.project(GEOPARK_BOUNDS.getSouthEast(), z);
   const c = map.project(center, z);
   const cl = (v, lo, hi)=> lo > hi ? (lo + hi) / 2 : Math.max(lo, Math.min(hi, v));
   c.x = cl(c.x, nw.x + half.x + PAD, se.x - half.x - PAD);
-  c.y = cl(c.y, nw.y + half.y + PAD, se.y - half.y - PAD);
+  c.y = cl(c.y, nw.y + half.y + PAD, se.y - half.y - PAD + hideBottom);
   return [map.unproject(c, z), z];
 }
 // 萩ジオパーク全体の概要の解説（data/tour_overview.geojson に図形と場面をまとめてある）
@@ -235,7 +236,8 @@ function showScene(i){
         // スライドが小さすぎる（はみ出しがわずか）なら、スライドせずに真ん中に合わせる（はみ出しを両側に振り分ける）
         if (to && map.project(at(from), z).distanceTo(map.project(at(to), z)) <= 60){ from = mid; to = null; }
         let c0 = at(from), c1 = to ? at(to) : null;
-        if (tour.keepInside && !sc.gsi){ c0 = keepInsideTiles(c0, z, true)[0]; if (c1) c1 = keepInsideTiles(c1, z, true)[0]; }
+        const hide = mob ? box.offsetHeight + 4 : 0;   // スマホは字幕の窓の裏（横幅いっぱい）なら陰影図の外でも見えない
+        if (tour.keepInside && !sc.gsi){ c0 = keepInsideTiles(c0, z, true, hide)[0]; if (c1) c1 = keepInsideTiles(c1, z, true, hide)[0]; }
         // 良さ：陰影図の端で中心を寄せられず、見せたい場所が真ん中からずれるほど減点。大きく見せられるほど加点
         const d = (c, p)=> map.project(c, z).distanceTo(map.project(at(p), z));
         const shift = d(c0, from) + (c1 ? d(c1, to) : 0);   // スライドの始まり・終わりそれぞれで、端に止められた分
