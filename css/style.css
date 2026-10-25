@@ -447,12 +447,15 @@ body.touring #map { left: 0; bottom: 0; }
 @media (max-width: 760px) {
   #tourBox { bottom: 10px; padding: 10px 14px 8px; }
   #tourBox .tb-text { font-size: 16px; }
-  #tourPhoto { left: 50%; right: auto; transform: translateX(-50%); width: min(260px, calc(100% - 24px)); animation: none; }
-  #tourPhoto img { max-height: 130px; }
-  #tourPhoto.diagram { width: min(300px, calc(100% - 24px)); }
-  #tourPhoto.diagram img { max-height: 170px; }
-  #tourPhoto.big { width: calc(100% - 24px); }
-  #tourPhoto.big img { max-height: 50vh; }
+  /* スマホの写真＝右上の小さな写真（タップで画面の中央に大きく） */
+  #tourPhoto.thumb { top: calc(var(--bar-h) + 8px); right: 8px; left: auto; width: 116px; padding: 4px; animation: none; }
+  #tourPhoto.thumb img { max-height: 76px; object-fit: cover; }
+  #tourPhoto.thumb figcaption { font-size: 10px; padding: 3px 2px 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  #tourPhoto.thumb.diagram img { object-fit: cover; background: none; }
+  #tourPhoto.thumb.big { top: 50%; right: auto; left: 50%; transform: translate(-50%, -50%); width: calc(100% - 24px); padding: 8px 8px 6px; }
+  #tourPhoto.thumb.big img { max-height: 60vh; object-fit: contain; }
+  #tourPhoto.thumb.big figcaption { font-size: 13px; white-space: normal; }
+  .tour-label { font-size: 13px; padding: 4px 7px 3px; letter-spacing: .06em; }
 }
 @media (prefers-reduced-motion: reduce) {
   .tour-ring, .tour-point, .tour-shape, #tourBox .tb-next, .tour-start .ts-icon { animation: none; }

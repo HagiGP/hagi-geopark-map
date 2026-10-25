@@ -9,7 +9,8 @@
      ring  丸で囲むサイト名の配列
      point 指差す（▼）サイト名（points＝何か所も指差す [[緯度,経度], …]）
      label 地名ラベル [{ "text":"須佐湾", "at":[緯度,経度] }]
-     followLine true なら、line の組ごとに地図がその組の範囲へ移って描く（長い流れを寄りぎみに見せる）
+     followLine true なら、line の組ごとに地図がその組の範囲へ移って描く（長い流れを寄りぎみに見せる）。mfollowLine はスマホのときだけ
+     mfit スマホ（縦長の狭い画面）のときに寄せる範囲（無ければ fit）
      photo 写真（サイト名 or 画像パス。false で出さない。省略時は point のサイトの写真）
    fit・ring などの名前の代わりに [緯度,経度] も使える
    操作：窓をタップ／→・Space・Enter・PageDown＝次へ、←・PageUp＝戻る、Esc＝終わる（講演のプレゼンリモコン対応） */
@@ -142,6 +143,9 @@ function tourTarget(name){
   return null;
 }
 
+const labelsOf = sc=> (isMobile() && sc.mlabel) || sc.label || [];   // 名札（スマホは mlabel があればそちら：寄せた範囲の中に置き直したもの）
+const follows = sc=> sc.followLine || (isMobile() && sc.mfollowLine);   // カメラが矢印を追う場面か
+
 function showScene(i){
   const sc = tour.scenes[i]; tour.i = i;
   if (tourGSI !== !!sc.gsi){ tourGSI = !!sc.gsi; refresh(); }   // gsi:true の場面は陰影・植生を出さず地理院地図だけ
@@ -157,21 +161,23 @@ function showScene(i){
   const dropLeaving = ()=> leaving.forEach(k=>{ const g = tour.keep[k]; if (!g) return; g._dead = true; g.remove(); delete tour.keep[k]; });
 
   // 地図の表示（字幕の窓の高さぶん下を空ける）
-  if (sc.fit && sc.fit.length){
+  // スマホ（縦長の狭い画面）は、mfit があればそちらの範囲へ寄せる（広い範囲を全部入れると引きすぎて分からなくなるため）
+  const mob = isMobile(), fit = (mob && sc.mfit) || sc.fit;
+  if (fit && fit.length){
     const b = L.latLngBounds([]);
-    sc.fit.forEach(n=>{ const t = tourTarget(n); if (t) b.extend(t); });
-    if (!sc.followLine) (sc.label||[]).forEach(lb=> b.extend(lb.at));   // 名札も必ず画面に入れる（矢印を追う場面は除く）
+    fit.forEach(n=>{ const t = tourTarget(n); if (t) b.extend(t); });
+    if (!follows(sc) && !(mob && sc.mfit)) labelsOf(sc).forEach(lb=> b.extend(lb.at));   // 名札も必ず画面に入れる（矢印を追う場面・スマホ用の範囲は除く）
     if (b.isValid()){
-      const padB = box.offsetHeight + 60;   // 字幕の窓＋名札・矢じりが窓に隠れないぶん
-      // 写真の窓のぶんも空ける（PC＝右下、スマホ＝字幕の上）
+      const padB = box.offsetHeight + (mob ? 36 : 60);   // 字幕の窓＋名札・矢じりが窓に隠れないぶん
+      // 写真の窓のぶんも空ける（PC＝右下。スマホ＝右上の小さな写真なので、上を少し空ける）
       // photoTop：PCで写真の窓を左上に出す場面（右下に見せたい場所があるとき）は、右側をあけない
-      const padR = tour.photoOk[i] && !isMobile() && !sc.photoTop ? (innerWidth - box.offsetWidth) / 2 + photoWidth(sc) + 30 : 40;
-      const padB2 = tour.photoOk[i] && isMobile() ? padB + 170 : padB;
-      tour.target = [b, { paddingTopLeft:[50,80], paddingBottomRight:[padR,padB2], maxZoom:14 }];
+      const padR = tour.photoOk[i] && !mob && !sc.photoTop ? (innerWidth - box.offsetWidth) / 2 + photoWidth(sc) + 30 : (mob ? 44 : 40);   // スマホも名札（印を中心に左右へ広がる）が切れないよう左右に余白
+      const padT = mob ? (tour.photoOk[i] ? 150 : 64) : 80, padL = mob ? 44 : 50;
+      tour.target = [b, { paddingTopLeft:[padL, padT], paddingBottomRight:[padR, padB], maxZoom:14 }];
       let { center, zoom } = map._getBoundsCenterZoom(b, tour.target[1]);
       if (tour.keepInside && !sc.gsi){   // 陰影図の外をできるだけ出さない（ただし見せたい範囲が字幕などに隠れるなら、範囲を優先）
-        // 写真の窓は右下の一部だけなので、収まらないときは写真の窓の上まで使ってよいことにする
-        const loose = { ...tour.target[1], paddingBottomRight:[40, padB] };
+        // 写真の窓は一部だけなので、収まらないときは写真の窓の所まで使ってよいことにする
+        const loose = { ...tour.target[1], paddingTopLeft:[padL, mob ? 64 : 80], paddingBottomRight:[mob ? 44 : 40, padB] };
         const [c2, z2] = keepInsideTiles(center, zoom), [c3] = keepInsideTiles(center, zoom, true);   // c3：ズームはそのまま中心だけ寄せる
         const pick = [[c2, z2, tour.target[1]], [c3, zoom, tour.target[1]], [c2, z2, loose], [c3, zoom, loose]]
           .find(([c, z, o])=> sc.fill || boundsVisible(b, c, z, o));   // fill：範囲より陰影図で埋めるのを優先
@@ -221,7 +227,8 @@ function showPhoto(sc, i){
     w.innerHTML = `<img alt="">`+(ph.caption ? `<figcaption></figcaption>` : "");
     w.querySelector("img").src = ph.src;
     if (ph.caption) w.querySelector("figcaption").textContent = ph.caption;
-    if (sc.photoTop && !isMobile()){ w.style.top = "70px"; w.style.left = "12px"; w.style.right = "auto"; }   // 左上の隅（ヘッダーの下。萩の北西は海なので地名とぶつからない）
+    if (isMobile()) w.classList.add("thumb");   // スマホ：右上の小さな写真（タップで大きく）。地図を広く見せるため
+    else if (sc.photoTop){ w.style.top = "70px"; w.style.left = "12px"; w.style.right = "auto"; }   // 左上の隅（ヘッダーの下。萩の北西は海なので地名とぶつからない）
     else w.style.bottom = (document.getElementById("tourBox").offsetHeight + 30) + "px";
     w.onclick = e=>{ e.stopPropagation(); w.classList.toggle("big"); };   // タップで拡大／戻す
     L.DomEvent.disableClickPropagation(w);
@@ -247,10 +254,10 @@ function drawSceneMarks(sc){
   let delay = 0;
   groups.forEach((g, gi)=>{
     let dur = 0;
-    if (sc.followLine && gi > 0){   // カメラが矢印を追う：次の組の範囲（＋名札）へ移ってから描く
+    if (follows(sc) && gi > 0){   // カメラが矢印を追う：次の組の範囲（＋名札）へ移ってから描く
       const b = L.latLngBounds([]);
       g.forEach(id=>{ const t = tourTarget(id); if (t) b.extend(t); });
-      (sc.label||[]).forEach(lb=>{ if (b.pad(0.3).contains(lb.at)) b.extend(lb.at); });
+      labelsOf(sc).forEach(lb=>{ if (b.pad(0.3).contains(lb.at)) b.extend(lb.at); });
       const sceneNo = tour.i;
       const opts = { ...(tour.target?.[1] || {}) };
       setTimeout(()=>{ if (tour && tour.i === sceneNo && b.isValid()) map.flyToBounds(b, { ...opts, duration:1.2 }); }, delay);
@@ -271,7 +278,7 @@ function drawSceneMarks(sc){
     L.marker(ll, { interactive:false, pane:"tourPane", keyboard:false,
       icon:L.divIcon({ className:"", iconSize:[56,56], iconAnchor:[28,28], html:`<div class="tour-ring"></div>` }) }).addTo(tour.layer);
   });
-  (sc.label||[]).forEach(lb=>{   // 地名ラベル（例：{"text":"須佐湾","at":[34.628,131.594]}）
+  labelsOf(sc).forEach(lb=>{   // 地名ラベル（例：{"text":"須佐湾","at":[34.628,131.594]}）
     L.marker(lb.at, { interactive:false, pane:"tourPane", keyboard:false,
       icon:L.divIcon({ className:"", iconSize:null, iconAnchor:[0,0], html:`<div class="tour-label">${esc(lb.text)}</div>` }) }).addTo(tour.layer);
   });
