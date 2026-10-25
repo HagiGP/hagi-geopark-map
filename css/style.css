@@ -447,14 +447,14 @@ body.touring #map { left: 0; bottom: 0; }
 @media (max-width: 760px) {
   #tourBox { bottom: 10px; padding: 10px 14px 8px; }
   #tourBox .tb-text { font-size: 16px; }
-  /* スマホの写真＝右上の小さな写真（タップで画面の中央に大きく） */
-  #tourPhoto.thumb { top: calc(var(--bar-h) + 8px); right: 8px; left: auto; width: 116px; padding: 4px; animation: none; }
-  #tourPhoto.thumb img { max-height: 76px; object-fit: cover; }
-  #tourPhoto.thumb figcaption { font-size: 10px; padding: 3px 2px 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  #tourPhoto.thumb.diagram img { object-fit: cover; background: none; }
-  #tourPhoto.thumb.big { top: 50%; right: auto; left: 50%; transform: translate(-50%, -50%); width: calc(100% - 24px); padding: 8px 8px 6px; }
-  #tourPhoto.thumb.big img { max-height: 60vh; object-fit: contain; }
-  #tourPhoto.thumb.big figcaption { font-size: 13px; white-space: normal; }
+  /* スマホの写真＝上部（ヘッダーの下）に横いっぱい。高さはJSの MOB_PHOTO_BOTTOM と合わせる。タップで画面の中央に大きく */
+  #tourPhoto.top { top: calc(var(--bar-h) + 8px); left: 8px; right: 8px; width: auto; animation: none; }
+  #tourPhoto.top img { height: 150px; max-height: none; object-fit: cover; }
+  #tourPhoto.top.diagram img { object-fit: contain; background: #fff; }
+  #tourPhoto.top figcaption { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  #tourPhoto.top.big { top: 50%; left: 12px; right: 12px; transform: translateY(-50%); }
+  #tourPhoto.top.big img { height: auto; max-height: 60vh; object-fit: contain; }
+  #tourPhoto.top.big figcaption { white-space: normal; }
   .tour-label { font-size: 13px; padding: 4px 7px 3px; letter-spacing: .06em; }
 }
 @media (prefers-reduced-motion: reduce) {

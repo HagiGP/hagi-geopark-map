@@ -49,14 +49,6 @@ function keepInsideTiles(center, zoom, keepZoom){
   c.y = cl(c.y, nw.y + half.y + PAD, se.y - half.y - PAD);
   return [map.unproject(c, z), z];
 }
-// その中心・ズームで、範囲 b が（字幕の窓などの余白を除いた）画面に収まるか
-function boundsVisible(b, center, z, opt){
-  const sz = map.getSize(), c = map.project(center, z);
-  const tl = L.point(opt.paddingTopLeft || [0,0]), br = L.point(opt.paddingBottomRight || [0,0]);
-  const nw = map.project(b.getNorthWest(), z).subtract(c).add(sz.divideBy(2)), se = map.project(b.getSouthEast(), z).subtract(c).add(sz.divideBy(2));
-  const tol = 40;   // 少しなら余白に入ってもよい
-  return nw.x >= tl.x - tol && nw.y >= tl.y - tol && se.x <= sz.x - br.x + tol && se.y <= sz.y - br.y + tol;
-}
 // 萩ジオパーク全体の概要の解説（data/tour_overview.geojson に図形と場面をまとめてある）
 function startOverviewTour(){
   fetch(`data/tour_overview.geojson${DATAV}`).then(r=> r.json()).then(gj=>{
@@ -143,6 +135,9 @@ function tourTarget(name){
   return null;
 }
 
+const PAN_MAX_ZOOM = 1.6;
+const PAN_COMFORT_ZOOM = 11.6;   // 解説で見せるとき、少なくともこのくらいまでは寄せたい倍率（全体が入る倍率がこれより低いときは寄せてスライド）   // スライドするとき、全体が収まる倍率から最大どれだけ寄せるか
+const MOB_PHOTO_BOTTOM = 52 + 8 + 196;   // スマホの写真の窓（上部）の下端（ヘッダー＋余白＋写真の窓の高さ。CSSと合わせる）
 const labelsOf = sc=> (isMobile() && sc.mlabel) || sc.label || [];   // 名札（スマホは mlabel があればそちら：寄せた範囲の中に置き直したもの）
 const follows = sc=> sc.followLine || (isMobile() && sc.mfollowLine);   // カメラが矢印を追う場面か
 
@@ -160,31 +155,64 @@ function showScene(i){
   const leaving = Object.keys(tour.keep).filter(k=> !next.has(k));
   const dropLeaving = ()=> leaving.forEach(k=>{ const g = tour.keep[k]; if (!g) return; g._dead = true; g.remove(); delete tour.keep[k]; });
 
-  // 地図の表示（字幕の窓の高さぶん下を空ける）
-  // スマホ（縦長の狭い画面）は、mfit があればそちらの範囲へ寄せる（広い範囲を全部入れると引きすぎて分からなくなるため）
+  // 地図の表示：画面から字幕の窓・写真の窓を除いた「見せる範囲」の真ん中に、目的の場所を置く。
+  // 全体を入れると引きすぎる場面は、少し寄せて、端から端へゆっくりスライドする（寄ったまま全体を見せる）
   const mob = isMobile(), fit = (mob && sc.mfit) || sc.fit;
+  tour.pan = null;
   if (fit && fit.length){
     const b = L.latLngBounds([]);
     fit.forEach(n=>{ const t = tourTarget(n); if (t) b.extend(t); });
-    if (!follows(sc) && !(mob && sc.mfit)) labelsOf(sc).forEach(lb=> b.extend(lb.at));   // 名札も必ず画面に入れる（矢印を追う場面・スマホ用の範囲は除く）
+    if (!follows(sc) && !(mob && sc.mfit)) labelsOf(sc).forEach(lb=> b.extend(lb.at));   // 名札も画面に入れる（矢印を追う場面・スマホ用の範囲は除く）
     if (b.isValid()){
-      const padB = box.offsetHeight + (mob ? 36 : 60);   // 字幕の窓＋名札・矢じりが窓に隠れないぶん
-      // 写真の窓のぶんも空ける（PC＝右下。スマホ＝右上の小さな写真なので、上を少し空ける）
-      // photoTop：PCで写真の窓を左上に出す場面（右下に見せたい場所があるとき）は、右側をあけない
-      const padR = tour.photoOk[i] && !mob && !sc.photoTop ? (innerWidth - box.offsetWidth) / 2 + photoWidth(sc) + 30 : (mob ? 44 : 40);   // スマホも名札（印を中心に左右へ広がる）が切れないよう左右に余白
-      const padT = mob ? (tour.photoOk[i] ? 150 : 64) : 80, padL = mob ? 44 : 50;
+      const hasPhoto = tour.photoOk[i], size = map.getSize();
+      // 余白：字幕の窓（下）、写真の窓（PC＝右下の列、photoTop＝左上の列、スマホ＝上）、名札が切れないぶん（左右）
+      const padB = box.offsetHeight + (mob ? 36 : 60);
+      let padT = mob ? 64 : 80, padL = mob ? 44 : 50, padR = mob ? 44 : 40;
+      if (hasPhoto && mob) padT = MOB_PHOTO_BOTTOM + 12;
+      else if (hasPhoto && sc.photoTop) padL = 12 + photoWidth(sc) + 30;
+      else if (hasPhoto) padR = (innerWidth - box.offsetWidth) / 2 + photoWidth(sc) + 30;
       tour.target = [b, { paddingTopLeft:[padL, padT], paddingBottomRight:[padR, padB], maxZoom:14 }];
-      let { center, zoom } = map._getBoundsCenterZoom(b, tour.target[1]);
-      if (tour.keepInside && !sc.gsi){   // 陰影図の外をできるだけ出さない（ただし見せたい範囲が字幕などに隠れるなら、範囲を優先）
-        // 写真の窓は一部だけなので、収まらないときは写真の窓の所まで使ってよいことにする
-        const loose = { ...tour.target[1], paddingTopLeft:[padL, mob ? 64 : 80], paddingBottomRight:[mob ? 44 : 40, padB] };
-        const [c2, z2] = keepInsideTiles(center, zoom), [c3] = keepInsideTiles(center, zoom, true);   // c3：ズームはそのまま中心だけ寄せる
-        const pick = [[c2, z2, tour.target[1]], [c3, zoom, tour.target[1]], [c2, z2, loose], [c3, zoom, loose]]
-          .find(([c, z, o])=> sc.fill || boundsVisible(b, c, z, o));   // fill：範囲より陰影図で埋めるのを優先
-        if (pick) [center, zoom] = pick;
+      const aw = Math.max(size.x - padL - padR, 80), ah = Math.max(size.y - padT - padB, 80);
+      const p0 = map.project(b.getNorthWest(), 0), p1 = map.project(b.getSouthEast(), 0);
+      const zW = Math.log2(aw / Math.max(p1.x - p0.x, 1e-6)), zH = Math.log2(ah / Math.max(p1.y - p0.y, 1e-6));
+      const zFit = Math.min(zW, zH, 14);
+      let z = zFit;
+      const zPan = Math.min(Math.max(zW, zH), zFit + PAN_MAX_ZOOM, 14);   // 片方の向きはちょうど収まる倍率（寄せすぎない）
+      if (!follows(sc) && !sc.gsi){
+        // 全体が入る倍率が低すぎる（広い範囲が小さくしか見えない）ときは、縦横どちらも収まらなくても寄せて斜めにスライドする
+        const zMin = Math.min(zFit + 1, PAN_COMFORT_ZOOM);
+        z = Math.max(zPan - zFit >= 0.35 ? zPan : zFit, zMin);
       }
-      tour.view = [center, zoom];
-      map.flyTo(center, zoom, { duration:1.0 });
+      if (tour.keepInside && !sc.gsi) z = Math.max(z, map.getBoundsZoom(GEOPARK_BOUNDS, true) + 0.05);   // 陰影図の外を出さない倍率まで
+      // 見せる範囲の中心が、画面の中心からどれだけずれているか
+      const off = L.point((padL + size.x - padR) / 2 - size.x / 2, (padT + size.y - padB) / 2 - size.y / 2);
+      const nw = map.project(b.getNorthWest(), z), se = map.project(b.getSouthEast(), z), mid = nw.add(se).divideBy(2);
+      const at = p=> map.unproject(p.subtract(off), z);   // 地図上の点 p を「見せる範囲」の真ん中に置くときの中心
+      const overX = (se.x - nw.x) - aw, overY = (se.y - nw.y) - ah;
+      let from = mid, to = null;
+      if (!follows(sc) && (overX > 8 || overY > 8)){   // 収まらない向き（斜めなら両方）に、端から端へ
+        // 矢印のある場面は、矢印の出発点の側から始める（矢印の流れと同じ向きに動く）。無ければ西→東・北→南
+        const l0 = [].concat(sc.line || []).flat()[0], g = l0 && tour.shapes[l0]?.geometry;
+        const c = g && (g.type === "LineString" ? g.coordinates[0] : g.type === "MultiLineString" ? g.coordinates[0][0] : null);
+        const anc = c ? map.project([c[1], c[0]], z) : null;
+        const ends = (lo, hi, a)=> a != null && Math.abs(a - lo) > Math.abs(a - hi) ? [hi, lo] : [lo, hi];
+        const [fx, tx] = overX > 8 ? ends(nw.x + aw / 2, se.x - aw / 2, anc?.x) : [mid.x, mid.x];
+        let [fy, ty] = overY > 8 ? ends(nw.y + ah / 2, se.y - ah / 2, anc?.y) : [mid.y, mid.y];
+        if (!anc && overX > 8 && overY > 8){   // 斜め：見せたい地点が右上がりに並ぶなら南西→北東、右下がりなら北西→南東
+          const pts = fit.concat(labelsOf(sc).map(lb=> lb.at)).map(n=> tourTarget(n)).filter(Boolean)
+            .map(x=> map.project(x.getCenter ? x.getCenter() : x, z));
+          const mx = pts.reduce((s, p)=> s + p.x, 0) / pts.length, my = pts.reduce((s, p)=> s + p.y, 0) / pts.length;
+          const cov = pts.reduce((s, p)=> s + (p.x - mx) * (p.y - my), 0);
+          if (cov < 0) [fy, ty] = [ty, fy];   // 右上がり（西が南）：南から始める
+        }
+        from = L.point(fx, fy); to = L.point(tx, ty);
+      }
+      let c0 = at(from), c1 = to ? at(to) : null;
+      if (tour.keepInside && !sc.gsi){ c0 = keepInsideTiles(c0, z, true)[0]; if (c1) c1 = keepInsideTiles(c1, z, true)[0]; }
+      const dist = c1 ? map.project(c0, z).distanceTo(map.project(c1, z)) : 0;
+      if (dist > 24) tour.pan = { to:c1, z, dist };
+      tour.view = [c0, z];
+      map.flyTo(c0, z, { duration:1.0 });
     }
   }
   else { tour.target = null; tour.view = null; }
@@ -201,6 +229,10 @@ function showScene(i){
     if (tour._drawn === i) return;   // moveend と保険のタイマーの二重実行を防ぐ
     dropLeaving(); drawSceneMarks(sc); showPhoto(sc, i);
     tour._drawn = i;
+    if (tour.pan) setTimeout(()=>{   // 図形・名札が出てから、ゆっくりスライド（約70px/秒、3〜10秒）
+      if (!tour || tour.i !== i || !tour.pan) return;
+      map.panTo(tour.pan.to, { animate:true, duration: Math.min(10, Math.max(3, tour.pan.dist / 70)), easeLinearity:1 });
+    }, 1200);
   };
   map.once("moveend", draw); setTimeout(draw, 1150);   // 移動後に描く（移動しない場面の保険）
   typeText(sc.text || "");
@@ -227,7 +259,7 @@ function showPhoto(sc, i){
     w.innerHTML = `<img alt="">`+(ph.caption ? `<figcaption></figcaption>` : "");
     w.querySelector("img").src = ph.src;
     if (ph.caption) w.querySelector("figcaption").textContent = ph.caption;
-    if (isMobile()) w.classList.add("thumb");   // スマホ：右上の小さな写真（タップで大きく）。地図を広く見せるため
+    if (isMobile()) w.classList.add("top");   // スマホ：上部に写真（タップで大きく）。地図は下の残りで、必要ならスライドして見せる
     else if (sc.photoTop){ w.style.top = "70px"; w.style.left = "12px"; w.style.right = "auto"; }   // 左上の隅（ヘッダーの下。萩の北西は海なので地名とぶつからない）
     else w.style.bottom = (document.getElementById("tourBox").offsetHeight + 30) + "px";
     w.onclick = e=>{ e.stopPropagation(); w.classList.toggle("big"); };   // タップで拡大／戻す
@@ -244,7 +276,7 @@ function drawSceneMarks(sc){
     const grp = tour.keep[key] = L.layerGroup().addTo(tour.keepLayer);
     const color = f.properties.color || "#d9481c";   // 既定は溶岩の赤橙
     const pr = f.properties, outline = pr.outline !== false;   // 図形ごとに濃さ・枠線を変えられる
-    L.geoJSON(f, { interactive:false, pane:"tourShapePane",
+    L.geoJSON(f, { interactive:false, pane:"tourShapePane", renderer:tourRenderer,
       style:{ color, weight: outline ? (pr.weight || 3) : 0, dashArray: pr.dash === false ? null : "8 6", fillColor:color, fillOpacity: sc.shapeOpacity ?? pr.fillOpacity ?? .28,
               className: outline ? "tour-shape" : "" } }).addTo(grp);
   });
@@ -295,7 +327,7 @@ const shapeKey = (sc, id)=> `s:${id}:${sc.shapeOpacity ?? ""}`;   // 濃さが�
 // 線を始点から描き、先端の矢じりを一緒に進める。delay ms 後に描き始め、描き終わるまでの時間(ms)を返す
 function drawArrowLine(id, delay, grp){
   const lc = tour.shapes[id].properties.color || "#b3200f";   // 線の色（既定は赤。川は青など）
-  const ln = L.geoJSON(tour.shapes[id], { interactive:false, pane:"tourShapePane",
+  const ln = L.geoJSON(tour.shapes[id], { interactive:false, pane:"tourShapePane", renderer:tourRenderer,
     style:{ color:lc, weight:6, opacity:.95, lineCap:"round", className:"tour-line" } }).addTo(grp);
   let total = 0;
   ln.eachLayer(l=>{
@@ -389,5 +421,7 @@ function typeText(text){
 
 // 図形（溶岩の範囲・流れの線）は背景の上・サイトの下、指差し・囲みはサイトの上
 map.createPane("tourShapePane"); map.getPane("tourShapePane").style.zIndex = 420;
+// 解説の図形・矢印は画面の外まで広めに描いておく（ゆっくりスライドする途中で、図形が欠けて見えないように）
+const tourRenderer = L.svg({ pane:"tourShapePane", padding:1.2 });
 map.createPane("tourPane"); map.getPane("tourPane").style.zIndex = 690;
 ["tourShapePane","tourPane"].forEach(n=> map.getPane(n).style.pointerEvents = "none");
