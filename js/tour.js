@@ -149,6 +149,7 @@ const follows = sc=> sc.followLine || (isMobile() && sc.mfollowLine);   // カ�
 
 function showScene(i){
   const sc = tour.scenes[i]; tour.i = i;
+  pageSound();
   if (tourGSI !== !!sc.gsi){ tourGSI = !!sc.gsi; refresh(); }   // gsi:true の場面は陰影・植生を出さず地理院地図だけ
   const box = document.getElementById("tourBox");
   box.querySelector(".tb-count").textContent = `${i+1}／${tour.scenes.length}`;
@@ -515,16 +516,22 @@ function finishTyping(){
 let tourAudio = null;
 function soundOn(){ try { return localStorage.getItem("hagiTourSound") === "1"; } catch(e){ return false; } }
 function setSound(on){ try { localStorage.setItem("hagiTourSound", on ? "1" : "0"); } catch(e){} }
-function blip(force){
+// 短い電子音を1つ鳴らす（f＝高さHz、at＝何秒後、len＝長さ秒）
+function tone(f, at = 0, len = 0.045, vol = 0.14){
+  if (!tourAudio) tourAudio = new (window.AudioContext || window.webkitAudioContext)();
+  if (tourAudio.state === "suspended") tourAudio.resume();
+  const ctx = tourAudio, t = ctx.currentTime + at, o = ctx.createOscillator(), g = ctx.createGain();
+  o.type = "square"; o.frequency.value = f;
+  g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.0001, t + len);
+  o.connect(g).connect(ctx.destination); o.start(t); o.stop(t + len + 0.01);
+}
+function blip(force){   // 文字送りの音（少しずつ高さを変えて、機械的になりすぎないように）
   if (!force && !soundOn()) return;
-  try {
-    if (!tourAudio) tourAudio = new (window.AudioContext || window.webkitAudioContext)();
-    if (tourAudio.state === "suspended") tourAudio.resume();
-    const ctx = tourAudio, t = ctx.currentTime, o = ctx.createOscillator(), g = ctx.createGain();
-    o.type = "square"; o.frequency.value = 880 + Math.random() * 160;   // 少しずつ高さを変えて、機械的になりすぎないように
-    g.gain.setValueAtTime(0.14, t); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.045);
-    o.connect(g).connect(ctx.destination); o.start(t); o.stop(t + 0.05);
-  } catch(e){}
+  try { tone(440 + Math.random() * 80); } catch(e){}
+}
+function pageSound(){   // 場面が切り替わるときの音（ピロン）
+  if (!soundOn()) return;
+  try { tone(523, 0, 0.07, 0.12); tone(784, 0.07, 0.11, 0.12); } catch(e){}
 }
 function typeText(text){
   stopTyping();
