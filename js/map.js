@@ -290,6 +290,7 @@ function pointPopup(o){
   const dest = (p["経路緯度"] && p["経路経度"]) ? `${p["経路緯度"]},${p["経路経度"]}` : `${ll.lat},${ll.lng}`;
   const route = `https://www.google.com/maps/dir/?api=1&destination=${dest}`;
   let actions = `<a href="${route}" target="_blank" rel="noopener">🧭 経路</a>`;
+  if (p.pdf) actions += `<a href="${encodeURI(p.pdf)}" target="_blank" rel="noopener">📄 PDFで見る</a>`;   // 解説板・案内地図の原稿（data/panel_pdfs.json と同じ）
   if (staff && p.name){
     actions += `<button class="popup-qrbtn" data-name="${esc(p.name)}">🔗 QR</button>`;
     actions += `<button class="popup-photobtn" data-name="${esc(p.name)}">📷 写真</button>`;
@@ -306,7 +307,7 @@ function pointPopup(o){
 function sanitizeName(s){ return String(s).replace(/[\\/:*?"<>|]/g, "_").trim(); }
 function photoFile(name){ return sanitizeName(name) + ".jpg"; }
 // 写真を差し替えたら PHOTOV を上げる（サービスワーカーが古い写真を出し続けないように）
-const PHOTOV = "?p=6";
+const PHOTOV = "?p=7";
 function photoSrc(name){ return "img/sites/" + encodeURIComponent(photoFile(name)) + PHOTOV; }
 
 // ディープリンクURL（?site=名前 / ?area=id）＝看板QRの貼り先
@@ -650,7 +651,7 @@ function injectLabelStyles(){
 }
 
 // ---- 読み込み ----
-const DATAV = "?d=213";   // geojson更新時にbump（ブラウザキャッシュ回避）
+const DATAV = "?d=214";   // geojson更新時にbump（ブラウザキャッシュ回避）
 const fetchGj = def => fetch("data/"+def.file+DATAV).then(r=>r.json());
 Promise.all([
   fetch("data/areas.geojson"+DATAV).then(r=>r.json()),
