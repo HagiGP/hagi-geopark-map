@@ -507,6 +507,14 @@ function refresh(){
   placeLabels();
 }
 
+// 名前を置く順番：拠点施設 → ランクの高い見どころ（AA・A → B → C以下）→ ランクの無いもの。同じ段の中は種類の優先度（QGISのpriority）
+// 近くに見どころが集まっているときは、ランクの高い方の名前が残る
+function labelPrio(o){
+  if (o.def.hub) return 100 + o.def.prio;
+  const r = o.rank || o.props?.["ランク"];
+  if (r) return ({ AA:80, A:80, B:60 }[r] ?? 40) + o.def.prio;
+  return 20 + (o.def.prio || 0);
+}
 // ラベルの重なり回避：QGISのpriorityが高い順に置き、重なる低優先を隠す（obstacle相当）
 // ラベル配置（Googleマップ流）：丸に重ならない位置を右→左→上→下→さらに遠くの順に探す。
 // 優先度の高い順に確定し、丸にも既存ラベルにも重ならない位置が無ければ隠す（丸は残る）。
@@ -522,7 +530,7 @@ function placeLabels(){
     if (!layer.hasLayer(o.marker) || !keep(o)) { o.labelEl.style.display = "none"; return; }
     const lp = map.latLngToLayerPoint(o.marker.getLatLng());
     const rad = o.def.msize*PX_MM/2 + o.def.outmm*PX_MM;
-    vis.push({ el:o.labelEl, prio:o.def.prio, x:lp.x, y:lp.y, r:rad, side:o.labelSide });
+    vis.push({ el:o.labelEl, prio:labelPrio(o), x:lp.x, y:lp.y, r:rad, side:o.labelSide });
   };
   allMarkers.forEach(o => collect(o, siteLayer));
   refMarkers.forEach(o => collect(o, refLayer));
