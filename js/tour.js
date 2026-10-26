@@ -7,6 +7,7 @@
      shape 塗って示す図形id の配列（溶岩の範囲など）。shapeOpacity で塗りの濃さを場面ごとに上書き
      line  流れを描く線の図形id（アニメーションで描く）。配列で複数本も可。配列の配列なら組ごとに順番に描く
      ring  丸で囲むサイト名の配列
+     blink 点滅させるサイト名の配列（大地の成り立ちの最後：そのステージのジオサイトを地図で光らせる）
      point 指差す（▼）サイト名（points＝何か所も指差す [[緯度,経度], …]）
      label 地名ラベル [{ "text":"須佐湾", "at":[緯度,経度] }]（"align":"right"＝at が名札の右端、"left"＝左端）
      followLine true なら、line の組ごとに地図がその組の範囲へ移って描く（長い流れを寄りぎみに見せる）。mfollowLine はスマホのときだけ
@@ -40,7 +41,9 @@ loadPixelFont();   // 「解説を見る」ボタンにも使うので最初に�
 
 function startTour(id){
   const a = areaById[id]; if (!a || !(a.tour||[]).length) return;
-  loadTourShapes(id).then(shapes=> beginTour(a, shapes));
+  // 最後に、その地域の大地とつながる文化サイトをまとめて点滅させる場面を足す（つながりのデータがあれば。js/links.js）
+  const fin = typeof areaLinkScene === "function" ? areaLinkScene(a) : null;
+  loadTourShapes(id).then(shapes=> beginTour(fin ? { ...a, tour: a.tour.concat([fin]) } : a, shapes));
 }
 // 陰影図（GEOPARK_BOUNDS）の外が画面に出ないよう、ズームの下限と中心を調整する（homeView と同じ考え方）
 // hideBottom：画面の下のこの高さ(px)は字幕の窓に隠れて見えないので、陰影図の外になってもよい（スマホ：窓が横幅いっぱい）
@@ -61,6 +64,23 @@ function startOverviewTour(){
     beginTour({ name: gj.name || "萩ジオパークの概要", tour: gj.tour || [] }, m);
     if (tour) tour.keepInside = true;   // 概要の解説は、陰影図の外を出さない
   }).catch(e=> console.error("overview tour load failed", e));
+}
+// 点滅の色：解説の色が無ければ（地域の解説の最後）、その見どころの印の色
+const blinkColor = n=> SITE_CATS[allMarkers.find(x=> x.name === n)?.cat]?.fill || "#ffd84a";
+// 大地の成り立ちの解説（4本：南の海／大陸のマグマ／日本海のマグマ／萩・阿武のマグマ）。場面と図形は data/tour_stages.geojson
+let stageData = null;
+function loadStages(){
+  return stageData ? Promise.resolve(stageData) : fetch(`data/tour_stages.geojson${DATAV}`).then(r=> r.json()).then(gj=>{
+    const m = {}; (gj.features || []).forEach(f=> m[f.properties.id] = f);
+    return stageData = { tours: gj.tours || [], shapes: m };
+  });
+}
+function startStageTour(id){
+  loadStages().then(d=>{
+    const t = d.tours.find(x=> x.id === id); if (!t) return;
+    beginTour({ name: t.name, tour: t.tour }, d.shapes);
+    if (tour) tour.color = t.color;   // 点滅の色
+  }).catch(e=> console.error("stage tour load failed", e));
 }
 // 解説を始める。a＝{ name（字幕の窓の見出し）, tour（場面の配列） }、shapes＝{ 図形id: GeoJSON feature }
 function beginTour(a, shapes){
@@ -367,6 +387,13 @@ function drawSceneMarks(sc){
     if (!ll) return;
     L.marker(ll, { interactive:false, pane:"tourPane", keyboard:false,
       icon:L.divIcon({ className:"", iconSize:[RING,RING], iconAnchor:[RING/2,RING/2], html:`<div class="tour-ring"></div>` }) }).addTo(tour.layer);
+  });
+  // 点滅：ひとつずつ灯ってから、そろって点滅（ステージの色）
+  (sc.blink||[]).forEach((n, k)=>{
+    const ll = Array.isArray(n) ? L.latLng(n[0], n[1]) : allMarkers.find(x=> x.name === n)?.marker.getLatLng();
+    if (ll) L.marker(ll, { interactive:false, pane:"tourPane", keyboard:false,
+      icon:L.divIcon({ className:"", iconSize:[30,30], iconAnchor:[15,15],
+        html:`<div class="tour-blink" style="--bc:${tour.color || blinkColor(n)};animation-delay:${(k * 0.15).toFixed(2)}s,${(k * 0.15 + 0.4).toFixed(2)}s"></div>` }) }).addTo(tour.layer);
   });
   labelsOf(sc).filter(lb=> !lb.step).forEach(addTourLabel);   // 地名ラベル（例：{"text":"須佐湾","at":[34.628,131.594]}）
   // 指差し：point＝1か所（サイト名 or [緯度,経度]）、points＝何か所も（[[緯度,経度], …]）

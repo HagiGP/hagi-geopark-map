@@ -422,6 +422,7 @@ function openSite(o, { pan = true } = {}){
   lowerPanel();
   const ll = o.marker.getLatLng();
   selRing.setLatLng(ll).addTo(map);
+  if (typeof showRelated === "function") showRelated(o);   // 関連するサイトをささやかに点滅（js/links.js）
   if (pan) revealOnMap(ll);
 }
 // タップした地点を、いつも「パネルに隠れていない部分」の真ん中へ動かす（動いたり動かなかったりしないように）
@@ -438,6 +439,7 @@ function openDeepLink(){
   const params = new URLSearchParams(location.search);
   const areaId = params.get("area"), siteName = params.get("site"), tourId = params.get("tour");
   if (tourId === "overview"){ startOverviewTour(); return; }   // ?tour=overview ＝全体の概要の解説から始める
+  if (/^st[1-4]$/.test(tourId || "")){ startStageTour(tourId); return; }   // ?tour=st1〜st4 ＝大地の成り立ちの解説
   if (tourId && areaById[tourId]){ startTour(tourId); return; }   // ?tour=ryu ＝解説から始める（講演・授業用）
   if (areaId && areaById[areaId]){ enterArea(areaId); return; }
   if (siteName){
@@ -639,7 +641,7 @@ function injectLabelStyles(){
 }
 
 // ---- 読み込み ----
-const DATAV = "?d=182";   // geojson更新時にbump（ブラウザキャッシュ回避）
+const DATAV = "?d=185";   // geojson更新時にbump（ブラウザキャッシュ回避）
 const fetchGj = def => fetch("data/"+def.file+DATAV).then(r=>r.json());
 Promise.all([
   fetch("data/areas.geojson"+DATAV).then(r=>r.json()),
@@ -1063,6 +1065,13 @@ function appendSiteList(body, a){
 }
 
 // 地域紹介：4エリアのカード（テーマ・リード文・解説ボタン・視点・見どころ一覧）。現在地があれば近い順にも並べられる
+// 大地の成り立ちの解説（古い順。場面は data/tour_stages.geojson、色は塗りと点滅の色）
+const STAGE_TOURS = [
+  { id:"st1", name:"南の海から来た大地",           color:"#3b78c4" },
+  { id:"st2", name:"大陸のマグマが生んだ大地",     color:"#d0507a" },
+  { id:"st3", name:"日本海のマグマが生んだ大地",   color:"#7b4bb7" },
+  { id:"st4", name:"萩・阿武のマグマが生んだ大地", color:"#f08a1c" },
+];
 function buildAreaGuide(){
   const listEl = document.getElementById("areaList");
   // 作り直しても（現在地の取得後など）、開いていたカード・一覧はそのまま
@@ -1089,6 +1098,12 @@ function buildAreaGuide(){
   ob.innerHTML = `<span class="ts-icon">▶</span>萩ジオパークの概要を地図で見る`;
   ob.onclick = ()=> startOverviewTour();
   listEl.appendChild(ob);
+  // 大地の成り立ち（古い順に4本）
+  const sw = document.createElement("div"); sw.className = "stage-tours";
+  sw.innerHTML = `<h4>大地の成り立ちを地図で見る</h4>` + STAGE_TOURS.map(s=>
+    `<button class="tour-start" data-st="${s.id}" style="--sc:${s.color}"><span class="ts-icon">▶</span>${esc(s.name)}</button>`).join("");
+  sw.querySelectorAll("button").forEach(b=> b.onclick = ()=> startStageTour(b.dataset.st));
+  listEl.appendChild(sw);
   AREAS.forEach(a=>{
     const card = document.createElement("div"); card.className="area-card"; card.dataset.id=a.id;
     if (openCards.includes(a.id)) card.classList.add("open");
