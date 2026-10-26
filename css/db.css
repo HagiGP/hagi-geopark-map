@@ -43,6 +43,7 @@ select { padding: 6px 4px; border: 1px solid #ccc; border-radius: 8px; font-size
 .ck i { font-style: normal; color: #777; font-weight: 400; margin-left: auto; }
 .card h3 { font: 900 16px/1.35 var(--heavy); margin: 3px 0 4px; }
 .card p { font-size: 12.5px; color: #555; margin: 0 0 6px; line-height: 1.5; }
+.card .cg { font-size: 11.5px; color: #7a4a1e; margin: -1px 0 4px; }   /* 地質区分 */
 .cp { display: flex; flex-wrap: wrap; gap: 4px; }
 .cp span { font-size: 11px; background: #f3efe2; color: #6b5a2b; border-radius: 3px; padding: 1px 6px; }
 .cp .ptag, .ptag { font-size: 11px; border-radius: 3px; padding: 1px 6px; color: #fff; white-space: nowrap; }
@@ -84,6 +85,10 @@ select { padding: 6px 4px; border: 1px solid #ccc; border-radius: 8px; font-size
 .near a { display: block; padding: 6px 4px; border-bottom: 1px solid #f0f0ee; color: #222; text-decoration: none; font-size: 14px; font-weight: 700; }
 .near a:hover { background: #f6f6f4; }
 .near small { font-weight: 400; color: #888; margin-left: 6px; font-size: 12px; }
+.sub small { font: 400 12px sans-serif; color: #888; margin-left: 4px; }
+.refs { margin: 0; padding: 0 0 0 1.6em; font-size: 13px; line-height: 1.55; color: #333; }   /* 関連する文献 */
+.refs li { padding: 3px 0; border-bottom: 1px solid #f0f0ee; }
+.refs i { font-style: normal; color: #777; }
 .note { font-size: 12.5px; color: #888; margin: 8px 0; }
 #miniMap { height: 240px; border-radius: 8px; margin-top: 12px; z-index: 0; }
 .plog { list-style: none; margin: 0; padding: 0; font-size: 13px; }

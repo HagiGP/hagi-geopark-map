@@ -19,7 +19,7 @@ const ls = {
 };
 const $ = s=> document.querySelector(s);
 const esc = s=> (s == null ? "" : String(s)).replace(/[&<>"]/g, c=> ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;" }[c]));
-const st = { rows:[], kind:"", view: ls.get("hagiDbView", "card"), status:null, photos:new Set(), photoV:"" };
+const st = { rows:[], kind:"", view: ls.get("hagiDbView", "card"), status:null, photos:new Set(), photoV:"", groups:[], refs:[] };
 
 // ---- 読み込み ----
 (async function load(){
@@ -47,6 +47,7 @@ const st = { rows:[], kind:"", view: ls.get("hagiDbView", "card"), status:null, 
 function setData(sheets, updated, fromCache){
   st.rows = [];
   KINDS.forEach(k=> (sheets[k.name] || []).forEach(r=> st.rows.push({ ...r, 種類:k.name })));
+  st.groups = sheets["地質区分"] || []; st.refs = sheets["文献"] || [];   // ジオサイトの地質区分（年代・成り立ちのステージ）と、地質区分ごとの文献
   $("#updated").textContent = (fromCache ? "前回の読み込み・" : "") + (updated ? new Date(updated).toLocaleString("ja-JP", { month:"numeric", day:"numeric", hour:"2-digit", minute:"2-digit" }) + " 時点" : "");
   buildFilters();
   render();
@@ -74,18 +75,27 @@ function buildFilters(){
   fillSelect($("#fRank"), uniq(base.map(r=> r["ランク"])).sort(), "ランク");
   fillSelect($("#fProt"), uniq(base.flatMap(prots)).sort((a, b)=> a.localeCompare(b, "ja")), "法的保護");
   $("#fRank").hidden = !base.some(r=> r["ランク"]);
+  // 地質区分：成り立ちのステージごとにまとめ、地質区分のシートの順に並べる（その中のサイトがあるものだけ）
+  const geo = $("#fGeo"), cur = geo.value, used = st.groups.filter(g=> base.some(r=> r["地質区分"] === g["地質区分"]));
+  const stages = uniq(used.map(g=> g["大地の成り立ちステージ"]));
+  geo.innerHTML = `<option value="">地質区分：すべて</option>` + stages.map(sg=> `<optgroup label="${esc(stageLabel(sg))}">` +
+    used.filter(g=> g["大地の成り立ちステージ"] === sg).map(g=> `<option value="${esc(g["地質区分"])}"${g["地質区分"] === cur ? " selected" : ""}>${esc(geoLabel(g["地質区分"]))}（${base.filter(r=> r["地質区分"] === g["地質区分"]).length}）</option>`).join("") + `</optgroup>`).join("");
+  geo.hidden = !used.length;
 }
-["#q", "#fChiku", "#fArea", "#fRank", "#fProt", "#fPatrol", "#fPhoto"].forEach(s=> $(s).addEventListener("input", render));
+const geoLabel = s=> String(s || "").replace(/^[A-Z]+_/, "");     // 「BY_阿武火山岩（後期）」→「阿武火山岩（後期）」
+const stageLabel = s=> String(s || "").replace(/^\d+_/, "");     // 「04_萩・阿武のマグマの活動」→「萩・阿武のマグマの活動」
+const groupOf = r=> r["地質区分"] ? st.groups.find(g=> g["地質区分"] === r["地質区分"]) : null;
+["#q", "#fChiku", "#fArea", "#fRank", "#fGeo", "#fProt", "#fPatrol", "#fPhoto"].forEach(s=> $(s).addEventListener("input", render));
 document.querySelectorAll("#views button").forEach(b=> b.onclick = ()=>{ st.view = b.dataset.v; ls.set("hagiDbView", st.view); render(); });
 
 function filtered(){
-  const q = $("#q").value.trim().toLowerCase(), ch = $("#fChiku").value, ar = $("#fArea").value, rk = $("#fRank").value,
+  const q = $("#q").value.trim().toLowerCase(), ch = $("#fChiku").value, ar = $("#fArea").value, rk = $("#fRank").value, ge = $("#fGeo").value,
         pr = $("#fProt").value, pa = $("#fPatrol").value, ph = $("#fPhoto").checked;
   return st.rows.filter(r=>
-    (!st.kind || r.種類 === st.kind) && (!ch || r["地区"] === ch) && (!ar || r["地域紹介"] === ar) && (!rk || r["ランク"] === rk) &&
+    (!st.kind || r.種類 === st.kind) && (!ch || r["地区"] === ch) && (!ar || r["地域紹介"] === ar) && (!rk || r["ランク"] === rk) && (!ge || r["地質区分"] === ge) &&
     (!pr || prots(r).includes(pr)) && (!ph || photoFileOf(r)) &&
     (!pa || (pa === "bad" ? patrolOf(r)?.problem : patrolOf(r)?.overdue && !patrolOf(r)?.problem)) &&
-    (!q || ["名前", "ふりがな", "見出し", "説明", "保全対象", "祭神", "由緒", "ID", "管理番号"].some(k=> String(r[k] || "").toLowerCase().includes(q))));
+    (!q || ["名前", "ふりがな", "見出し", "説明", "保全対象", "祭神", "由緒", "ID", "管理番号", "地質区分"].some(k=> String(r[k] || "").toLowerCase().includes(q))));
 }
 
 // ---- 点検の状態（運営の端末だけ） ----
@@ -121,10 +131,10 @@ function render(){
   const list = $("#list");
   if (!rows.length){ list.innerHTML = `<p class="loading">当てはまるものがありません</p>`; return; }
   if (st.view === "table"){
-    const pcol = st.status ? "<th>点検</th>" : "";
-    list.innerHTML = `<div class="tbl-wrap"><table class="tbl"><thead><tr><th>ID</th><th>種類</th><th>名前</th><th>地区</th><th>ランク</th><th>法的保護</th><th>見出し</th>${pcol}</tr></thead><tbody>`+
+    const pcol = st.status ? "<th>点検</th>" : "", gcol = rows.some(r=> r["地質区分"]);
+    list.innerHTML = `<div class="tbl-wrap"><table class="tbl"><thead><tr><th>ID</th><th>種類</th><th>名前</th><th>地区</th><th>ランク</th>${gcol ? "<th>地質区分</th>" : ""}<th>法的保護</th><th>見出し</th>${pcol}</tr></thead><tbody>`+
       rows.map(r=> `<tr data-id="${esc(r.ID)}"><td class="mono">${esc(r.ID)}</td><td><span class="kdot" style="background:${kindOf(r.種類).color}"></span>${esc(r.種類)}</td>`+
-        `<td class="nm">${esc(r["名前"])}</td><td>${esc(r["地区"])}</td><td>${esc(r["ランク"])}</td><td>${prots(r).map(esc).join("<br>")}</td>`+
+        `<td class="nm">${esc(r["名前"])}</td><td>${esc(r["地区"])}</td><td>${esc(r["ランク"])}</td>${gcol ? `<td>${esc(geoLabel(r["地質区分"]))}</td>` : ""}<td>${prots(r).map(esc).join("<br>")}</td>`+
         `<td class="ld">${esc(r["見出し"])}</td>${st.status ? `<td>${patrolTag(r)}</td>` : ""}</tr>`).join("")+
       `</tbody></table></div>`;
   } else {
@@ -133,7 +143,7 @@ function render(){
       return `<article class="card" data-id="${esc(r.ID)}" style="--kc:${k.color}">`+
         (ph ? `<img src="${ph}" alt="" loading="lazy" onerror="this.remove()">` : `<div class="noimg">${esc(r.種類)}</div>`)+
         `<div class="cb"><div class="ck"><span>${esc(r.種類)}</span>${r["ランク"] ? `<b>${esc(r["ランク"])}</b>` : ""}${r["地区"] ? `<i>${esc(r["地区"])}</i>` : ""}</div>`+
-        `<h3>${esc(r["名前"])}</h3>${r["見出し"] ? `<p>${esc(r["見出し"])}</p>` : ""}`+
+        `<h3>${esc(r["名前"])}</h3>${r["地質区分"] ? `<div class="cg">${esc(geoLabel(r["地質区分"]))}</div>` : ""}${r["見出し"] ? `<p>${esc(r["見出し"])}</p>` : ""}`+
         `<div class="cp">${prots(r).map(s=> `<span>${esc(s)}</span>`).join("")}${patrolTag(r)}</div></div></article>`;
     }).join("") + `</div>`;
   }
@@ -168,7 +178,9 @@ function openFromHash(){
   if (r["説明"]) h += `<p class="desc">${esc(r["説明"])}</p>`;
   const rel = String(r["関連ジオサイト"] || "").split(/[、，,]/).map(s=> s.trim()).filter(Boolean);
   const fields = SHOW_FIELDS.filter(f=> r[f] !== "" && r[f] != null && f !== "関連ジオサイト");
-  if (fields.length) h += `<table class="fields">${fields.map(f=> `<tr><th>${esc(f)}</th><td>${esc(r[f])}</td></tr>`).join("")}</table>`;
+  const g = groupOf(r), geoRows = r["地質区分"] ? [["地質区分", geoLabel(r["地質区分"])], ["年代", g?.["年代"]], ["大地の成り立ち", stageLabel(g?.["大地の成り立ちステージ"])]].filter(x=> x[1]) : [];
+  const rowsF = fields.map(f=> [f, r[f]]).concat(geoRows);
+  if (rowsF.length) h += `<table class="fields">${rowsF.map(([f, v])=> `<tr><th>${esc(f)}</th><td>${esc(v)}</td></tr>`).join("")}</table>`;
   if (rel.length) h += `<div class="sub">関連ジオサイト</div><ul class="near">${rel.map(id=>{ const x = st.rows.find(y=> y.ID === id); return x ? nearItem(x) : `<li>${esc(id)}</li>`; }).join("")}</ul>`;
   if (r.種類 === "生態サイト") h += `<p class="note">生息地を守るため、位置は約1km単位にぼかしています${hasLL ? "" : "（このサイトは位置を出していません）"}。</p>`;
   if (hasLL) h += `<div id="miniMap"></div>`;
@@ -186,6 +198,10 @@ function openFromHash(){
       .map(x=> ({ x, d: dist(r, x) })).filter(o=> o.d < 3000).sort((a, b)=> a.d - b.d).slice(0, 8);
     if (near.length) h += `<div class="sub">近くのサイト</div><ul class="near">${near.map(o=> nearItem(o.x, o.d)).join("")}</ul>`;
   }
+  // 文献：この地質区分（地質体）に関する文献（古い順）
+  const refs = r["地質区分"] ? st.refs.filter(x=> x["地質区分"] === r["地質区分"]).sort((a, b)=> (Number(a["出版年"]) || 9999) - (Number(b["出版年"]) || 9999)) : [];
+  if (refs.length) h += `<div class="sub">関連する文献<small>（${esc(geoLabel(r["地質区分"]))}・${refs.length}件）</small></div><ol class="refs">${refs.map(x=>
+    `<li>${esc(x["著者名"] || x["Author"])}（${esc(x["出版年"])}）${esc(x["タイトル"])}${x["雑誌・出版社名"] ? `．<i>${esc(x["雑誌・出版社名"])}</i>` : ""}</li>`).join("")}</ol>`;
   $("#detail .dt-body").innerHTML = h;
   $("#detail").hidden = false;
   $("#detail .dt-card").scrollTop = 0;

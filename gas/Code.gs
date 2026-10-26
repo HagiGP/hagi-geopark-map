@@ -1,13 +1,14 @@
 /**
  * 萩ジオパーク サイトデータベース（Googleスプレッドシートに付けるApps Script）
  *
- * GET  ?action=data                 … 公開してよい列だけを返す（データベースのページ用）
+ * GET  ?action=data                 … 公開してよい列だけを返す（データベースのページ用。ジオサイトの地質区分・文献の一覧も）
  * GET  ?action=status&key=合言葉     … 点検ログと点検の間隔・記録者の一覧（地図の運営モード用）
  * POST {key, id, recorder, state, content, photo, uid} … 点検ログに1行追加（写真はドライブの「点検写真」フォルダへ）
  *
  * 合言葉は「プロジェクトの設定」→「スクリプト プロパティ」の KEY に入れる（コードには書かない）
  */
 const SITE_SHEETS = ["ジオサイト", "文化サイト", "生態サイト", "神社", "展望地", "解説板"];
+const GEO_SHEETS = ["地質区分", "文献"];   // ジオサイトの「地質区分」列の分け方（年代・成り立ちのステージ）と、地質区分ごとの文献
 const LOG_SHEET = "点検ログ";
 const LOG_COLS = ["日時", "対象ID", "対象名", "記録者", "状態", "内容", "写真", "送信ID"];
 const PHOTO_FOLDER = "点検写真";
@@ -65,6 +66,7 @@ function publicData() {
       return r;
     });
   });
+  GEO_SHEETS.forEach(name => out[name] = readSheet(name));
   return out;
 }
 
@@ -125,4 +127,26 @@ function checkSetup() {
   SITE_SHEETS.concat([LOG_SHEET, "一覧"]).forEach(n => Logger.log(n + "：" + (SpreadsheetApp.getActive().getSheetByName(n) ? readSheet(n).length + "件" : "シートがありません")));
   Logger.log("合言葉（KEY）：" + (PropertiesService.getScriptProperties().getProperty("KEY") ? "設定済み" : "未設定"));
   Logger.log("写真の保存先：" + photoFolder().getName());
+}
+
+// 地質区分を入れるとき1回だけ（エディタで選んで「実行」）：「ジオサイトの地質区分」シートの値を、
+// ジオサイトのシートの「地質区分」列へIDで書き写す（列が無ければメモの前に足す）。終わったら「ジオサイトの地質区分」シートは消してよい
+function setupGeology() {
+  const ss = SpreadsheetApp.getActive(), sh = ss.getSheetByName("ジオサイト");
+  if (!ss.getSheetByName("ジオサイトの地質区分")) { Logger.log("「ジオサイトの地質区分」シートがありません"); return; }
+  const map = {}; readSheet("ジオサイトの地質区分").forEach(r => map[r["ID"]] = r["地質区分"]);
+  let head = sh.getRange(1, 1, 1, sh.getLastColumn()).getValues()[0], col = head.indexOf("地質区分");
+  if (col < 0) {
+    const memo = head.indexOf("メモ");
+    if (memo >= 0) { sh.insertColumnBefore(memo + 1); col = memo; } else col = head.length;
+    sh.getRange(1, col + 1).setValue("地質区分");
+  }
+  const n = sh.getLastRow() - 1, ids = sh.getRange(2, head.indexOf("ID") + 1, n, 1).getValues();
+  const vals = ids.map(r => [map[r[0]] || ""]);
+  sh.getRange(2, col + 1, n, 1).setValues(vals);
+  const list = ss.getSheetByName("地質区分");   // 入力は地質区分のシートから選ぶ（打ち間違い防止）
+  if (list) sh.getRange(2, col + 1, Math.max(n, 1) + 200, 1).setDataValidation(
+    SpreadsheetApp.newDataValidation().requireValueInRange(list.getRange("A2:A"), true).setAllowInvalid(false).build());
+  Logger.log("地質区分を入れた：" + vals.filter(v => v[0]).length + "件／" + n + "件。入らなかったID：" + ids.filter((r, i) => r[0] && !vals[i][0]).map(r => r[0]).join("、"));
+  GEO_SHEETS.forEach(name => Logger.log(name + "：" + readSheet(name).length + "件"));
 }
