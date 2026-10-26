@@ -19,16 +19,21 @@ const ls = {
 };
 const $ = s=> document.querySelector(s);
 const esc = s=> (s == null ? "" : String(s)).replace(/[&<>"]/g, c=> ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;" }[c]));
-const st = { rows:[], kind:"", view: ls.get("hagiDbView", "card"), status:null };
+const st = { rows:[], kind:"", view: ls.get("hagiDbView", "card"), status:null, photos:new Set(), photoV:"" };
 
 // ---- 読み込み ----
 (async function load(){
+  await null;   // このファイルの終わりまで読み込んでから（前回分をすぐ出すときも、下の関数・定数が使えるように）
   const cached = ls.get("hagiDbCache", null);
   if (cached) setData(cached.sheets, cached.updated, true);
   try {
     const r = await fetch(DB_URL + "?action=data").then(r=> r.json());
     if (r.ok){ ls.set("hagiDbCache", { sheets:r.sheets, updated:r.updated }); setData(r.sheets, r.updated, false); }
   } catch(e){ if (!cached) $("#list").innerHTML = `<p class="loading">読み込めませんでした。電波の状態を確かめて、もう一度開いてください。</p>`; }
+  try {   // 地図の img/sites にある写真の一覧（スプレッドシートの「写真」が空でも、名前と同じ写真があれば出す）
+    const p = await fetch("data/site_photos.json?p=4").then(r=> r.json());   // 写真を足したら一覧を作り直し、?p= を上げる（地図の PHOTOV と同じ番号）
+    st.photos = new Set(p.files || []); st.photoV = p.v ? "?p=" + p.v : ""; render(); if (location.hash) openFromHash();
+  } catch(e){}
   const key = ls.get("hagiPatrolKey", "");   // 地図の運営モードで入れた合言葉
   if (key){
     try {
@@ -77,7 +82,7 @@ function filtered(){
         pr = $("#fProt").value, pa = $("#fPatrol").value, ph = $("#fPhoto").checked;
   return st.rows.filter(r=>
     (!st.kind || r.種類 === st.kind) && (!ch || r["地区"] === ch) && (!ar || r["地域紹介"] === ar) && (!rk || r["ランク"] === rk) &&
-    (!pr || prots(r).includes(pr)) && (!ph || r["写真"]) &&
+    (!pr || prots(r).includes(pr)) && (!ph || photoFileOf(r)) &&
     (!pa || (pa === "bad" ? patrolOf(r)?.problem : patrolOf(r)?.overdue && !patrolOf(r)?.problem)) &&
     (!q || ["名前", "ふりがな", "見出し", "説明", "保全対象", "祭神", "由緒", "ID", "管理番号"].some(k=> String(r[k] || "").toLowerCase().includes(q))));
 }
@@ -104,7 +109,10 @@ function patrolTag(r){
 
 // ---- 一覧 ----
 const kindOf = name=> KINDS.find(k=> k.name === name) || { color:"#888" };
-const photoUrl = r=> r["写真"] ? "img/sites/" + encodeURIComponent(r["写真"]) : "";
+// 写真：スプレッドシートの「写真」の列、空なら名前と同じ写真（生態サイトは場所が分からないよう出さない）
+const sanitizeName = s=> String(s).replace(/[\\/:*?"<>|]/g, "_").trim();   // 地図（map.js）と同じ
+const photoFileOf = r=> r["写真"] || (r.種類 !== "生態サイト" && st.photos.has(sanitizeName(r["名前"] || "") + ".jpg") ? sanitizeName(r["名前"]) + ".jpg" : "");
+const photoUrl = r=>{ const f = photoFileOf(r); return f ? "img/sites/" + encodeURIComponent(f) + st.photoV : ""; };
 function render(){
   const rows = filtered();
   $("#count").textContent = `${rows.length}件`;
