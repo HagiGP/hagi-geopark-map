@@ -98,6 +98,11 @@ body.staff #appbar { background: #595857; }   /* 運営モード＝墨色でひ�
   display: flex; flex-direction: column; gap: 1px;
 }
 .area-card-head:hover { background: #fafafa; }
+/* カードの見出しは、それぞれの色で塗る（地域紹介・大地） */
+.area-card-head { background: var(--ac, #1b6a4b); color: #fff; }
+.area-card-head:hover { background: var(--ac, #1b6a4b); filter: brightness(1.08); }
+.area-card-head span { color: rgba(255,255,255,.9) !important; }
+.area-card-head::after { color: rgba(255,255,255,.85); }
 .area-card-head::after { content: "▸"; color: #999; font-size: 24px; line-height: 1; position: absolute; right: 12px; top: 50%; transform: translateY(-50%); transition: transform .15s; }
 .area-card.open .area-card-head::after { transform: translateY(-50%) rotate(90deg); }
 .area-card-head { padding-right: 40px; }
