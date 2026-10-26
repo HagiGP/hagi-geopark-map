@@ -7,7 +7,7 @@
 ・写す項目：名前・ランク・見出し・説明・法的保護・駐車場・現地解説（文化サイトは経路緯度・経路経度も）。位置は写さない。
 ・スプレッドシートで「地図に出す」が N のサイト、地図に無いサイトは、表示だけして触らない。
 """
-import json, math, os, sys, urllib.request
+import csv, json, math, os, sys, time, urllib.request
 
 URL = "https://script.google.com/macros/s/AKfycbxwAS_jguWMoqiSA_GM46Rjr3kffVqNstRD0Rd4MBJM7L_fS4PGsxtcsPgVsaYdnOPG/exec?action=data"
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -15,8 +15,13 @@ FIELDS = {
     "ジオサイト": ("geosites.geojson", ["ランク", "見出し", "説明", "法的保護", "駐車場", "現地解説"]),
     "文化サイト": ("cultural.geojson", ["ランク", "見出し", "説明", "法的保護", "駐車場", "現地解説", "経路緯度", "経路経度"]),
 }
+CSV = {"ジオサイト": (r"D:\qgis\萩ジオパーク\HagiGP_geosites.csv", "サイト名"), "文化サイト": (r"D:\qgis\萩ジオパーク\map_cultural.csv", "ポイント名")}   # QGIS側の元の一覧
 dry = "--dry" in sys.argv
-sheets = json.load(urllib.request.urlopen(URL))["sheets"]
+for k in range(4):   # Apps Script はときどき 500 を返すので、少し待ってやり直す
+    try: sheets = json.load(urllib.request.urlopen(URL))["sheets"]; break
+    except Exception as e:
+        if k == 3: raise
+        print("読み込み失敗、やり直します：", e); time.sleep(3)
 changed = 0
 for sheet, (fn, keys) in FIELDS.items():
     path = os.path.join(ROOT, "data", fn)
@@ -45,5 +50,15 @@ for sheet, (fn, keys) in FIELDS.items():
                 n += 1
     print(f"{sheet}：{n}か所を変更")
     changed += n
-    if n and not dry: open(path, "w", encoding="utf-8", newline="\n").write(json.dumps(gj, ensure_ascii=False) + "\n")
+    if n and not dry:
+        open(path, "w", encoding="utf-8", newline="\n").write(json.dumps(gj, ensure_ascii=False) + "\n")
+        cpath, key = CSV[sheet]   # QGIS側の元の一覧にも同じ内容を（名前の列で突き合わせ）
+        if os.path.exists(cpath):
+            rows = list(csv.reader(open(cpath, encoding="utf-8-sig", newline=""))); h = rows[0]
+            props = {f["properties"]["name"]: f["properties"] for f in F}
+            for row in rows[1:]:
+                if row and row[h.index(key)] in props:
+                    for c in keys:
+                        if c in h: row[h.index(c)] = props[row[h.index(key)]].get(c, "")
+            csv.writer(open(cpath, "w", encoding="utf-8-sig", newline=""), lineterminator="\r\n").writerows(rows)
 print("変更なし" if not changed else ("（--dry：書き換えていません）" if dry else "書き換えました。js/map.js の DATAV と index.html の ?v= を上げてください"))
