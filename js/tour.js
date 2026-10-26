@@ -89,7 +89,8 @@ function beginTour(a, shapes){
   {
     if (tour) endTour();
     tour = { area:a, shapes, scenes:a.tour, i:0, layer:L.layerGroup().addTo(map), keep:{}, keepLayer:L.layerGroup().addTo(map),
-             prevTab: openTab };   // 解説の前に開いていたタブ（終わったら戻す）
+             prevTab: openTab,   // 解説の前に開いていたタブ（終わったら戻す）
+             limits: { minZoom: map.getMinZoom(), maxBounds: map.options.maxBounds } };   // ふだんの最小倍率・表示範囲（地理院地図の場面のあと戻す）
     map.closePopup();
     document.body.classList.add("touring");
     refresh();   // 広域表示を解除（解説中は詳細表示のまま）
@@ -111,6 +112,7 @@ function endTour(){
   Object.values(tour.keep).forEach(g=> g._dead = true);
   document.getElementById("tourBox")?.remove();
   hidePhoto(); document.getElementById("tourFigure")?.remove();
+  map.setMinZoom(tour.limits.minZoom); map.setMaxBounds(tour.limits.maxBounds);
   tourGSI = false;
   document.body.classList.remove("touring");
   refresh();
@@ -175,6 +177,9 @@ const follows = sc=> sc.followLine || (isMobile() && sc.mfollowLine);   // カ�
 function showScene(i){
   const sc = tour.scenes[i]; tour.i = i;
   if (tourGSI !== !!sc.gsi){ tourGSI = !!sc.gsi; refresh(); }   // gsi:true の場面は陰影・植生を出さず地理院地図だけ
+  // 地理院地図の場面は、日本海全体なども見せられるよう、ふだんの最小倍率・表示範囲の制限をゆるめる
+  if (sc.gsi){ map.setMaxBounds(null); map.setMinZoom(5); }
+  else if (tour.limits){ map.setMinZoom(tour.limits.minZoom); map.setMaxBounds(tour.limits.maxBounds); }
   const box = document.getElementById("tourBox");
   box.querySelector(".tb-count").textContent = `${i+1}／${tour.scenes.length}`;
   box.querySelector(".tb-prev").style.visibility = i ? "visible" : "hidden";
