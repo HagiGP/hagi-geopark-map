@@ -218,3 +218,32 @@ function migrateIds() {
     Logger.log("ジオサイトに 駐車場・現地解説 の列を足した（駐車場は空欄。Y か N を入れてください）");
   }
 }
+
+// つながりシートの見直し（2026-10-27、白井さんの確認をもとに。エディタで「updateLinks」を選んで1回「実行」）
+// 相手のIDごとに「大地」「ひとこと」を書き換え、確認のメモを消す。null の行は削除する
+function updateLinks() {
+  const AO = "AO_青野火山岩（前期）", BY = "BY_阿武火山岩（後期）", CG = "CG_白亜紀花崗岩";
+  const DELTA = "三角州に築かれた";
+  const FIX = {
+    "OT-C013": {},   // 萩城：そのまま
+    "OT-C002": { 大地: BY + "、" + AO, ひとこと: DELTA + "港町。石材も食料も阿武火山群に支えられ、土台の三角州は青野山火山群がなければできなかったかもしれない" },
+    "OT-C003": { 大地: CG + "、" + BY + "、" + AO, ひとこと: DELTA + "武家屋敷の町。上級武士の石垣は指月山の花こう岩、食料は阿武火山群に支えられ、土台の三角州は青野山火山群がなければできなかったかもしれない" },
+    "OT-C005": { 大地: BY + "、" + AO, ひとこと: DELTA + "城下町。石材も食料も阿武火山群に支えられ、土台の三角州は青野山火山群がなければできなかったかもしれない" },
+    "OT-C015": { 大地: "AB_阿武層群、ZL_蔵目喜石灰岩" },
+    "AB-C003": null,   // 木与の棚田：つながりなし
+    "OT-C012": { 大地: "ZL_蔵目喜石灰岩、" + CG + "、CH_白亜紀半深成岩、AB_阿武層群", ひとこと: "南の海のサンゴ礁の石灰岩に、白亜紀のマグマが入り込み、銅の鉱床ができた" },
+    "OT-C010": { 大地: "ZL_蔵目喜石灰岩、" + CG + "、CH_白亜紀半深成岩、AB_阿武層群" },
+    "BY-B005": { ひとこと: "宇生賀盆地のまわりの阿武火山群がせき止めた湖の名残の池に、ミツガシワが残る" },
+    "OT-C008": { 大地: CG + "、AB_阿武層群、SN_山陰火山岩", ひとこと: "花こう岩や流紋岩が風化した粘土（大道土）や、見島の玄武岩の土を、萩焼の原料にした" },
+  };
+  const sh = SpreadsheetApp.getActive().getSheetByName("つながり"), v = sh.getDataRange().getValues(), head = v[0];
+  const c = n => head.indexOf(n), done = [];
+  for (let r = v.length - 1; r >= 1; r--) {   // 下から（行を消しても番号がずれないように）
+    const id = v[r][c("相手")]; if (!(id in FIX)) continue;
+    if (FIX[id] === null) { sh.deleteRow(r + 1); done.push(id + " 削除"); continue; }
+    Object.entries(FIX[id]).forEach(([k, val]) => sh.getRange(r + 1, c(k) + 1).setValue(val));
+    if (c("確認") >= 0) sh.getRange(r + 1, c("確認") + 1).setValue("");
+    done.push(id);
+  }
+  Logger.log("直した行：" + done.join("、"));
+}
