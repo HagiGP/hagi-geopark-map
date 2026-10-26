@@ -8,9 +8,17 @@ const LINKS = { links:[], sites:{} };   // links: [{ earth:[ID or 地質区分],
   setTimeout(()=>{   // 地図の読み込みを邪魔しないよう、少し待ってから
     fetch(PATROL_URL + "?action=data").then(r=> r.json()).then(r=>{
       if (!r.ok) return;
-      const sites = {};
-      ["ジオサイト", "文化サイト", "生態サイト"].forEach(k=> (r.sheets[k] || []).forEach(x=> sites[x.ID] = { name:x["名前"], kind:k, group:x["地質区分"] || "" }));
+      const sites = {}, groups = (r.sheets["地質区分"] || []).map(g=> g["地質区分"]);
+      ["ジオサイト", "文化サイト", "生態サイト"].forEach(k=> (r.sheets[k] || []).forEach(x=> sites[x.ID] = { name:x["名前"], kind:k, group:x["地質区分"] || "", num:x["管理番号"] || "" }));
       const links = (r.sheets["つながり"] || []).map(l=> ({ earth:String(l["大地"] || "").split(/[、，,]/).map(s=> s.trim()).filter(Boolean), to:l["相手"] }));
+      // 管理番号の頭の記号（BY、AO…）＝つながる地質体（花こう岩は MG・MH。OT は複数の地質体なので「つながり」シートだけ）。データベースのページと同じ
+      const ALIAS = { MG:"CG", MH:"CH" };
+      Object.entries(sites).forEach(([id, s])=>{
+        const c = s.num.split("-")[0]; if (s.kind === "ジオサイト" || !c || c === "OT") return;
+        const g = groups.find(x=> x.startsWith((ALIAS[c] || c) + "_")); if (!g) return;
+        const own = links.filter(l=> l.to === id);
+        if (!own.some(l=> l.earth.some(t=> t === g || sites[t]?.group === g))) links.push({ earth:[g], to:id });
+      });
       Object.assign(LINKS, { links, sites });
       try { localStorage.setItem("hagiLinksCache", JSON.stringify({ links, sites })); } catch(e){}
     }).catch(()=>{});

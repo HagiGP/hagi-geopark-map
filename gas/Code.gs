@@ -153,8 +153,17 @@ function setupGeology() {
 
 // ジオサイトの管理番号（地質体ごとの番号。例：BY-G001＝阿武火山岩（後期）の1番）を入れるとき1回だけ（エディタで選んで「実行」）：
 // ジオサイトのシートの ID の右に「管理番号」の列を足して書き入れる。ID（G-001）は点検ログ・URLとのつなぎなので変えない
-function setupGeoNumber() {
-  const NUM = {
+function setupGeoNumber() { addNumberColumn("ジオサイト", GEO_NUM); }
+// 文化サイトの管理番号（頭の記号＝つながる地質体。OT＝複数の地質体）。番号の分からない文化サイトは空のまま（あとで書き入れる）
+function setupCultureNumber() { addNumberColumn("文化サイト", {
+    "C-001": "OT-C013", "C-002": "OT-C011", "C-003": "OT-C007", "C-004": "OT-C002", "C-005": "OT-C003", "C-006": "OT-C005",
+    "C-007": "OT-C008", "C-009": "BY-C017", "C-010": "BY-C018", "C-011": "BY-C002", "C-012": "BY-C001", "C-013": "BY-C009",
+    "C-014": "BY-C007", "C-015": "BY-C008", "C-016": "OT-C014", "C-018": "MG-C002", "C-019": "KG-C004", "C-020": "BY-C005",
+    "C-021": "BY-C016", "C-022": "BY-C006", "C-024": "BY-C015", "C-026": "OT-C012", "C-027": "OT-C010", "C-028": "NS-C001",
+    "C-029": "AO-C001", "C-030": "AO-C002", "C-033": "AB-C001", "C-035": "HL-B002", "C-038": "MG-C003", "C-039": "SN-C004",
+    "C-040": "SN-C003", "C-042": "SN-C001",
+  }); }
+const GEO_NUM = {
     "G-001": "BY-G001", "G-002": "BY-G002", "G-003": "BY-G003", "G-004": "BY-G004", "G-005": "BY-G005", "G-006": "BY-G006",
     "G-007": "BY-G007", "G-008": "BY-G008", "G-009": "BY-G009", "G-010": "BY-G010", "G-011": "BY-G011", "G-012": "BY-G013",
     "G-013": "BY-G014", "G-014": "AO-G001", "G-015": "AO-G002", "G-016": "SN-G001", "G-017": "SN-G002", "G-018": "SN-G003",
@@ -163,8 +172,9 @@ function setupGeoNumber() {
     "G-031": "AB-G003", "G-032": "AB-G005", "G-033": "AB-G006", "G-034": "AB-G007", "G-035": "AB-G008", "G-036": "AB-G009",
     "G-037": "AB-G010", "G-038": "MG-G001", "G-039": "MG-G002", "G-040": "MG-G003", "G-041": "MH-G001", "G-042": "KV-G001",
     "G-043": "KS-G001", "G-044": "KS-G002", "G-045": "AG-G001", "G-046": "HL-G001", "G-047": "ZL-G001",
-  };
-  const sh = SpreadsheetApp.getActive().getSheetByName("ジオサイト");
+};
+function addNumberColumn(sheetName, NUM) {
+  const sh = SpreadsheetApp.getActive().getSheetByName(sheetName);
   const head = sh.getRange(1, 1, 1, sh.getLastColumn()).getValues()[0], idCol = head.indexOf("ID");
   let col = head.indexOf("管理番号");
   if (col < 0) { sh.insertColumnAfter(idCol + 1); col = idCol + 1; sh.getRange(1, col + 1).setValue("管理番号"); }
