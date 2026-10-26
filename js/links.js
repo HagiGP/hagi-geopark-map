@@ -71,19 +71,24 @@ function areaLinkScene(a){
 }
 
 // ---- サイトの詳しい説明に「つながる場所」の一覧（ひとこと付き）。名前をタップすると、そのサイトへ ----
-// ジオサイト：つながる文化・生態サイト → 同じ地質体のジオサイト（長いので、たたむ）
+// ジオサイト：つながる文化・生態サイト → 同じ地質体のジオサイト（長いので、たたむ）。どれも近い順、距離を添える
 // 文化・生態サイト：つながるジオサイト（地質区分でつないだものは、その地質体のジオサイトをまとめて）
 const groupLabel = g=> String(g || "").replace(/^[A-Z]+_/, "");   // 「BY_阿武火山岩（後期）」→「阿武火山岩（後期）」
+let relFrom = null;   // いま開いているサイトの位置（一覧を近い順に並べ、距離を添える）
+const relMarker = id=> allMarkers.find(x=> x.name === LINKS.sites[id]?.name);
+const relDist = id=>{ const o = relMarker(id); return o && relFrom ? relFrom.distanceTo(o.marker.getLatLng()) : Infinity; };   // 場所を出さない生態サイトは最後
+const byNear = (a, b)=> relDist(a) - relDist(b);
 function relItem(id, why){
   const s = LINKS.sites[id]; if (!s) return "";
-  const o = allMarkers.find(x=> x.name === s.name);
+  const o = relMarker(id), d = relDist(id);
   const color = o ? SITE_CATS[o.cat]?.fill : (s.kind === "生態サイト" ? "#2e7d4f" : "#888");
   return `<li class="rel-item${o ? " go" : ""}" data-name="${esc(s.name)}"><span class="poi-dot" style="background:${color}"></span>`+
-    `<span class="rel-name">${esc(s.name)}<small>${esc(s.kind)}</small>${why ? `<i>${esc(why)}</i>` : ""}</span></li>`;
+    `<span class="rel-name">${esc(s.name)}<small>${esc(s.kind)}${isFinite(d) ? "・" + (d < 1000 ? Math.round(d / 10) * 10 + "m" : (d / 1000).toFixed(1) + "km") : ""}</small>${why ? `<i>${esc(why)}</i>` : ""}</span></li>`;
 }
 function appendRelated(box, o){
   const id = siteIdOf(o.name); if (!id) return;
   const me = LINKS.sites[id];
+  relFrom = o.marker.getLatLng();
   let h = "";
   if (me.kind === "ジオサイト"){
     const hits = [];   // [{ to, why }]（同じ相手は1回だけ）
@@ -91,16 +96,16 @@ function appendRelated(box, o){
       if (l.earth.some(t=> t === id || t === me.group) && LINKS.sites[l.to] && !hits.some(x=> x.to === l.to)) hits.push(l);
     });
     ["文化サイト", "生態サイト"].forEach(kind=>{
-      const its = hits.filter(l=> LINKS.sites[l.to].kind === kind).map(l=> relItem(l.to, l.why));
+      const its = hits.filter(l=> LINKS.sites[l.to].kind === kind).sort((a, b)=> byNear(a.to, b.to)).map(l=> relItem(l.to, l.why));
       if (its.length) h += `<div class="rel-sub">この大地とつながる${kind === "文化サイト" ? "人の暮らし" : "生きもの"}</div><ul class="rel-list">${its.join("")}</ul>`;
     });
-    const same = me.group ? geoIdsOf(me.group).filter(g=> g !== id) : [];
+    const same = me.group ? geoIdsOf(me.group).filter(g=> g !== id).sort(byNear) : [];
     if (same.length) h += `<details class="rel-more"><summary>同じ${esc(groupLabel(me.group))}のジオサイト（${same.length}か所）</summary><ul class="rel-list">${same.map(g=> relItem(g)).join("")}</ul></details>`;
   } else {
     LINKS.links.filter(l=> l.to === id).forEach(l=>{
       h += l.why ? `<p class="rel-why">${esc(l.why)}</p>` : "";
       l.earth.forEach(t=>{
-        const geos = geoIdsOf(t); if (!geos.length) return;
+        const geos = geoIdsOf(t).sort(byNear); if (!geos.length) return;
         if (geos.length === 1 && geos[0] === t) h += `<ul class="rel-list">${relItem(t)}</ul>`;
         else h += `<details class="rel-more"${geos.length <= 4 ? " open" : ""}><summary>${esc(groupLabel(t))}のジオサイト（${geos.length}か所）</summary><ul class="rel-list">${geos.map(g=> relItem(g)).join("")}</ul></details>`;
       });
