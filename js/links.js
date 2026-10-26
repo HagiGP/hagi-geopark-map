@@ -2,15 +2,15 @@
    正本＝スプレッドシートの「つながり」シート（データベースのページと同じ Apps Script から読む。前回分は端末に残して、すぐ使う）。
    「大地」の欄はジオサイトのIDか地質区分（「、」で複数）。地質区分なら、その地質区分のジオサイトすべてとつながる。
    地図では、サイトを選んだときに関連するサイトをささやかに点滅させ、地域の解説の最後には、その地域のつながりをまとめて点滅させる */
-const LINKS = { links:[], sites:{} };   // links: [{ earth:[ID or 地質区分], to:ID }]、sites: ID → { name, kind, group }
+const LINKS = { links:[], sites:{} };   // links: [{ earth:[ID or 地質区分], to:ID, why:ひとこと }]、sites: ID → { name, kind, group }
 (function loadLinks(){
-  try { const c = JSON.parse(localStorage.getItem("hagiLinksCache")); if (c) Object.assign(LINKS, c); } catch(e){}
+  try { const c = JSON.parse(localStorage.getItem("hagiLinksCache2")); if (c) Object.assign(LINKS, c); } catch(e){}
   setTimeout(()=>{   // 地図の読み込みを邪魔しないよう、少し待ってから
     fetch(PATROL_URL + "?action=data").then(r=> r.json()).then(r=>{
       if (!r.ok) return;
       const sites = {}, groups = (r.sheets["地質区分"] || []).map(g=> g["地質区分"]);
       ["ジオサイト", "文化サイト", "生態サイト"].forEach(k=> (r.sheets[k] || []).forEach(x=> sites[x.ID] = { name:x["名前"], kind:k, group:x["地質区分"] || "", num:x["管理番号"] || x.ID || "" }));   // ID＝管理番号（BY-C017 など）
-      const links = (r.sheets["つながり"] || []).map(l=> ({ earth:String(l["大地"] || "").split(/[、，,]/).map(s=> s.trim()).filter(Boolean), to:l["相手"] }));
+      const links = (r.sheets["つながり"] || []).map(l=> ({ earth:String(l["大地"] || "").split(/[、，,]/).map(s=> s.trim()).filter(Boolean), to:l["相手"], why:l["ひとこと"] || "" }));
       // 管理番号の頭の記号（BY、AO…）＝つながる地質体（花こう岩は MG・MH。OT は複数の地質体なので「つながり」シートだけ）。データベースのページと同じ
       const ALIAS = { MG:"CG", MH:"CH" };
       Object.entries(sites).forEach(([id, s])=>{
@@ -20,7 +20,7 @@ const LINKS = { links:[], sites:{} };   // links: [{ earth:[ID or 地質区分],
         if (!own.some(l=> l.earth.some(t=> t === g || sites[t]?.group === g))) links.push({ earth:[g], to:id });
       });
       Object.assign(LINKS, { links, sites });
-      try { localStorage.setItem("hagiLinksCache", JSON.stringify({ links, sites })); } catch(e){}
+      try { localStorage.setItem("hagiLinksCache2", JSON.stringify({ links, sites })); } catch(e){}
     }).catch(()=>{});
   }, 2500);
 })();
@@ -68,4 +68,47 @@ function areaLinkScene(a){
   const names = allMarkers.filter(o=> (o.cat === "ジオサイト" || o.cat === "文化サイト") && linked.has(o.name) && inArea(o)).map(o=> o.name);
   if (names.length < 2) return null;
   return { text:"この地域の大地と、その大地とつながる人の暮らしの場所です。\n気になるところを、地図で選んでみよう！", fit:names, blink:names, noPan:true, photo:false };
+}
+
+// ---- サイトの詳しい説明に「つながる場所」の一覧（ひとこと付き）。名前をタップすると、そのサイトへ ----
+// ジオサイト：つながる文化・生態サイト → 同じ地質体のジオサイト（長いので、たたむ）
+// 文化・生態サイト：つながるジオサイト（地質区分でつないだものは、その地質体のジオサイトをまとめて）
+const groupLabel = g=> String(g || "").replace(/^[A-Z]+_/, "");   // 「BY_阿武火山岩（後期）」→「阿武火山岩（後期）」
+function relItem(id, why){
+  const s = LINKS.sites[id]; if (!s) return "";
+  const o = allMarkers.find(x=> x.name === s.name);
+  const color = o ? SITE_CATS[o.cat]?.fill : (s.kind === "生態サイト" ? "#2e7d4f" : "#888");
+  return `<li class="rel-item${o ? " go" : ""}" data-name="${esc(s.name)}"><span class="poi-dot" style="background:${color}"></span>`+
+    `<span class="rel-name">${esc(s.name)}<small>${esc(s.kind)}</small>${why ? `<i>${esc(why)}</i>` : ""}</span></li>`;
+}
+function appendRelated(box, o){
+  const id = siteIdOf(o.name); if (!id) return;
+  const me = LINKS.sites[id];
+  let h = "";
+  if (me.kind === "ジオサイト"){
+    const hits = [];   // [{ to, why }]（同じ相手は1回だけ）
+    LINKS.links.forEach(l=>{
+      if (l.earth.some(t=> t === id || t === me.group) && LINKS.sites[l.to] && !hits.some(x=> x.to === l.to)) hits.push(l);
+    });
+    ["文化サイト", "生態サイト"].forEach(kind=>{
+      const its = hits.filter(l=> LINKS.sites[l.to].kind === kind).map(l=> relItem(l.to, l.why));
+      if (its.length) h += `<div class="rel-sub">この大地とつながる${kind === "文化サイト" ? "人の暮らし" : "生きもの"}</div><ul class="rel-list">${its.join("")}</ul>`;
+    });
+    const same = me.group ? geoIdsOf(me.group).filter(g=> g !== id) : [];
+    if (same.length) h += `<details class="rel-more"><summary>同じ${esc(groupLabel(me.group))}のジオサイト（${same.length}か所）</summary><ul class="rel-list">${same.map(g=> relItem(g)).join("")}</ul></details>`;
+  } else {
+    LINKS.links.filter(l=> l.to === id).forEach(l=>{
+      h += l.why ? `<p class="rel-why">${esc(l.why)}</p>` : "";
+      l.earth.forEach(t=>{
+        const geos = geoIdsOf(t); if (!geos.length) return;
+        if (geos.length === 1 && geos[0] === t) h += `<ul class="rel-list">${relItem(t)}</ul>`;
+        else h += `<details class="rel-more"${geos.length <= 4 ? " open" : ""}><summary>${esc(groupLabel(t))}のジオサイト（${geos.length}か所）</summary><ul class="rel-list">${geos.map(g=> relItem(g)).join("")}</ul></details>`;
+      });
+    });
+    if (h) h = `<div class="rel-sub">つながる大地</div>` + h;
+  }
+  if (!h) return;
+  const sec = document.createElement("div"); sec.className = "rel-box"; sec.innerHTML = h;
+  sec.querySelectorAll(".rel-item.go").forEach(li=> li.onclick = ()=>{ const x = allMarkers.find(m=> m.name === li.dataset.name); if (x) flyToSite(x); });
+  box.appendChild(sec);
 }

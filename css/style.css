@@ -608,6 +608,20 @@ body.touring .gp-range { stroke: #fff; stroke-width: 3; fill-opacity: 0; filter:
 .sel-ring { width: 40px; height: 40px; border-radius: 50%; border: 3px solid #c30d23; box-shadow: 0 0 0 2px #fff, 0 0 8px rgba(0,0,0,.4);
   animation: selPulse 1.4s ease-in-out infinite; }
 @keyframes selPulse { 50% { transform: scale(1.18); } }
+/* 見どころの詳しい説明の「つながる場所」（js/links.js） */
+.rel-box { margin: 14px 0 4px; padding-top: 10px; border-top: 1px solid #e5e5e5; }
+.rel-sub { font-family: var(--heavy); font-weight: 900; font-size: calc(13px + 1pt); margin: 10px 0 4px; color: #2f2d2b; }
+.rel-list { list-style: none; margin: 0; padding: 0; }
+.rel-item { display: flex; align-items: flex-start; gap: 8px; padding: 6px 4px; border-bottom: 1px solid #f0f0ee; }
+.rel-item.go { cursor: pointer; }
+.rel-item.go:hover { background: rgba(0,0,0,.04); }
+.rel-item .poi-dot { margin-top: 5px; flex: none; }
+.rel-name { font-weight: 700; font-size: calc(13px + 1pt); line-height: 1.4; }
+.rel-name small { font-weight: 400; color: #888; font-size: 11px; margin-left: 6px; }
+.rel-name i { display: block; font-style: normal; font-weight: 400; font-size: calc(11.5px + 1pt); color: #555; line-height: 1.5; margin-top: 1px; }
+.rel-why { margin: 8px 0 2px; font-size: calc(12px + 1pt); line-height: 1.55; color: #444; }
+.rel-more { margin: 4px 0; }
+.rel-more summary { cursor: pointer; font-size: calc(12px + 1pt); color: #555; padding: 4px 2px; }
 /* 選んだサイトと関連するサイト：ささやかに点滅（js/links.js） */
 .rel-ring { width: 30px; height: 30px; box-sizing: border-box; border-radius: 50%; border: 2.5px solid var(--rc); box-shadow: 0 0 0 1.5px #fff;
   animation: relBlink 1.6s ease-in-out infinite; }

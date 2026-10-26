@@ -423,6 +423,7 @@ function openSite(o, { pan = true } = {}){
   const ll = o.marker.getLatLng();
   selRing.setLatLng(ll).addTo(map);
   if (typeof showRelated === "function") showRelated(o);   // 関連するサイトをささやかに点滅（js/links.js）
+  if (typeof appendRelated === "function") appendRelated(box, o);   // 詳しい説明の下に「つながる場所」の一覧
   if (pan) revealOnMap(ll);
 }
 // タップした地点を、いつも「パネルに隠れていない部分」の真ん中へ動かす（動いたり動かなかったりしないように）
