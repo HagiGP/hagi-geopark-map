@@ -97,7 +97,6 @@ body.staff #appbar { background: #595857; }   /* 運営モード＝墨色でひ�
   border-left: 5px solid var(--ac, #1b6a4b);
   display: flex; flex-direction: column; gap: 1px;
 }
-.area-card-head:hover { background: #fafafa; }
 /* カードの見出しは、それぞれの色で塗る（地域紹介・大地） */
 .area-card-head { background: var(--ac, #1b6a4b); background: color-mix(in srgb, var(--ac, #1b6a4b) 70%, #4a4540); color: #fff; }   /* 色はくすませて落ち着いたトーンに */
 .area-card-head:hover { filter: brightness(1.08); }
