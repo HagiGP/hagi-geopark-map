@@ -93,9 +93,8 @@ function readIntervals() {
   const v = sh.getDataRange().getValues(); const j = v[0].indexOf("点検の対象"); if (j < 0) return [];
   return v.slice(1).filter(row => row[j] !== "").map(row => ({ 対象: row[j], ランク: row[j + 1], 月: Number(row[j + 2]) }));
 }
-function siteName(id) {
-  const sheet = { G: "ジオサイト", K: "解説板" }[String(id).charAt(0)]; if (!sheet) return "";
-  const r = readSheet(sheet).find(x => x["ID"] === id); return r ? r["名前"] : "";
+function siteName(id) {   // 点検の対象：ジオサイトか解説板
+  const r = readSheet("ジオサイト").concat(readSheet("解説板")).find(x => x["ID"] === id); return r ? r["名前"] : "";
 }
 function logSheet() {
   const ss = SpreadsheetApp.getActive(); let sh = ss.getSheetByName(LOG_SHEET);
@@ -151,36 +150,71 @@ function setupGeology() {
   GEO_SHEETS.forEach(name => Logger.log(name + "：" + readSheet(name).length + "件"));
 }
 
-// ジオサイトの管理番号（地質体ごとの番号。例：BY-G001＝阿武火山岩（後期）の1番）を入れるとき1回だけ（エディタで選んで「実行」）：
-// ジオサイトのシートの ID の右に「管理番号」の列を足して書き入れる。ID（G-001）は点検ログ・URLとのつなぎなので変えない
-function setupGeoNumber() { addNumberColumn("ジオサイト", GEO_NUM); }
-// 文化サイトの管理番号（頭の記号＝つながる地質体。OT＝複数の地質体）。番号の分からない文化サイトは空のまま（あとで書き入れる）
-function setupCultureNumber() { addNumberColumn("文化サイト", {
-    "C-001": "OT-C013", "C-002": "OT-C011", "C-003": "OT-C007", "C-004": "OT-C002", "C-005": "OT-C003", "C-006": "OT-C005",
-    "C-007": "OT-C008", "C-009": "BY-C017", "C-010": "BY-C018", "C-011": "BY-C002", "C-012": "BY-C001", "C-013": "BY-C009",
-    "C-014": "BY-C007", "C-015": "BY-C008", "C-016": "OT-C014", "C-018": "MG-C002", "C-019": "KG-C004", "C-020": "BY-C005",
-    "C-021": "BY-C016", "C-022": "BY-C006", "C-024": "BY-C015", "C-026": "OT-C012", "C-027": "OT-C010", "C-028": "NS-C001",
-    "C-029": "AO-C001", "C-030": "AO-C002", "C-033": "AB-C001", "C-035": "HL-B002", "C-038": "MG-C003", "C-039": "SN-C004",
-    "C-040": "SN-C003", "C-042": "SN-C001",
-  }); }
+// ---- IDを管理番号にそろえる（1回だけ。エディタで「migrateIds」を選んで「実行」） ----
+// 管理番号の頭の記号＝つながる地質体（例：BY-G001＝阿武火山岩（後期）のジオサイト、BY-C017＝同じ地質体とつながる文化サイト、OT＝複数の地質体）。
+// ジオサイト・文化サイト・生態サイトの「ID」を管理番号に置き換え、「管理番号」の列は消す。点検ログの「対象ID」、つながりの「大地」「相手」、
+// 文化サイトの「関連ジオサイト」も新しいIDに書き換える。ジオサイトには文化サイトと同じ「駐車場」「現地解説」の列を足す（現地解説は下書き、駐車場は空欄）
 const GEO_NUM = {
-    "G-001": "BY-G001", "G-002": "BY-G002", "G-003": "BY-G003", "G-004": "BY-G004", "G-005": "BY-G005", "G-006": "BY-G006",
-    "G-007": "BY-G007", "G-008": "BY-G008", "G-009": "BY-G009", "G-010": "BY-G010", "G-011": "BY-G011", "G-012": "BY-G013",
-    "G-013": "BY-G014", "G-014": "AO-G001", "G-015": "AO-G002", "G-016": "SN-G001", "G-017": "SN-G002", "G-018": "SN-G003",
-    "G-019": "SN-G004", "G-020": "SN-G005", "G-021": "YV-G001", "G-022": "KG-G001", "G-023": "KG-G002", "G-024": "KG-G003",
-    "G-025": "SU-G001", "G-026": "SU-G002", "G-027": "SU-G003", "G-028": "TV-G004", "G-029": "AB-G001", "G-030": "AB-G002",
-    "G-031": "AB-G003", "G-032": "AB-G005", "G-033": "AB-G006", "G-034": "AB-G007", "G-035": "AB-G008", "G-036": "AB-G009",
-    "G-037": "AB-G010", "G-038": "MG-G001", "G-039": "MG-G002", "G-040": "MG-G003", "G-041": "MH-G001", "G-042": "KV-G001",
-    "G-043": "KS-G001", "G-044": "KS-G002", "G-045": "AG-G001", "G-046": "HL-G001", "G-047": "ZL-G001",
+  "G-001": "BY-G001", "G-002": "BY-G002", "G-003": "BY-G003", "G-004": "BY-G004", "G-005": "BY-G005", "G-006": "BY-G006",
+  "G-007": "BY-G007", "G-008": "BY-G008", "G-009": "BY-G009", "G-010": "BY-G010", "G-011": "BY-G011", "G-012": "BY-G013",
+  "G-013": "BY-G014", "G-014": "AO-G001", "G-015": "AO-G002", "G-016": "SN-G001", "G-017": "SN-G002", "G-018": "SN-G003",
+  "G-019": "SN-G004", "G-020": "SN-G005", "G-021": "YV-G001", "G-022": "KG-G001", "G-023": "KG-G002", "G-024": "KG-G003",
+  "G-025": "SU-G001", "G-026": "SU-G002", "G-027": "SU-G003", "G-028": "TV-G004", "G-029": "AB-G001", "G-030": "AB-G002",
+  "G-031": "AB-G003", "G-032": "AB-G005", "G-033": "AB-G006", "G-034": "AB-G007", "G-035": "AB-G008", "G-036": "AB-G009",
+  "G-037": "AB-G010", "G-038": "MG-G001", "G-039": "MG-G002", "G-040": "MG-G003", "G-041": "MH-G001", "G-042": "KV-G001",
+  "G-043": "KS-G001", "G-044": "KS-G002", "G-045": "AG-G001", "G-046": "HL-G001", "G-047": "ZL-G001",
 };
-function addNumberColumn(sheetName, NUM) {
-  const sh = SpreadsheetApp.getActive().getSheetByName(sheetName);
-  const head = sh.getRange(1, 1, 1, sh.getLastColumn()).getValues()[0], idCol = head.indexOf("ID");
-  let col = head.indexOf("管理番号");
-  if (col < 0) { sh.insertColumnAfter(idCol + 1); col = idCol + 1; sh.getRange(1, col + 1).setValue("管理番号"); }
-  const n = sh.getLastRow() - 1, ids = sh.getRange(2, idCol + 1, n, 1).getValues();
-  const cur = sh.getRange(2, col + 1, n, 1).getValues();
-  const vals = ids.map((r, i) => [cur[i][0] || NUM[r[0]] || ""]);   // すでに入っている番号は上書きしない
-  sh.getRange(2, col + 1, n, 1).setValues(vals);
-  Logger.log("管理番号を入れた：" + vals.filter(v => v[0]).length + "件／" + n + "件。入らなかったID：" + ids.filter((r, i) => r[0] && !vals[i][0]).map(r => r[0]).join("、"));
+const CULT_NUM = {   // 2018年のサイト一覧・写真のファイル名から。番号の無かった7件（OT-C015・AB-C002〜C004・BY-C019・AO-C003・SN-C005）は新しく付けた番号
+  "C-001": "OT-C013", "C-002": "OT-C011", "C-003": "OT-C007", "C-004": "OT-C002", "C-005": "OT-C003", "C-006": "OT-C005",
+  "C-007": "OT-C008", "C-008": "OT-C015", "C-009": "BY-C017", "C-010": "BY-C018", "C-011": "BY-C002", "C-012": "BY-C001",
+  "C-013": "BY-C009", "C-014": "BY-C007", "C-015": "BY-C008", "C-016": "OT-C014", "C-017": "AB-C002", "C-018": "MG-C002",
+  "C-019": "KG-C004", "C-020": "BY-C005", "C-021": "BY-C016", "C-022": "BY-C006", "C-023": "BY-C019", "C-024": "BY-C015",
+  "C-026": "OT-C012", "C-027": "OT-C010", "C-028": "NS-C001", "C-029": "AO-C001", "C-030": "AO-C002", "C-031": "AO-C003",
+  "C-032": "AB-C003", "C-033": "AB-C001", "C-034": "AB-C004", "C-035": "HL-B002", "C-038": "MG-C003", "C-039": "SN-C004",
+  "C-040": "SN-C003", "C-041": "SN-C005", "C-042": "SN-C001",
+};
+const GEO_KAISETSU = {   // 現地解説（解説板）の有無の下書き：近く（300m以内）に解説板があるか、2018年の一覧で解説板あり
+  "BY-G001": "Y", "BY-G002": "Y", "BY-G003": "Y", "BY-G004": "Y", "BY-G005": "Y", "BY-G006": "Y", "BY-G007": "Y", "BY-G008": "Y",
+  "BY-G009": "Y", "BY-G010": "N", "BY-G011": "N", "BY-G013": "N", "BY-G014": "N", "AO-G001": "N", "AO-G002": "Y", "SN-G001": "N",
+  "SN-G002": "N", "SN-G003": "N", "SN-G004": "N", "SN-G005": "N", "YV-G001": "N", "KG-G001": "Y", "KG-G002": "Y", "KG-G003": "N",
+  "SU-G001": "Y", "SU-G002": "Y", "SU-G003": "N", "TV-G004": "N", "AB-G001": "N", "AB-G002": "N", "AB-G003": "N", "AB-G005": "N",
+  "AB-G006": "N", "AB-G007": "N", "AB-G008": "N", "AB-G009": "N", "AB-G010": "N", "MG-G001": "N", "MG-G002": "N", "MG-G003": "N",
+  "MH-G001": "N", "KV-G001": "N", "KS-G001": "N", "KS-G002": "N", "AG-G001": "N", "HL-G001": "N", "ZL-G001": "N",
+};
+function migrateIds() {
+  const ss = SpreadsheetApp.getActive(), map = {};
+  [["ジオサイト", GEO_NUM], ["文化サイト", CULT_NUM], ["生態サイト", {}]].forEach(([name, table]) => {
+    const sh = ss.getSheetByName(name), v = sh.getDataRange().getValues(), head = v[0];
+    const idc = head.indexOf("ID"), nc = head.indexOf("管理番号");
+    for (let r = 1; r < v.length; r++) {
+      const old = v[r][idc]; if (!old) continue;
+      const nu = (nc >= 0 && v[r][nc]) || table[old] || "";
+      if (nu && nu !== old) { map[old] = nu; sh.getRange(r + 1, idc + 1).setValue(nu); }
+    }
+    if (nc >= 0) sh.deleteColumn(nc + 1);
+    Logger.log(name + "：IDを管理番号にした " + Object.keys(map).filter(k => v.some(row => row[idc] === k)).length + "件");
+  });
+  const swap = s => String(s).split(/([、，,]\s*)/).map(t => map[t.trim()] || t).join("");   // 「、」区切りの各IDを置き換える
+  [["点検ログ", ["対象ID"]], ["つながり", ["大地", "相手"]], ["文化サイト", ["関連ジオサイト"]]].forEach(([name, cols]) => {
+    const sh = ss.getSheetByName(name); if (!sh || sh.getLastRow() < 2) return;
+    const v = sh.getDataRange().getValues(), head = v[0];
+    cols.forEach(c => {
+      const j = head.indexOf(c); if (j < 0) return;
+      const col = v.slice(1).map(row => [swap(row[j])]);
+      sh.getRange(2, j + 1, col.length, 1).setValues(col);
+    });
+    Logger.log(name + "：IDを書き換えた");
+  });
+  // ジオサイトに「駐車場」「現地解説」（文化サイトと同じく ランク の右）
+  const sh = ss.getSheetByName("ジオサイト");
+  let head = sh.getRange(1, 1, 1, sh.getLastColumn()).getValues()[0];
+  if (head.indexOf("駐車場") < 0) {
+    const rk = head.indexOf("ランク");
+    sh.insertColumnsAfter(rk + 1, 2); sh.getRange(1, rk + 2, 1, 2).setValues([["駐車場", "現地解説"]]);
+    const n = sh.getLastRow() - 1, ids = sh.getRange(2, head.indexOf("ID") + 1, n, 1).getValues();
+    sh.getRange(2, rk + 3, n, 1).setValues(ids.map(r => [GEO_KAISETSU[r[0]] || ""]));
+    const yn = SpreadsheetApp.newDataValidation().requireValueInList(["Y", "N"], true).build();
+    sh.getRange(2, rk + 2, n + 200, 2).setDataValidation(yn);
+    Logger.log("ジオサイトに 駐車場・現地解説 の列を足した（駐車場は空欄。Y か N を入れてください）");
+  }
 }

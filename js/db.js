@@ -11,7 +11,7 @@ const KINDS = [   // 種類の並び・色（地図の印と同じ色）
   { name:"展望地",     color:"#1f78b4" },
   { name:"解説板",     color:"#b5121b" },
 ];
-const SHOW_FIELDS = ["地区", "地域紹介", "ランク", "管理番号", "保全対象", "主要", "祭神", "由緒", "例祭日", "文化財指定", "駐車場", "現地解説",
+const SHOW_FIELDS = ["地区", "地域紹介", "ランク", "保全対象", "主要", "祭神", "由緒", "例祭日", "文化財指定", "駐車場", "現地解説",
                      "関連ジオサイト", "関連サイト", "設置者・管理者", "設置年"];   // 詳細の表に出す項目（空欄は出さない）
 const ls = {
   get(k, d){ try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch(e){ return d; } },
@@ -89,7 +89,7 @@ const groupOf = r=> r["地質区分"] ? st.groups.find(g=> g["地質区分"] ===
 // つながり：「大地」の欄はジオサイトのIDか地質区分（「、」で複数）。地質区分なら、その地質区分のジオサイトすべてとつながる
 const earthOf = l=> String(l["大地"] || "").split(/[、，,]/).map(s=> s.trim()).filter(Boolean);
 const linkHitsGeo = (l, g)=> earthOf(l).some(t=> t === g.ID || t === g["地質区分"]);
-// 管理番号の頭の記号（BY、AO…）＝つながる地質体（花こう岩は MG・MH。ジオサイトの番号と同じ）。OT は複数の地質体なので「つながり」シートに書く
+// ID（＝管理番号）の頭の記号（BY、AO…）＝つながる地質体（花こう岩は MG・MH。ジオサイトの番号と同じ）。OT は複数の地質体なので「つながり」シートに書く
 const CODE_ALIAS = { MG:"CG", MH:"CH" };
 const groupOfCode = num=>{
   const c = String(num || "").split("-")[0]; if (!c || c === "OT") return "";
@@ -98,7 +98,7 @@ const groupOfCode = num=>{
 function numberLinks(){
   const out = [];
   st.rows.filter(r=> r.種類 === "文化サイト" || r.種類 === "生態サイト").forEach(r=>{
-    const g = groupOfCode(r["管理番号"]); if (!g) return;
+    const g = groupOfCode(r["管理番号"] || r.ID); if (!g) return;   // ID＝管理番号（BY-C017 など）
     // 「つながり」シートに、同じ地質体（かその地質体のジオサイト）が書いてあれば、そちら（ひとこと付き）を使う
     const own = st.links.filter(l=> l["相手"] === r.ID);
     if (own.some(l=> earthOf(l).some(t=> t === g || st.rows.some(y=> y.ID === t && y["地質区分"] === g)))) return;
@@ -124,7 +124,7 @@ const PATROL_START = new Date("2026-10-24T00:00:00+09:00");   // 点検の数え
 const parseTime = s=> s ? new Date(String(s).replace(" ", "T") + ":00+09:00") : null;
 const fmtDay = d=> `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
 function patrolOf(r){
-  if (!st.status || !/^[GK]-/.test(r.ID)) return null;
+  if (!st.status || !["ジオサイト", "解説板"].includes(r.種類)) return null;
   const logs = st.status.logs.filter(l=> l["対象ID"] === r.ID).sort((a, b)=> parseTime(b["日時"]) - parseTime(a["日時"]));
   const rank = r.種類 === "解説板" ? "A" : r["ランク"];   // 解説板はランクA扱い（地図の js/patrol.js と同じ）
   const iv = st.status.intervals.find(x=> x["対象"] === "ジオサイト" && x["ランク"] === rank);
