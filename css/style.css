@@ -446,6 +446,8 @@ body.touring #map { left: 0; bottom: 0; }
   animation: tour-ring 1.4s ease-out infinite;
 }
 @keyframes tour-ring { 0% { transform: scale(.55); opacity: 1; } 100% { transform: scale(1.15); opacity: .15; } }
+/* 解説中のジオパークの範囲の線：塗りの色と混ざらないよう白く、塗りはなし */
+body.touring .gp-range { stroke: #fff; stroke-width: 3; fill-opacity: 0; filter: drop-shadow(0 0 1.5px rgba(0,0,0,.6)); }
 /* 点滅（大地の成り立ちの最後など）：ひとつずつ灯ってから点滅 */
 .tour-blink {
   width: 30px; height: 30px; box-sizing: border-box; border-radius: 50%;
