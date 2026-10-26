@@ -439,7 +439,7 @@ function openDeepLink(){
   const params = new URLSearchParams(location.search);
   const areaId = params.get("area"), siteName = params.get("site"), tourId = params.get("tour");
   if (tourId === "overview"){ startOverviewTour(); return; }   // ?tour=overview ＝全体の概要の解説から始める
-  if (/^st[1-4]$/.test(tourId || "")){ startStageTour(tourId); return; }   // ?tour=st1〜st4 ＝大地の成り立ちの解説
+  if (staff && /^st[1-4]$/.test(tourId || "")){ startStageTour(tourId); return; }   // ?tour=st1〜st4 ＝大地の成り立ちの解説（確認が終わるまで運営モードだけ）
   if (tourId && areaById[tourId]){ startTour(tourId); return; }   // ?tour=ryu ＝解説から始める（講演・授業用）
   if (areaId && areaById[areaId]){ enterArea(areaId); return; }
   if (siteName){
@@ -1098,12 +1098,14 @@ function buildAreaGuide(){
   ob.innerHTML = `<span class="ts-icon">▶</span>萩ジオパークの概要を地図で見る`;
   ob.onclick = ()=> startOverviewTour();
   listEl.appendChild(ob);
-  // 大地の成り立ち（古い順に4本）
+  // 大地の成り立ち（古い順に4本）。中身の確認が終わるまでは運営モードだけに出す（確認後は if (staff) を外す）
+  if (staff){
   const sw = document.createElement("div"); sw.className = "stage-tours";
   sw.innerHTML = `<h4>大地の成り立ちを地図で見る</h4>` + STAGE_TOURS.map(s=>
     `<button class="tour-start" data-st="${s.id}" style="--sc:${s.color}"><span class="ts-icon">▶</span>${esc(s.name)}</button>`).join("");
   sw.querySelectorAll("button").forEach(b=> b.onclick = ()=> startStageTour(b.dataset.st));
   listEl.appendChild(sw);
+  }
   AREAS.forEach(a=>{
     const card = document.createElement("div"); card.className="area-card"; card.dataset.id=a.id;
     if (openCards.includes(a.id)) card.classList.add("open");
