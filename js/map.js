@@ -1067,11 +1067,27 @@ function appendSiteList(body, a){
 // 地域紹介：4エリアのカード（テーマ・リード文・解説ボタン・視点・見どころ一覧）。現在地があれば近い順にも並べられる
 // 大地の成り立ちの解説（古い順。場面は data/tour_stages.geojson、色は塗りと点滅の色）
 const STAGE_TOURS = [
-  { id:"st1", name:"南の海から来た大地",           color:"#3b78c4" },
-  { id:"st2", name:"大陸のマグマが生んだ大地",     color:"#d0507a" },
-  { id:"st3", name:"日本海のマグマが生んだ大地",   color:"#7b4bb7" },
-  { id:"st4", name:"萩・阿武のマグマが生んだ大地", color:"#f08a1c" },
+  { id:"st1", name:"南の海から来た大地",           color:"#3b78c4", age:"約3億5千万〜2億6千万年前" },
+  { id:"st2", name:"大陸のマグマが生んだ大地",     color:"#d0507a", age:"約1億年前" },
+  { id:"st3", name:"日本海のマグマが生んだ大地",   color:"#7b4bb7", age:"約2000万〜800万年前" },
+  { id:"st4", name:"萩・阿武のマグマが生んだ大地", color:"#f08a1c", age:"約200万年前〜" },
 ];
+// 「大地」のタブ：大地の成り立ちの解説（古い順に4本）。中身の確認が終わるまでは運営モードだけに出す（下の if (staff) buildStageTab()）
+function buildStageTab(){
+  TAB_TITLES.earth = "大地の成り立ち";
+  const btn = document.createElement("button");
+  btn.className = "dock-btn one"; btn.dataset.tab = "earth"; btn.setAttribute("aria-controls", "panel");
+  btn.innerHTML = `<span>大地</span>`;
+  btn.onclick = ()=> openTab === "earth" ? closeTab() : showTab("earth");
+  const dock = document.getElementById("dock");
+  dock.insertBefore(btn, dock.querySelector('.dock-btn[data-tab="areas"]'));   // 地域紹介の前（大地が土台）
+  const sec = document.createElement("section"); sec.className = "tab"; sec.dataset.tab = "earth";
+  sec.innerHTML = `<p class="stage-lead">萩ジオパークの大地は、時代の異なる4つの出来事でできています。古い順にたどってみよう。</p>` +
+    `<div class="stage-tours">` + STAGE_TOURS.map(s=>
+      `<button class="tour-start" data-st="${s.id}" style="--sc:${s.color}"><span class="ts-icon">▶</span><span class="st-name">${esc(s.name)}<small>${esc(s.age)}</small></span></button>`).join("") + `</div>`;
+  sec.querySelectorAll("button").forEach(b=> b.onclick = ()=> startStageTour(b.dataset.st));
+  document.querySelector("#panel .panel-body").appendChild(sec);
+}
 function buildAreaGuide(){
   const listEl = document.getElementById("areaList");
   // 作り直しても（現在地の取得後など）、開いていたカード・一覧はそのまま
@@ -1098,14 +1114,6 @@ function buildAreaGuide(){
   ob.innerHTML = `<span class="ts-icon">▶</span>萩ジオパークの概要を地図で見る`;
   ob.onclick = ()=> startOverviewTour();
   listEl.appendChild(ob);
-  // 大地の成り立ち（古い順に4本）。中身の確認が終わるまでは運営モードだけに出す（確認後は if (staff) を外す）
-  if (staff){
-  const sw = document.createElement("div"); sw.className = "stage-tours";
-  sw.innerHTML = `<h4>大地の成り立ちを地図で見る</h4>` + STAGE_TOURS.map(s=>
-    `<button class="tour-start" data-st="${s.id}" style="--sc:${s.color}"><span class="ts-icon">▶</span>${esc(s.name)}</button>`).join("");
-  sw.querySelectorAll("button").forEach(b=> b.onclick = ()=> startStageTour(b.dataset.st));
-  listEl.appendChild(sw);
-  }
   AREAS.forEach(a=>{
     const card = document.createElement("div"); card.className="area-card"; card.dataset.id=a.id;
     if (openCards.includes(a.id)) card.classList.add("open");
@@ -1206,6 +1214,7 @@ function closeTab({ pan = true } = {}){
   if (typeof setFoodMode === "function") setFoodMode(false);
   if (AREAS.length) requestAnimationFrame(positionAreaLabels);
 }
+if (staff) buildStageTab();   // 「大地」のタブ（確認が終わるまで運営モードだけ。確認後は if (staff) を外す）
 document.querySelectorAll(".dock-btn").forEach(b=>{
   b.onclick = ()=> openTab === b.dataset.tab ? closeTab() : showTab(b.dataset.tab);   // もう一度押すと閉じる
 });

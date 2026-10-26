@@ -696,7 +696,10 @@ body.touring .leaflet-pane-place-pane, body.touring .leaflet-pane-arealabel-pane
 /* 大地の成り立ちの解説（4本） */
 .stage-tours { margin: 0 8px 12px; }
 .stage-tours h4 { margin: 2px 0 6px; font-size: 13px; color: #555; }
-.stage-tours .tour-start { width: 100%; margin: 0 0 6px; justify-content: flex-start; border-left: 6px solid var(--sc); }
+.stage-tours .tour-start { width: 100%; margin: 0 0 8px; justify-content: flex-start; border-left: 6px solid var(--sc); text-align: left; }
+.stage-tours .st-name { display: flex; flex-direction: column; gap: 2px; }
+.stage-tours .st-name small { font-size: 11px; color: #bbb; font-family: inherit; }
+.stage-lead { margin: 4px 8px 12px; font-size: calc(13px + 1pt); line-height: 1.6; color: #444; }
 
 /* ---- パトロール（運営モード：js/patrol.js） ---- */
 .dock-btn { position: relative; }
