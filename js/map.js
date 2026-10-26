@@ -439,7 +439,7 @@ function openDeepLink(){
   const params = new URLSearchParams(location.search);
   const areaId = params.get("area"), siteName = params.get("site"), tourId = params.get("tour");
   if (tourId === "overview"){ startOverviewTour(); return; }   // ?tour=overview ＝全体の概要の解説から始める
-  if (staff && /^st[1-4]$/.test(tourId || "")){ startStageTour(tourId); return; }   // ?tour=st1〜st4 ＝大地の成り立ちの解説（確認が終わるまで運営モードだけ）
+  if (/^st[1-4]$/.test(tourId || "")){ startStageTour(tourId); return; }   // ?tour=st1〜st4 ＝大地の成り立ちの解説
   if (tourId && areaById[tourId]){ startTour(tourId); return; }   // ?tour=ryu ＝解説から始める（講演・授業用）
   if (areaId && areaById[areaId]){ enterArea(areaId); return; }
   if (siteName){
@@ -1072,7 +1072,7 @@ const STAGE_TOURS = [
   { id:"st3", name:"日本海のマグマが生んだ大地",   color:"#7b4bb7", age:"約2000万〜800万年前" },
   { id:"st4", name:"萩・阿武のマグマが生んだ大地", color:"#f08a1c", age:"約200万年前〜" },
 ];
-// 「大地」のタブ：大地の成り立ちの解説（古い順に4本）。中身の確認が終わるまでは運営モードだけに出す（下の if (staff) buildStageTab()）
+// 「大地」のタブ：大地の成り立ちの解説（古い順に4本）
 function buildStageTab(){
   TAB_TITLES.earth = "大地の成り立ち";
   const btn = document.createElement("button");
@@ -1214,7 +1214,7 @@ function closeTab({ pan = true } = {}){
   if (typeof setFoodMode === "function") setFoodMode(false);
   if (AREAS.length) requestAnimationFrame(positionAreaLabels);
 }
-if (staff) buildStageTab();   // 「大地」のタブ（確認が終わるまで運営モードだけ。確認後は if (staff) を外す）
+buildStageTab();   // 「大地」のタブ
 document.querySelectorAll(".dock-btn").forEach(b=>{
   b.onclick = ()=> openTab === b.dataset.tab ? closeTab() : showTab(b.dataset.tab);   // もう一度押すと閉じる
 });
