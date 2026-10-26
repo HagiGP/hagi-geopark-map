@@ -12,6 +12,9 @@
      followLine true なら、line の組ごとに地図がその組の範囲へ移って描く（長い流れを寄りぎみに見せる）。mfollowLine はスマホのときだけ
      mfit スマホ（縦長の狭い画面）のときに寄せる範囲（無ければ fit）
      noPan true なら、収まらなくてもスライドしない（全体が入る倍率のまま）
+     keepInside true なら、陰影図の外をできるだけ出さない。photoAt：PCの写真の窓の隅（"tl" "bl" など）
+     padL：PCで地図の左をこの幅(px)空け、見せたい所を右寄りに置く（陰影図の無い東側を画面の外へ）
+     syncLines true なら、同じ組の矢印を同じ速さ（同時に着く）で描く
      photo 写真（サイト名 or 画像パス。false で出さない。省略時は point のサイトの写真）
    fit・ring などの名前の代わりに [緯度,経度] も使える
    操作：窓をタップ／→・Space・Enter・PageDown＝次へ、←・PageUp＝戻る、Esc＝終わる（講演のプレゼンリモコン対応） */
@@ -174,7 +177,7 @@ function showScene(i){
       const hasPhoto = tour.photoOk[i], size = map.getSize();
       // 「見せる範囲」＝画面から、字幕の窓（下）・写真の窓・名札が切れないぶん（左右）を除いた所
       const padB = box.offsetHeight + (mob ? 36 : 44);   // 字幕の窓＋名札・矢じりが窓にかからないぶん
-      const base = { pos:"", t: mob ? 64 : 80, l: mob ? 44 : 50, r: mob ? 44 : 40, b: padB };
+      const base = { pos:"", t: mob ? 64 : 80, l: mob ? 44 : (sc.padL || 50), r: mob ? 44 : 40, b: padB };
       let cands = [base], corners = null;
       if (hasPhoto && mob) cands = [{ ...base, pos:"top", t: MOB_PHOTO_BOTTOM + 12 }];   // スマホ：写真は上部
       else if (hasPhoto){
@@ -189,6 +192,10 @@ function showScene(i){
           tl: [12, 70, 12 + pw, 70 + ph],
         };
         cands = [{ ...base, pos:"auto" }];
+        if (sc.photoAt){   // photoAt：写真の窓をこの隅に置き、地図はその横（左右の隅なら列）を除いた範囲に合わせる
+          const p = sc.photoAt, w = (p[0] === "b" ? side : 12) + pw + 30;
+          cands = [{ ...base, pos:p, ...(p[1] === "l" ? { l: w } : { r: w }) }];
+        }
       }
       const p0 = map.project(b.getNorthWest(), 0), p1 = map.project(b.getSouthEast(), 0);
       // 写真の窓と重ねたくないもの＝この場面で実際に描くもの（指差し・図形・矢印・丸・名札）。無ければ範囲全体
@@ -197,6 +204,7 @@ function showScene(i){
         .forEach(n=>{ const t = tourTarget(n); if (t) focus.extend(t); });
       if (!focus.isValid()) focus.extend(b);
       // ある見せる範囲 a で、どの倍率・中心にするか（スライドするなら行き先も）と、その良さ
+      const inside = (tour.keepInside || sc.keepInside) && !sc.gsi;   // 陰影図の外を出さない（概要の解説、keepInside の場面）
       const plan = (a, bump = 0)=>{
         const aw = Math.max(size.x - a.l - a.r, 80), ah = Math.max(size.y - a.t - a.b, 80);
         const zW = Math.log2(aw / Math.max(p1.x - p0.x, 1e-6)), zH = Math.log2(ah / Math.max(p1.y - p0.y, 1e-6));
@@ -205,7 +213,7 @@ function showScene(i){
         let z = zFit;
         if (!follows(sc) && !sc.gsi && !sc.noPan && zFit < panComfortZoom() - 0.25) z = Math.min(panComfortZoom(), zFit + PAN_MAX_ZOOM);
         z = Math.min(14, z + bump);
-        if (tour.keepInside && !sc.gsi) z = Math.max(z, map.getBoundsZoom(GEOPARK_BOUNDS, true) + 0.05);   // 陰影図の外を出さない倍率まで
+        if (inside) z = Math.max(z, map.getBoundsZoom(GEOPARK_BOUNDS, true) + 0.05);   // 陰影図の外を出さない倍率まで
         const off = L.point((a.l + size.x - a.r) / 2 - size.x / 2, (a.t + size.y - a.b) / 2 - size.y / 2);   // 見せる範囲の中心のずれ
         const nw = map.project(b.getNorthWest(), z), se = map.project(b.getSouthEast(), z), mid = nw.add(se).divideBy(2);
         const at = p=> map.unproject(p.subtract(off), z);   // 地図上の点 p を「見せる範囲」の真ん中に置くときの中心
@@ -231,7 +239,7 @@ function showScene(i){
         if (to && map.project(at(from), z).distanceTo(map.project(at(to), z)) <= 60){ from = mid; to = null; }
         let c0 = at(from), c1 = to ? at(to) : null;
         const hide = mob ? box.offsetHeight + 4 : 0;   // スマホは字幕の窓の裏（横幅いっぱい）なら陰影図の外でも見えない
-        if (tour.keepInside && !sc.gsi){ c0 = keepInsideTiles(c0, z, true, hide)[0]; if (c1) c1 = keepInsideTiles(c1, z, true, hide)[0]; }
+        if (inside){ c0 = keepInsideTiles(c0, z, true, hide)[0]; if (c1) c1 = keepInsideTiles(c1, z, true, hide)[0]; }
         // 良さ：陰影図の端で中心を寄せられず、見せたい場所が真ん中からずれるほど減点。大きく見せられるほど加点
         const d = (c, p)=> map.project(c, z).distanceTo(map.project(at(p), z));
         const shift = d(c0, from) + (c1 ? d(c1, to) : 0);   // スライドの始まり・終わりそれぞれで、端に止められた分
@@ -406,8 +414,13 @@ function drawSceneLines(sc, onGroup){
       g.forEach(id=>{ const t = tourTarget(id); if (t) b.extend(t); });
       labelsOf(sc).forEach(lb=>{ if (b.pad(0.3).contains(lb.at)) b.extend(lb.at); });
       const sceneNo = tour.i;
-      const opts = { ...(tour.target?.[1] || {}) };
-      setTimeout(()=>{ if (tour && tour.i === sceneNo && b.isValid()) map.flyToBounds(b, { ...opts, duration:1.2 }); }, delay);
+      const opts = { ...(tour.target?.[1] || {}) };   // 見せる範囲（padL の場面は左を空けて右寄りに）
+      setTimeout(()=>{
+        if (!tour || tour.i !== sceneNo || !b.isValid()) return;
+        let { center, zoom } = map._getBoundsCenterZoom(b, opts);
+        if (sc.keepInside) center = keepInsideTiles(center, zoom, true)[0];   // 陰影図の外を出さない
+        map.flyTo(center, zoom, { duration:1.2 });
+      }, delay);
       setTimeout(()=>{   // 移動が終わっていなければ（端末が重い等）目的の範囲へ一気に移す
         if (tour && tour.i === sceneNo && (map._flyToFrame || map._animatingZoom)){ map.stop(); map.fitBounds(b, { ...opts, animate:false }); }
       }, delay + 1350);
@@ -415,7 +428,7 @@ function drawSceneLines(sc, onGroup){
     }
     g.filter(id=> tour.shapes[id] && !tour.keep["l:"+id]).forEach(id=>{
       const grp = tour.keep["l:"+id] = L.layerGroup().addTo(tour.keepLayer);
-      dur = Math.max(dur, drawArrowLine(id, delay, grp));
+      dur = Math.max(dur, drawArrowLine(id, delay, grp, false, sc.syncLines && g.length > 1 ? 3200 : 0));
     });
     delay += dur;
     onGroup?.(gi, delay);
@@ -426,7 +439,7 @@ function drawSceneLines(sc, onGroup){
 const shapeKey = (sc, id)=> `s:${id}:${sc.shapeOpacity ?? ""}`;   // 濃さが変わる場面では描き直す
 
 // 線を始点から描き、先端の矢じりを一緒に進める。delay ms 後に描き始め、描き終わるまでの時間(ms)を返す
-function drawArrowLine(id, delay, grp, instant){
+function drawArrowLine(id, delay, grp, instant, fixedD){
   const lc = tour.shapes[id].properties.color || "#b3200f";   // 線の色（既定は赤。川は青など）
   const ln = L.geoJSON(tour.shapes[id], { interactive:false, pane:"tourShapePane", renderer:tourRenderer,
     style:{ color:lc, weight:6, opacity:.95, lineCap:"round", className:"tour-line" } }).addTo(grp);
@@ -436,7 +449,7 @@ function drawArrowLine(id, delay, grp, instant){
     const along = lineSampler(l.getLatLngs());
     const short = along.px < 260;   // 短い矢印（季節風など）は小さめ・途中の矢じりなし
     p.style.strokeDasharray = 1e6; p.style.strokeDashoffset = 1e6;   // 描き始めるまで隠す
-    const D = instant ? 1 : short ? 1400 : 3200, sceneNo = tour.i; total = Math.max(total, D);
+    const D = instant ? 1 : fixedD || (short ? 1400 : 3200), sceneNo = tour.i; total = Math.max(total, D);
     const ease = t=> t<.5 ? 2*t*t : 1-Math.pow(-2*t+2,2)/2;
     setTimeout(()=>{
       if (!tour || grp._dead) return;
