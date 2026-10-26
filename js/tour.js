@@ -17,6 +17,7 @@
      padL：PCで地図の左をこの幅(px)空け、見せたい所を右寄りに置く（陰影図の無い東側を画面の外へ）
      syncLines true なら、同じ組の矢印を同じ速さ（同時に着く）で描く
      photo 写真（サイト名 or 画像パス。false で出さない。省略時は point のサイトの写真）
+     figure 図の画像パス。地図は動かさず、画面の真ん中に大きく出す（付加体のでき方など、地図で見せる必要のない場面）
    fit・ring などの名前の代わりに [緯度,経度] も使える
    操作：窓をタップ／→・Space・Enter・PageDown＝次へ、←・PageUp＝戻る、Esc＝終わる（講演のプレゼンリモコン対応） */
 
@@ -109,7 +110,7 @@ function endTour(){
   tour.layer.remove(); tour.keepLayer.remove();
   Object.values(tour.keep).forEach(g=> g._dead = true);
   document.getElementById("tourBox")?.remove();
-  hidePhoto();
+  hidePhoto(); document.getElementById("tourFigure")?.remove();
   tourGSI = false;
   document.body.classList.remove("touring");
   refresh();
@@ -293,7 +294,7 @@ function showScene(i){
     }
   }
   else { tour.target = null; tour.view = null; }
-  hidePhoto();
+  hidePhoto(); showFigure(sc);
   const t0 = Date.now();
   const draw = ()=>{
     if (!tour || tour.i !== i) return;
@@ -332,6 +333,18 @@ function photoHeight(sc, i){
   return imgH + 14 + (ph?.caption ? 24 : 0);
 }
 function hidePhoto(){ document.querySelectorAll("#tourPhoto").forEach(el=> el.remove()); }
+// figure：地図で見せる必要のない場面の図（模式図）を、画面の真ん中に大きく出す（地図は動かさず、うすく暗くする）
+function showFigure(sc){
+  document.getElementById("tourFigure")?.remove();
+  if (!sc || !sc.figure || !tour) return;
+  const w = document.createElement("div"); w.id = "tourFigure";
+  const fb = document.getElementById("tourBox").offsetHeight + 30;   // 字幕の窓の上の空きに収める
+  w.style.bottom = fb + "px";
+  w.innerHTML = `<figure><img alt=""></figure>`;
+  const img = w.querySelector("img"); img.src = sc.figure;
+  img.style.maxHeight = Math.max(160, innerHeight - 64 - fb - 40) + "px";
+  document.body.appendChild(w);
+}
 function showPhoto(sc, i){
   const ph = scenePhoto(sc); if (!ph) return;
   const img = new Image();
