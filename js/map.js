@@ -1067,12 +1067,16 @@ function appendSiteList(body, a){
 // 地域紹介：4エリアのカード（テーマ・リード文・解説ボタン・視点・見どころ一覧）。現在地があれば近い順にも並べられる
 // 大地の成り立ちの解説（古い順。場面は data/tour_stages.geojson、色は塗りと点滅の色）
 const STAGE_TOURS = [
-  { id:"st1", name:"南の海から来た大地",           color:"#3b78c4", age:"約3億5千万〜2億6千万年前" },
-  { id:"st2", name:"大陸のマグマが生んだ大地",     color:"#d0507a", age:"約1億年前" },
-  { id:"st3", name:"日本海のマグマが生んだ大地",   color:"#7b4bb7", age:"約2000万〜800万年前" },
-  { id:"st4", name:"萩・阿武のマグマが生んだ大地", color:"#f08a1c", age:"約200万年前〜" },
+  { id:"st1", name:"南の海から来た大地",           color:"#3b78c4", age:"約3億5千万〜2億6千万年前",
+    lead:"萩の大地の土台は、はるか南の海から来ました。サンゴ礁の石灰岩や深海の地層が、プレートの動きで大陸の縁に付け加わった大地です。" },
+  { id:"st2", name:"大陸のマグマが生んだ大地",     color:"#d0507a", age:"約1億年前",
+    lead:"日本海がまだなかったころ、大陸の東の端で巨大な噴火がくり返されました。萩の大地の大部分は、このころのマグマの活動でできています。" },
+  { id:"st3", name:"日本海のマグマが生んだ大地",   color:"#7b4bb7", age:"約2000万〜800万年前",
+    lead:"日本列島が大陸から離れ、日本海が広がっていったころ。須佐の高山や見島に、そのころの海の底の地層とマグマの跡が残っています。" },
+  { id:"st4", name:"萩・阿武のマグマが生んだ大地", color:"#f08a1c", age:"約200万年前〜",
+    lead:"萩の大地をつくった、いちばん新しいマグマの活動。1回だけ噴火する小さな火山が50か所以上集まった、単成火山群「阿武火山群」です。" },
 ];
-// 「大地」のタブ：大地の成り立ちの解説（古い順に4本）
+// 「大地」のタブ：大地の成り立ちの解説（古い順に4本）。地域紹介と同じ形のカード（見出し＝名前と年代、開くと説明・解説のボタン・ジオサイト一覧）
 function buildStageTab(){
   TAB_TITLES.earth = "大地の成り立ち";
   const btn = document.createElement("button");
@@ -1083,30 +1087,32 @@ function buildStageTab(){
   dock.insertBefore(btn, dock.querySelector('.dock-btn[data-tab="food"]'));   // 地域紹介の下（食と大地の上）
   const sec = document.createElement("section"); sec.className = "tab"; sec.dataset.tab = "earth";
   sec.innerHTML = `<p class="stage-lead">萩の大地は、時代の異なる4つの出来事でできています。古い順にたどってみよう。</p>` +
-    `<div class="stage-tours">` + STAGE_TOURS.map(s=>
-      `<button class="tour-start" data-st="${s.id}" style="--sc:${s.color}"><span class="ts-icon">▶</span><span class="st-name">${esc(s.name)}<small>${esc(s.age)}</small></span></button>`).join("") + `</div>`;
-  sec.querySelectorAll("button").forEach(b=> b.onclick = ()=> startStageTour(b.dataset.st));
+    STAGE_TOURS.map(s=> `<div class="area-card" data-st="${s.id}">`+
+      `<div class="area-card-head" style="--ac:${s.color}"><b>${esc(s.name)}</b><span>${esc(s.age)}</span></div>`+
+      `<div class="area-card-body"><p class="area-lead">${esc(s.lead)}</p>`+
+      `<button class="tour-start"><span class="ts-icon">▶</span>地図で解説を見る</button></div></div>`).join("");
+  sec.querySelectorAll(".area-card").forEach(card=>{
+    card.querySelector(".area-card-head").onclick = ()=> card.classList.toggle("open");
+    card.querySelector(".tour-start").onclick = e=>{ e.stopPropagation(); startStageTour(card.dataset.st); };
+  });
   document.querySelector("#panel .panel-body").appendChild(sec);
 }
-// それぞれの解説の下に、その大地のジオサイト（地質区分ごと）。タップでそのサイトへ。初めてタブを開いたときに作る（地図の印が読み終わってから）
+// それぞれのカードの中に、その大地のジオサイト（地質区分ごと）。地域紹介の「見どころ一覧」と同じく開閉。初めてタブを開いたときに作る（地図の印が読み終わってから）
 function fillStageSites(sec){
   if (sec.dataset.filled || !allMarkers.length) return;
   sec.dataset.filled = "1";
   loadStages().then(d=> d.tours.forEach(t=>{
-    const btn = sec.querySelector(`button[data-st="${t.id}"]`); if (!btn) return;
-    // 地域紹介の「見どころ一覧」と同じく、見出しをタップして開く（最初はたたむ）
-    const wrap = document.createElement("div"); wrap.className = "site-area stage-sites"; wrap.style.setProperty("--ac", btn.style.getPropertyValue("--sc"));
-    const head = document.createElement("div"); head.className = "site-area-head"; head.onclick = ()=> wrap.classList.toggle("open");
+    const card = sec.querySelector(`.area-card[data-st="${t.id}"]`); if (!card) return;
+    const wrap = document.createElement("div"); wrap.className = "site-area"; wrap.style.setProperty("--ac", STAGE_TOURS.find(s=> s.id === t.id)?.color);
+    const head = document.createElement("div"); head.className = "site-area-head"; head.textContent = "ジオサイト一覧";
+    head.onclick = ()=> wrap.classList.toggle("open");   // 長いので最初はたたんでおく
     const box = document.createElement("div"); box.className = "site-area-body";
-    let n = 0;
     (t.sites || []).forEach(g=>{
       const items = g.names.map(nm=> allMarkers.find(x=> x.name === nm)).filter(Boolean); if (!items.length) return;
-      const h = document.createElement("div"); h.className = "stage-group"; h.textContent = g.group; box.appendChild(h);
+      const h = document.createElement("div"); h.className = "site-group-head"; h.style.setProperty("--gc", SITE_CATS["ジオサイト"].fill); h.textContent = g.group; box.appendChild(h);
       const ul = document.createElement("ul"); ul.className = "site-list"; items.forEach(o=> ul.appendChild(makePoiItem(o))); box.appendChild(ul);
-      n += items.length;
     });
-    head.textContent = `ジオサイト一覧（${n}か所）`;
-    wrap.append(head, box); btn.after(wrap);
+    wrap.append(head, box); card.querySelector(".area-card-body").appendChild(wrap);
   })).catch(()=>{});
 }
 function buildAreaGuide(){
