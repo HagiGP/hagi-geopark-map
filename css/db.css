@@ -86,6 +86,11 @@ select { padding: 6px 4px; border: 1px solid #ccc; border-radius: 8px; font-size
 .near a:hover { background: #f6f6f4; }
 .near small { font-weight: 400; color: #888; margin-left: 6px; font-size: 12px; }
 .sub small { font: 400 12px sans-serif; color: #888; margin-left: 4px; }
+.why { font-size: 12.5px; color: #555; line-height: 1.5; }   /* つながりのひとこと */
+p.why { margin: 8px 0 2px; }
+.near a .why { display: block; font-weight: 400; margin-top: 1px; }
+.near li.grp { font-size: 12.5px; font-weight: 700; color: #7a4a1e; padding: 4px 4px 0; }
+.near li.grp small { font-weight: 400; color: #888; margin-left: 2px; }
 .refs { margin: 0; padding: 0 0 0 1.6em; font-size: 13px; line-height: 1.55; color: #333; }   /* 関連する文献 */
 .refs li { padding: 3px 0; border-bottom: 1px solid #f0f0ee; }
 .refs i { font-style: normal; color: #777; }

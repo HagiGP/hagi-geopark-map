@@ -1,14 +1,14 @@
 /**
  * 萩ジオパーク サイトデータベース（Googleスプレッドシートに付けるApps Script）
  *
- * GET  ?action=data                 … 公開してよい列だけを返す（データベースのページ用。ジオサイトの地質区分・文献の一覧も）
+ * GET  ?action=data                 … 公開してよい列だけを返す（データベースのページ・地図用。地質区分・文献・つながりの一覧も）
  * GET  ?action=status&key=合言葉     … 点検ログと点検の間隔・記録者の一覧（地図の運営モード用）
  * POST {key, id, recorder, state, content, photo, uid} … 点検ログに1行追加（写真はドライブの「点検写真」フォルダへ）
  *
  * 合言葉は「プロジェクトの設定」→「スクリプト プロパティ」の KEY に入れる（コードには書かない）
  */
 const SITE_SHEETS = ["ジオサイト", "文化サイト", "生態サイト", "神社", "展望地", "解説板"];
-const GEO_SHEETS = ["地質区分", "文献"];   // ジオサイトの「地質区分」列の分け方（年代・成り立ちのステージ）と、地質区分ごとの文献
+const GEO_SHEETS = ["地質区分", "文献", "つながり"];   // ジオサイトの「地質区分」列の分け方（年代・成り立ちのステージ）、地質区分ごとの文献、大地と文化・生態サイトのつながり
 const LOG_SHEET = "点検ログ";
 const LOG_COLS = ["日時", "対象ID", "対象名", "記録者", "状態", "内容", "写真", "送信ID"];
 const PHOTO_FOLDER = "点検写真";
@@ -66,7 +66,7 @@ function publicData() {
       return r;
     });
   });
-  GEO_SHEETS.forEach(name => out[name] = readSheet(name));
+  GEO_SHEETS.forEach(name => out[name] = readSheet(name).map(r => { delete r["確認"]; return r; }));   // 「確認」はつながりの下書きの作業メモ
   return out;
 }
 

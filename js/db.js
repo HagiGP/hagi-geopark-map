@@ -19,7 +19,7 @@ const ls = {
 };
 const $ = s=> document.querySelector(s);
 const esc = s=> (s == null ? "" : String(s)).replace(/[&<>"]/g, c=> ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;" }[c]));
-const st = { rows:[], kind:"", view: ls.get("hagiDbView", "card"), status:null, photos:new Set(), photoV:"", groups:[], refs:[] };
+const st = { rows:[], kind:"", view: ls.get("hagiDbView", "card"), status:null, photos:new Set(), photoV:"", groups:[], refs:[], links:[] };
 
 // ---- 読み込み ----
 (async function load(){
@@ -47,7 +47,7 @@ const st = { rows:[], kind:"", view: ls.get("hagiDbView", "card"), status:null, 
 function setData(sheets, updated, fromCache){
   st.rows = [];
   KINDS.forEach(k=> (sheets[k.name] || []).forEach(r=> st.rows.push({ ...r, 種類:k.name })));
-  st.groups = sheets["地質区分"] || []; st.refs = sheets["文献"] || [];   // ジオサイトの地質区分（年代・成り立ちのステージ）と、地質区分ごとの文献
+  st.groups = sheets["地質区分"] || []; st.refs = sheets["文献"] || []; st.links = sheets["つながり"] || [];   // ジオサイトの地質区分（年代・成り立ちのステージ）と、地質区分ごとの文献
   $("#updated").textContent = (fromCache ? "前回の読み込み・" : "") + (updated ? new Date(updated).toLocaleString("ja-JP", { month:"numeric", day:"numeric", hour:"2-digit", minute:"2-digit" }) + " 時点" : "");
   buildFilters();
   render();
@@ -85,6 +85,9 @@ function buildFilters(){
 const geoLabel = s=> String(s || "").replace(/^[A-Z]+_/, "");     // 「BY_阿武火山岩（後期）」→「阿武火山岩（後期）」
 const stageLabel = s=> String(s || "").replace(/^\d+_/, "");     // 「04_萩・阿武のマグマの活動」→「萩・阿武のマグマの活動」
 const groupOf = r=> r["地質区分"] ? st.groups.find(g=> g["地質区分"] === r["地質区分"]) : null;
+// つながり：「大地」の欄はジオサイトのIDか地質区分（「、」で複数）。地質区分なら、その地質区分のジオサイトすべてとつながる
+const earthOf = l=> String(l["大地"] || "").split(/[、，,]/).map(s=> s.trim()).filter(Boolean);
+const linkHitsGeo = (l, g)=> earthOf(l).some(t=> t === g.ID || t === g["地質区分"]);
 ["#q", "#fChiku", "#fArea", "#fRank", "#fGeo", "#fProt", "#fPatrol", "#fPhoto"].forEach(s=> $(s).addEventListener("input", render));
 document.querySelectorAll("#views button").forEach(b=> b.onclick = ()=>{ st.view = b.dataset.v; ls.set("hagiDbView", st.view); render(); });
 
@@ -195,6 +198,27 @@ function openFromHash(){
   // 関連するジオサイト：同じ地質区分（地質体）のジオサイト。いくつか訪ねると、その地質体の全体像がわかる
   const same = r["地質区分"] ? st.rows.filter(x=> x !== r && x.種類 === "ジオサイト" && x["地質区分"] === r["地質区分"]) : [];
   if (same.length) h += `<div class="sub">関連するジオサイト<small>（同じ${esc(geoLabel(r["地質区分"]))}）</small></div><ul class="near">${same.map(x=> nearItem(x)).join("")}</ul>`;
+  if (r.種類 === "ジオサイト"){   // この大地とつながる文化サイト・生態サイト（ひとこと付き）
+    const ls = st.links.filter(l=> linkHitsGeo(l, r));
+    ["文化サイト", "生態サイト"].forEach(kind=>{
+      const items = ls.map(l=> ({ l, x: st.rows.find(y=> y.ID === l["相手"] && y.種類 === kind) })).filter(o=> o.x);
+      if (items.length) h += `<div class="sub">関連する${kind}</div><ul class="near">${items.map(o=> nearItem(o.x, o.l["ひとこと"])).join("")}</ul>`;
+    });
+  } else {   // 文化サイト・生態サイト：つながる大地（地質区分なら、その地質区分のジオサイトをまとめて）
+    const ls = st.links.filter(l=> l["相手"] === r.ID);
+    if (ls.length){
+      h += `<div class="sub">関連するジオサイト</div>`;
+      ls.forEach(l=>{
+        h += `<p class="why">${esc(l["ひとこと"])}</p><ul class="near">`;
+        earthOf(l).forEach(t=>{
+          const geos = st.rows.filter(y=> y.種類 === "ジオサイト" && (y.ID === t || y["地質区分"] === t));
+          if (geos.length && geos[0].ID !== t) h += `<li class="grp">${esc(geoLabel(t))}<small>のジオサイト</small></li>`;
+          h += geos.map(x=> nearItem(x)).join("");
+        });
+        h += `</ul>`;
+      });
+    }
+  }
   // 文献：この地質区分（地質体）に関する文献（古い順）
   const refs = r["地質区分"] ? st.refs.filter(x=> x["地質区分"] === r["地質区分"]).sort((a, b)=> (Number(a["出版年"]) || 9999) - (Number(b["出版年"]) || 9999)) : [];
   if (refs.length) h += `<div class="sub">関連する文献<small>（${esc(geoLabel(r["地質区分"]))}・${refs.length}件）</small></div><ol class="refs">${refs.map(x=>
@@ -204,9 +228,9 @@ function openFromHash(){
   $("#detail .dt-card").scrollTop = 0;
   if (hasLL) setTimeout(()=> showMini(r), 0);
 }
-function nearItem(x){
+function nearItem(x, why){
   return `<li><a href="#${esc(x.ID)}"><span class="kdot" style="background:${kindOf(x.種類).color}"></span>${esc(x["名前"])}`+
-    `<small>${esc(x.種類)}${x.種類 === "ジオサイト" && x["管理番号"] ? "・" + esc(x["管理番号"]) : ""}</small></a></li>`;
+    `<small>${esc(x.種類)}${x.種類 === "ジオサイト" && x["管理番号"] ? "・" + esc(x["管理番号"]) : ""}</small>${why ? `<span class="why">${esc(why)}</span>` : ""}</a></li>`;
 }
 function showMini(r){
   if (miniMap){ miniMap.remove(); miniMap = null; }
