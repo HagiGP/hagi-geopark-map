@@ -102,8 +102,7 @@ body.staff #appbar { background: #595857; }   /* 運営モード＝墨色でひ�
 .area-card-head { background: var(--ac, #1b6a4b); background: color-mix(in srgb, var(--ac, #1b6a4b) 70%, #4a4540); color: #fff; }   /* 色はくすませて落ち着いたトーンに */
 .area-card-head:hover { filter: brightness(1.08); }
 .area-card-head span { color: rgba(255,255,255,.9) !important; }
-.area-card-head::after { color: rgba(255,255,255,.85); }
-.area-card-head::after { content: "▸"; color: #999; font-size: 24px; line-height: 1; position: absolute; right: 12px; top: 50%; transform: translateY(-50%); transition: transform .15s; }
+.area-card-head::after { content: "▸"; color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,.35); font-size: 24px; line-height: 1; position: absolute; right: 12px; top: 50%; transform: translateY(-50%); transition: transform .15s; }
 .area-card.open .area-card-head::after { transform: translateY(-50%) rotate(90deg); }
 .area-card-head { padding-right: 40px; }
 .area-card-head b { font-size: 13.5px; }
