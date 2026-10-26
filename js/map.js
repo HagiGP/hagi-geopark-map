@@ -1094,13 +1094,19 @@ function fillStageSites(sec){
   sec.dataset.filled = "1";
   loadStages().then(d=> d.tours.forEach(t=>{
     const btn = sec.querySelector(`button[data-st="${t.id}"]`); if (!btn) return;
-    const box = document.createElement("div"); box.className = "stage-sites"; box.style.setProperty("--sc", btn.style.getPropertyValue("--sc"));
+    // 地域紹介の「見どころ一覧」と同じく、見出しをタップして開く（最初はたたむ）
+    const wrap = document.createElement("div"); wrap.className = "site-area stage-sites"; wrap.style.setProperty("--ac", btn.style.getPropertyValue("--sc"));
+    const head = document.createElement("div"); head.className = "site-area-head"; head.onclick = ()=> wrap.classList.toggle("open");
+    const box = document.createElement("div"); box.className = "site-area-body";
+    let n = 0;
     (t.sites || []).forEach(g=>{
-      const items = g.names.map(n=> allMarkers.find(x=> x.name === n)).filter(Boolean); if (!items.length) return;
+      const items = g.names.map(nm=> allMarkers.find(x=> x.name === nm)).filter(Boolean); if (!items.length) return;
       const h = document.createElement("div"); h.className = "stage-group"; h.textContent = g.group; box.appendChild(h);
       const ul = document.createElement("ul"); ul.className = "site-list"; items.forEach(o=> ul.appendChild(makePoiItem(o))); box.appendChild(ul);
+      n += items.length;
     });
-    btn.after(box);
+    head.textContent = `ジオサイト一覧（${n}か所）`;
+    wrap.append(head, box); btn.after(wrap);
   })).catch(()=>{});
 }
 function buildAreaGuide(){
