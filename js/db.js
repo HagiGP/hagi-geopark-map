@@ -25,7 +25,7 @@ const st = { rows:[], kind:"", view: ls.get("hagiDbView", "card"), status:null, 
 (async function load(){
   // 地図の img/sites にある写真の一覧（スプレッドシートの「写真」が空でも、名前と同じ写真があれば出す）。
   // サイトの表と並行して取りに行く（このファイルの終わりまで読み込んでから＝下の関数・定数が使えるように）
-  const photos = fetch("data/site_photos.json?p=5").then(r=> r.json())   // 写真を足したら一覧を作り直し、?p= を上げる（地図の PHOTOV と同じ番号）
+  const photos = fetch("data/site_photos.json?p=6").then(r=> r.json())   // 写真を足したら一覧を作り直し、?p= を上げる（地図の PHOTOV と同じ番号）
     .then(p=>{ st.photos = new Set(p.files || []); st.photoV = p.v ? "?p=" + p.v : ""; }).catch(()=>{});
   const data = fetch(DB_URL + "?action=data").then(r=> r.json());
   await photos;
