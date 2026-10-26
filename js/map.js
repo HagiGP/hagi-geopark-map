@@ -641,7 +641,7 @@ function injectLabelStyles(){
 }
 
 // ---- 読み込み ----
-const DATAV = "?d=209";   // geojson更新時にbump（ブラウザキャッシュ回避）
+const DATAV = "?d=210";   // geojson更新時にbump（ブラウザキャッシュ回避）
 const fetchGj = def => fetch("data/"+def.file+DATAV).then(r=>r.json());
 Promise.all([
   fetch("data/areas.geojson"+DATAV).then(r=>r.json()),
@@ -1078,7 +1078,7 @@ function buildStageTab(){
   const btn = document.createElement("button");
   btn.className = "dock-btn one"; btn.dataset.tab = "earth"; btn.setAttribute("aria-controls", "panel");
   btn.innerHTML = `<span>大地</span>`;
-  btn.onclick = ()=> openTab === "earth" ? closeTab() : showTab("earth");
+  btn.onclick = ()=>{ if (openTab === "earth") closeTab(); else { showTab("earth"); fillStageSites(sec); } };
   const dock = document.getElementById("dock");
   dock.insertBefore(btn, dock.querySelector('.dock-btn[data-tab="food"]'));   // 地域紹介の下（食と大地の上）
   const sec = document.createElement("section"); sec.className = "tab"; sec.dataset.tab = "earth";
@@ -1087,6 +1087,21 @@ function buildStageTab(){
       `<button class="tour-start" data-st="${s.id}" style="--sc:${s.color}"><span class="ts-icon">▶</span><span class="st-name">${esc(s.name)}<small>${esc(s.age)}</small></span></button>`).join("") + `</div>`;
   sec.querySelectorAll("button").forEach(b=> b.onclick = ()=> startStageTour(b.dataset.st));
   document.querySelector("#panel .panel-body").appendChild(sec);
+}
+// それぞれの解説の下に、その大地のジオサイト（地質区分ごと）。タップでそのサイトへ。初めてタブを開いたときに作る（地図の印が読み終わってから）
+function fillStageSites(sec){
+  if (sec.dataset.filled || !allMarkers.length) return;
+  sec.dataset.filled = "1";
+  loadStages().then(d=> d.tours.forEach(t=>{
+    const btn = sec.querySelector(`button[data-st="${t.id}"]`); if (!btn) return;
+    const box = document.createElement("div"); box.className = "stage-sites"; box.style.setProperty("--sc", btn.style.getPropertyValue("--sc"));
+    (t.sites || []).forEach(g=>{
+      const items = g.names.map(n=> allMarkers.find(x=> x.name === n)).filter(Boolean); if (!items.length) return;
+      const h = document.createElement("div"); h.className = "stage-group"; h.textContent = g.group; box.appendChild(h);
+      const ul = document.createElement("ul"); ul.className = "site-list"; items.forEach(o=> ul.appendChild(makePoiItem(o))); box.appendChild(ul);
+    });
+    btn.after(box);
+  })).catch(()=>{});
 }
 function buildAreaGuide(){
   const listEl = document.getElementById("areaList");
@@ -1214,10 +1229,10 @@ function closeTab({ pan = true } = {}){
   if (typeof setFoodMode === "function") setFoodMode(false);
   if (AREAS.length) requestAnimationFrame(positionAreaLabels);
 }
-buildStageTab();   // 「大地」のタブ
 document.querySelectorAll(".dock-btn").forEach(b=>{
   b.onclick = ()=> openTab === b.dataset.tab ? closeTab() : showTab(b.dataset.tab);   // もう一度押すと閉じる
 });
+buildStageTab();   // 「大地」のタブ（開いたときにジオサイトの一覧を作るので、ふつうのボタンの設定のあとに）
 document.getElementById("panelClose").onclick = closeTab;
 // 縦長画面：パネルの見出しをタップすると大きく広げる（もう一度で戻す）。地図を見ながら使うときは低いまま
 document.querySelector("#panel .panel-head").addEventListener("click", e=>{

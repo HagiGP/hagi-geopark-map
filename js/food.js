@@ -42,7 +42,7 @@ function buildFoodTab(){
   foodBuilt = true;
   const sec = document.querySelector('#panel .tab[data-tab="food"]'); sec.innerHTML = "";
   const intro = document.createElement("p"); intro.className = "list-intro";
-  intro.textContent = "萩ジオパークの食べものと、それを育てた大地のつながりを紹介しています。地図の印や名前をタップしてみてください。";
+  intro.textContent = "萩の食べものと、それを育てた大地のつながりを紹介しています。地図の印や名前をタップしてみてください。";
   sec.appendChild(intro);
   [...new Set(FOOD.map(it=> it.region))].forEach(region=>{
     const h = document.createElement("div"); h.className = "food-region"; h.textContent = region;
