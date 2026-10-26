@@ -192,12 +192,9 @@ function openFromHash(){
       (l["内容"] ? `<div>${esc(l["内容"])}</div>` : "") + (l["写真"] ? `<a href="${esc(l["写真"])}" target="_blank" rel="noopener">📷 写真</a>` : "") + `</li>`).join("")}</ul>`
       : `<p class="note">まだ記録がありません</p>`;
   }
-  // 近くのサイト（3km以内・近い順）
-  if (hasLL){
-    const near = st.rows.filter(x=> x !== r && x["緯度"] !== "" && x["緯度"] != null && x.種類 !== "生態サイト")
-      .map(x=> ({ x, d: dist(r, x) })).filter(o=> o.d < 3000).sort((a, b)=> a.d - b.d).slice(0, 8);
-    if (near.length) h += `<div class="sub">近くのサイト</div><ul class="near">${near.map(o=> nearItem(o.x, o.d)).join("")}</ul>`;
-  }
+  // 関連するジオサイト：同じ地質区分（地質体）のジオサイト。いくつか訪ねると、その地質体の全体像がわかる
+  const same = r["地質区分"] ? st.rows.filter(x=> x !== r && x.種類 === "ジオサイト" && x["地質区分"] === r["地質区分"]) : [];
+  if (same.length) h += `<div class="sub">関連するジオサイト<small>（同じ${esc(geoLabel(r["地質区分"]))}）</small></div><ul class="near">${same.map(x=> nearItem(x)).join("")}</ul>`;
   // 文献：この地質区分（地質体）に関する文献（古い順）
   const refs = r["地質区分"] ? st.refs.filter(x=> x["地質区分"] === r["地質区分"]).sort((a, b)=> (Number(a["出版年"]) || 9999) - (Number(b["出版年"]) || 9999)) : [];
   if (refs.length) h += `<div class="sub">関連する文献<small>（${esc(geoLabel(r["地質区分"]))}・${refs.length}件）</small></div><ol class="refs">${refs.map(x=>
@@ -207,14 +204,9 @@ function openFromHash(){
   $("#detail .dt-card").scrollTop = 0;
   if (hasLL) setTimeout(()=> showMini(r), 0);
 }
-function nearItem(x, d){
+function nearItem(x){
   return `<li><a href="#${esc(x.ID)}"><span class="kdot" style="background:${kindOf(x.種類).color}"></span>${esc(x["名前"])}`+
-    `<small>${esc(x.種類)}${d != null ? "・" + (d < 1000 ? Math.round(d / 10) * 10 + "m" : (d / 1000).toFixed(1) + "km") : ""}</small></a></li>`;
-}
-function dist(a, b){
-  const R = 6371000, t = Math.PI / 180, la1 = a["緯度"] * t, la2 = b["緯度"] * t;
-  const x = (b["経度"] - a["経度"]) * t * Math.cos((la1 + la2) / 2), y = la2 - la1;
-  return R * Math.sqrt(x * x + y * y);
+    `<small>${esc(x.種類)}${x.種類 === "ジオサイト" && x["管理番号"] ? "・" + esc(x["管理番号"]) : ""}</small></a></li>`;
 }
 function showMini(r){
   if (miniMap){ miniMap.remove(); miniMap = null; }
