@@ -150,3 +150,27 @@ function setupGeology() {
   Logger.log("地質区分を入れた：" + vals.filter(v => v[0]).length + "件／" + n + "件。入らなかったID：" + ids.filter((r, i) => r[0] && !vals[i][0]).map(r => r[0]).join("、"));
   GEO_SHEETS.forEach(name => Logger.log(name + "：" + readSheet(name).length + "件"));
 }
+
+// ジオサイトの管理番号（地質体ごとの番号。例：BY-G001＝阿武火山岩（後期）の1番）を入れるとき1回だけ（エディタで選んで「実行」）：
+// ジオサイトのシートの ID の右に「管理番号」の列を足して書き入れる。ID（G-001）は点検ログ・URLとのつなぎなので変えない
+function setupGeoNumber() {
+  const NUM = {
+    "G-001": "BY-G001", "G-002": "BY-G002", "G-003": "BY-G003", "G-004": "BY-G004", "G-005": "BY-G005", "G-006": "BY-G006",
+    "G-007": "BY-G007", "G-008": "BY-G008", "G-009": "BY-G009", "G-010": "BY-G010", "G-011": "BY-G011", "G-012": "BY-G013",
+    "G-013": "BY-G014", "G-014": "AO-G001", "G-015": "AO-G002", "G-016": "SN-G001", "G-017": "SN-G002", "G-018": "SN-G003",
+    "G-019": "SN-G004", "G-020": "SN-G005", "G-021": "YV-G001", "G-022": "KG-G001", "G-023": "KG-G002", "G-024": "KG-G003",
+    "G-025": "SU-G001", "G-026": "SU-G002", "G-027": "SU-G003", "G-028": "TV-G004", "G-029": "AB-G001", "G-030": "AB-G002",
+    "G-031": "AB-G003", "G-032": "AB-G005", "G-033": "AB-G006", "G-034": "AB-G007", "G-035": "AB-G008", "G-036": "AB-G009",
+    "G-037": "AB-G010", "G-038": "MG-G001", "G-039": "MG-G002", "G-040": "MG-G003", "G-041": "MH-G001", "G-042": "KV-G001",
+    "G-043": "KS-G001", "G-044": "KS-G002", "G-045": "AG-G001", "G-046": "HL-G001", "G-047": "ZL-G001",
+  };
+  const sh = SpreadsheetApp.getActive().getSheetByName("ジオサイト");
+  const head = sh.getRange(1, 1, 1, sh.getLastColumn()).getValues()[0], idCol = head.indexOf("ID");
+  let col = head.indexOf("管理番号");
+  if (col < 0) { sh.insertColumnAfter(idCol + 1); col = idCol + 1; sh.getRange(1, col + 1).setValue("管理番号"); }
+  const n = sh.getLastRow() - 1, ids = sh.getRange(2, idCol + 1, n, 1).getValues();
+  const cur = sh.getRange(2, col + 1, n, 1).getValues();
+  const vals = ids.map((r, i) => [cur[i][0] || NUM[r[0]] || ""]);   // すでに入っている番号は上書きしない
+  sh.getRange(2, col + 1, n, 1).setValues(vals);
+  Logger.log("管理番号を入れた：" + vals.filter(v => v[0]).length + "件／" + n + "件。入らなかったID：" + ids.filter((r, i) => r[0] && !vals[i][0]).map(r => r[0]).join("、"));
+}

@@ -133,7 +133,7 @@ function render(){
   if (st.view === "table"){
     const pcol = st.status ? "<th>点検</th>" : "", gcol = rows.some(r=> r["地質区分"]);
     list.innerHTML = `<div class="tbl-wrap"><table class="tbl"><thead><tr><th>ID</th><th>種類</th><th>名前</th><th>地区</th><th>ランク</th>${gcol ? "<th>地質区分</th>" : ""}<th>法的保護</th><th>見出し</th>${pcol}</tr></thead><tbody>`+
-      rows.map(r=> `<tr data-id="${esc(r.ID)}"><td class="mono">${esc(r.ID)}</td><td><span class="kdot" style="background:${kindOf(r.種類).color}"></span>${esc(r.種類)}</td>`+
+      rows.map(r=> `<tr data-id="${esc(r.ID)}"><td class="mono">${esc(r["管理番号"] && r.種類 === "ジオサイト" ? r["管理番号"] : r.ID)}</td><td><span class="kdot" style="background:${kindOf(r.種類).color}"></span>${esc(r.種類)}</td>`+
         `<td class="nm">${esc(r["名前"])}</td><td>${esc(r["地区"])}</td><td>${esc(r["ランク"])}</td>${gcol ? `<td>${esc(geoLabel(r["地質区分"]))}</td>` : ""}<td>${prots(r).map(esc).join("<br>")}</td>`+
         `<td class="ld">${esc(r["見出し"])}</td>${st.status ? `<td>${patrolTag(r)}</td>` : ""}</tr>`).join("")+
       `</tbody></table></div>`;
@@ -159,10 +159,10 @@ document.addEventListener("keydown", e=>{ if (e.key === "Escape") closeDetail();
 function closeDetail(){ if (location.hash) history.replaceState(null, "", location.pathname + location.search); $("#detail").hidden = true; }
 function openFromHash(){
   const id = decodeURIComponent(location.hash.slice(1));
-  const r = st.rows.find(x=> x.ID === id);
+  const r = st.rows.find(x=> x.ID === id) || st.rows.find(x=> x.種類 === "ジオサイト" && x["管理番号"] === id);   // ジオサイトは管理番号（#BY-G001）でも開ける
   if (!r){ $("#detail").hidden = true; return; }
   const k = kindOf(r.種類), ph = photoUrl(r), hasLL = r["緯度"] !== "" && r["経度"] !== "" && r["緯度"] != null;
-  let h = `<div class="dk" style="--kc:${k.color}"><span>${esc(r.種類)}</span><code>${esc(r.ID)}</code></div>`;
+  let h = `<div class="dk" style="--kc:${k.color}"><span>${esc(r.種類)}</span><code>${esc(r.種類 === "ジオサイト" && r["管理番号"] ? r["管理番号"] + "（" + r.ID + "）" : r.ID)}</code></div>`;
   h += `<h2>${esc(r["名前"])}</h2>`;
   if (r["ふりがな"]) h += `<div class="furi">${esc(r["ふりがな"])}</div>`;
   if (prots(r).length) h += `<div class="cp">${prots(r).map(s=> `<span>${esc(s)}</span>`).join("")}</div>`;
