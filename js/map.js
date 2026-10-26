@@ -641,7 +641,7 @@ function injectLabelStyles(){
 }
 
 // ---- 読み込み ----
-const DATAV = "?d=208";   // geojson更新時にbump（ブラウザキャッシュ回避）
+const DATAV = "?d=209";   // geojson更新時にbump（ブラウザキャッシュ回避）
 const fetchGj = def => fetch("data/"+def.file+DATAV).then(r=>r.json());
 Promise.all([
   fetch("data/areas.geojson"+DATAV).then(r=>r.json()),
@@ -1082,7 +1082,7 @@ function buildStageTab(){
   const dock = document.getElementById("dock");
   dock.insertBefore(btn, dock.querySelector('.dock-btn[data-tab="food"]'));   // 地域紹介の下（食と大地の上）
   const sec = document.createElement("section"); sec.className = "tab"; sec.dataset.tab = "earth";
-  sec.innerHTML = `<p class="stage-lead">萩ジオパークの大地は、時代の異なる4つの出来事でできています。古い順にたどってみよう。</p>` +
+  sec.innerHTML = `<p class="stage-lead">萩の大地は、時代の異なる4つの出来事でできています。古い順にたどってみよう。</p>` +
     `<div class="stage-tours">` + STAGE_TOURS.map(s=>
       `<button class="tour-start" data-st="${s.id}" style="--sc:${s.color}"><span class="ts-icon">▶</span><span class="st-name">${esc(s.name)}<small>${esc(s.age)}</small></span></button>`).join("") + `</div>`;
   sec.querySelectorAll("button").forEach(b=> b.onclick = ()=> startStageTour(b.dataset.st));
