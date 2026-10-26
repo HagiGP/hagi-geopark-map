@@ -1080,7 +1080,7 @@ function buildStageTab(){
   btn.innerHTML = `<span>大地</span>`;
   btn.onclick = ()=> openTab === "earth" ? closeTab() : showTab("earth");
   const dock = document.getElementById("dock");
-  dock.insertBefore(btn, dock.querySelector('.dock-btn[data-tab="areas"]'));   // 地域紹介の前（大地が土台）
+  dock.insertBefore(btn, dock.querySelector('.dock-btn[data-tab="food"]'));   // 地域紹介の下（食と大地の上）
   const sec = document.createElement("section"); sec.className = "tab"; sec.dataset.tab = "earth";
   sec.innerHTML = `<p class="stage-lead">萩ジオパークの大地は、時代の異なる4つの出来事でできています。古い順にたどってみよう。</p>` +
     `<div class="stage-tours">` + STAGE_TOURS.map(s=>
