@@ -17,6 +17,7 @@
      padL：PCで地図の左をこの幅(px)空け、見せたい所を右寄りに置く（陰影図の無い東側を画面の外へ）
      syncLines true なら、同じ組の矢印を同じ速さ（同時に着く）で描く
      photo 写真（サイト名 or 画像パス。false で出さない。省略時は point のサイトの写真）
+     flyDur 地図の移動にかける秒数（既定1秒。遠くへ移る場面をゆっくりに）
      figure 図の画像パス。地図は動かさず、画面の真ん中に大きく出す（付加体のでき方など、地図で見せる必要のない場面）
    fit・ring などの名前の代わりに [緯度,経度] も使える
    操作：窓をタップ／→・Space・Enter・PageDown＝次へ、←・PageUp＝戻る、Esc＝終わる（講演のプレゼンリモコン対応） */
@@ -295,7 +296,7 @@ function showScene(i){
       const dist = c1 ? map.project(c0, z).distanceTo(map.project(c1, z)) : 0;
       if (dist > 60) tour.pan = { to:c1, z, dist };   // ごく小さな動きはスライドしない
       tour.view = [c0, z];
-      map.flyTo(c0, z, { duration:1.0 });
+      map.flyTo(c0, z, { duration: sc.flyDur || 1.0 });   // flyDur：遠くへ移る場面は、ゆっくり（秒）
     }
   }
   else { tour.target = null; tour.view = null; }
@@ -305,7 +306,7 @@ function showScene(i){
     if (!tour || tour.i !== i) return;
     // 移動・ズームの途中なら止まってから描く。2.5秒たっても終わらなければ打ち切って描く
     if (map._animatingZoom || map._flyToFrame){
-      if (Date.now() - t0 < 2500){ setTimeout(draw, 150); return; }
+      if (Date.now() - t0 < Math.max(2500, (sc.flyDur || 0) * 1000 + 600)){ setTimeout(draw, 150); return; }
       map.stop();   // 飛行が終わらない（端末が重い・画面が裏にある等）→ 目的の表示へ一気に移す
       if (tour.view) map.setView(tour.view[0], tour.view[1], { animate:false });
     }
