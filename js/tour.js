@@ -401,18 +401,34 @@ function drawSceneMarks(sc){
     labelsOf(sc).filter(lb=> lb.step === k + 1).forEach(addTourLabel);
   }, delay + 500 + k * 1500));
   const RING = isMobile() ? 30 : 56;   // 丸の大きさ（CSS の .tour-ring と合わせる。スマホは小さく）
+  // 示したサイトの名前：解説中は地図の文字を消しているので、丸・指差し・点滅の下に名前を出す（名札と同じ名前は出さない）
+  const named = new Set(labelsOf(sc).map(lb=> lb.text)), placed = [];
+  const siteName = (n, dy, delay = 0)=>{
+    if (Array.isArray(n) || named.has(n)) return; named.add(n);
+    const ll = allMarkers.find(x=> x.name === n)?.marker.getLatLng(); if (!ll) return;
+    if (labelsOf(sc).some(lb=> ll.distanceTo(lb.at) < 400)) return;   // すぐそばに名札があれば（「堀内地区」など）出さない
+    const px = map.latLngToContainerPoint(ll);
+    if (placed.some(q=> q.distanceTo(px) < 36)) return;   // 画面の上で近すぎる名前（笠山の5か所など）は最初の1つだけ
+    placed.push(px);
+    L.marker(ll, { interactive:false, pane:"tourPane", keyboard:false,
+      icon:L.divIcon({ className:"", iconSize:null, iconAnchor:[0,0],
+        html:`<div class="tour-site-name" style="transform:translate(-50%,${dy}px);animation-delay:${delay}s">${esc(n)}</div>` }) }).addTo(tour.layer);
+  };
   (sc.ring||[]).forEach(n=>{   // サイト名 or [緯度,経度]
     const ll = Array.isArray(n) ? L.latLng(n[0], n[1]) : allMarkers.find(x=> x.name === n)?.marker.getLatLng();
     if (!ll) return;
     L.marker(ll, { interactive:false, pane:"tourPane", keyboard:false,
       icon:L.divIcon({ className:"", iconSize:[RING,RING], iconAnchor:[RING/2,RING/2], html:`<div class="tour-ring"></div>` }) }).addTo(tour.layer);
+    siteName(n, RING / 2 + 2);
   });
-  // 点滅：ひとつずつ灯ってから、そろって点滅（ステージの色）
+  // 点滅（解説の最後など）：酒蔵の丸と同じ黄色い丸が、ひとつずつ現れて脈打つ
   (sc.blink||[]).forEach((n, k)=>{
     const ll = Array.isArray(n) ? L.latLng(n[0], n[1]) : allMarkers.find(x=> x.name === n)?.marker.getLatLng();
-    if (ll) L.marker(ll, { interactive:false, pane:"tourPane", keyboard:false,
-      icon:L.divIcon({ className:"", iconSize:[30,30], iconAnchor:[15,15],
-        html:`<div class="tour-blink" style="--bc:${tour.color || blinkColor(n)};animation-delay:${(k * 0.15).toFixed(2)}s,${(k * 0.15 + 0.4).toFixed(2)}s"></div>` }) }).addTo(tour.layer);
+    if (!ll) return;
+    const d = (k * 0.15).toFixed(2);
+    L.marker(ll, { interactive:false, pane:"tourPane", keyboard:false,
+      icon:L.divIcon({ className:"", iconSize:[RING,RING], iconAnchor:[RING/2,RING/2], html:`<div class="tour-ring blink" style="animation-delay:${d}s,${d}s"></div>` }) }).addTo(tour.layer);
+    siteName(n, RING / 2 + 2, d);
   });
   labelsOf(sc).filter(lb=> !lb.step).forEach(addTourLabel);   // 地名ラベル（例：{"text":"須佐湾","at":[34.628,131.594]}）
   // 指差し：point＝1か所（サイト名 or [緯度,経度]）、points＝何か所も（[[緯度,経度], …]）
@@ -420,6 +436,7 @@ function drawSceneMarks(sc){
     const ll = Array.isArray(p) ? L.latLng(p[0], p[1]) : allMarkers.find(x=> x.name === p)?.marker.getLatLng();
     if (ll) L.marker(ll, { interactive:false, pane:"tourPane", keyboard:false,
       icon:L.divIcon({ className:"", iconSize:[36,36], iconAnchor:[18,46], html:`<div class="tour-point">${POINTER_SVG}</div>` }) }).addTo(tour.layer);
+    siteName(p, 4);
   });
 }
 const ALIGN = { right:"translate(-100%,-50%)", left:"translate(0,-50%)" };   // 既定は at が名札の真ん中

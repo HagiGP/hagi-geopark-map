@@ -446,6 +446,11 @@ body.touring #map { left: 0; bottom: 0; }
   animation: tour-ring 1.4s ease-out infinite;
 }
 @keyframes tour-ring { 0% { transform: scale(.55); opacity: 1; } 100% { transform: scale(1.15); opacity: .15; } }
+.tour-ring.blink { opacity: 0; animation: tour-blink-in .3s ease-out forwards, tour-ring 1.4s ease-out .3s infinite; }
+/* 解説で示したサイトの名前（丸・指差し・点滅の下） */
+.tour-site-name { white-space: nowrap; font: 700 12px/1 "Noto Sans JP", sans-serif; color: #fff; padding: 3px 6px 2px; border-radius: 3px;
+  background: rgba(20,20,20,.78); box-shadow: 0 1px 3px rgba(0,0,0,.4); opacity: 0; animation: tour-name-in .3s ease-out forwards; }
+@keyframes tour-name-in { to { opacity: 1; } }
 /* 解説中のジオパークの範囲の線：塗りの色と混ざらないよう白く、塗りはなし */
 body.touring .gp-range { stroke: #fff; stroke-width: 3; fill-opacity: 0; filter: drop-shadow(0 0 1.5px rgba(0,0,0,.6)); }
 /* 点滅（大地の成り立ちの最後など）：ひとつずつ灯ってから点滅 */
@@ -479,7 +484,7 @@ body.touring .gp-range { stroke: #fff; stroke-width: 3; fill-opacity: 0; filter:
 }
 @media (prefers-reduced-motion: reduce) {
   .tour-ring, .tour-point, .tour-shape, #tourBox .tb-next, .tour-start .ts-icon { animation: none; }
-  .tour-blink { animation: none; opacity: 1; }
+  .tour-blink, .tour-ring.blink, .tour-site-name { animation: none; opacity: 1; }
 }
 
 /* 縦長画面：メニューは下端に横1列、パネルはその上にせり上がる */
