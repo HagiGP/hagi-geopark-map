@@ -23,17 +23,18 @@ const st = { rows:[], kind:"", view: ls.get("hagiDbView", "card"), status:null, 
 
 // ---- 読み込み ----
 (async function load(){
-  await null;   // このファイルの終わりまで読み込んでから（前回分をすぐ出すときも、下の関数・定数が使えるように）
+  // 地図の img/sites にある写真の一覧（スプレッドシートの「写真」が空でも、名前と同じ写真があれば出す）。
+  // サイトの表と並行して取りに行く（このファイルの終わりまで読み込んでから＝下の関数・定数が使えるように）
+  const photos = fetch("data/site_photos.json?p=5").then(r=> r.json())   // 写真を足したら一覧を作り直し、?p= を上げる（地図の PHOTOV と同じ番号）
+    .then(p=>{ st.photos = new Set(p.files || []); st.photoV = p.v ? "?p=" + p.v : ""; }).catch(()=>{});
+  const data = fetch(DB_URL + "?action=data").then(r=> r.json());
+  await photos;
   const cached = ls.get("hagiDbCache", null);
   if (cached) setData(cached.sheets, cached.updated, true);
   try {
-    const r = await fetch(DB_URL + "?action=data").then(r=> r.json());
+    const r = await data;
     if (r.ok){ ls.set("hagiDbCache", { sheets:r.sheets, updated:r.updated }); setData(r.sheets, r.updated, false); }
   } catch(e){ if (!cached) $("#list").innerHTML = `<p class="loading">読み込めませんでした。電波の状態を確かめて、もう一度開いてください。</p>`; }
-  try {   // 地図の img/sites にある写真の一覧（スプレッドシートの「写真」が空でも、名前と同じ写真があれば出す）
-    const p = await fetch("data/site_photos.json?p=4").then(r=> r.json());   // 写真を足したら一覧を作り直し、?p= を上げる（地図の PHOTOV と同じ番号）
-    st.photos = new Set(p.files || []); st.photoV = p.v ? "?p=" + p.v : ""; render(); if (location.hash) openFromHash();
-  } catch(e){}
   const key = ls.get("hagiPatrolKey", "");   // 地図の運営モードで入れた合言葉
   if (key){
     try {

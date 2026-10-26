@@ -306,7 +306,7 @@ function pointPopup(o){
 function sanitizeName(s){ return String(s).replace(/[\\/:*?"<>|]/g, "_").trim(); }
 function photoFile(name){ return sanitizeName(name) + ".jpg"; }
 // 写真を差し替えたら PHOTOV を上げる（サービスワーカーが古い写真を出し続けないように）
-const PHOTOV = "?p=4";
+const PHOTOV = "?p=5";
 function photoSrc(name){ return "img/sites/" + encodeURIComponent(photoFile(name)) + PHOTOV; }
 
 // ディープリンクURL（?site=名前 / ?area=id）＝看板QRの貼り先
