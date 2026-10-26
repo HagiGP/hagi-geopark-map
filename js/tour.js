@@ -8,7 +8,7 @@
      line  流れを描く線の図形id（アニメーションで描く）。配列で複数本も可。配列の配列なら組ごとに順番に描く
      ring  丸で囲むサイト名の配列
      point 指差す（▼）サイト名（points＝何か所も指差す [[緯度,経度], …]）
-     label 地名ラベル [{ "text":"須佐湾", "at":[緯度,経度] }]
+     label 地名ラベル [{ "text":"須佐湾", "at":[緯度,経度] }]（"align":"right"＝at が名札の右端、"left"＝左端）
      followLine true なら、line の組ごとに地図がその組の範囲へ移って描く（長い流れを寄りぎみに見せる）。mfollowLine はスマホのときだけ
      mfit スマホ（縦長の狭い画面）のときに寄せる範囲（無ければ fit）
      noPan true なら、収まらなくてもスライドしない（全体が入る倍率のまま）
@@ -375,9 +375,11 @@ function drawSceneMarks(sc){
       icon:L.divIcon({ className:"", iconSize:[36,36], iconAnchor:[18,46], html:`<div class="tour-point">${POINTER_SVG}</div>` }) }).addTo(tour.layer);
   });
 }
+const ALIGN = { right:"translate(-100%,-50%)", left:"translate(0,-50%)" };   // 既定は at が名札の真ん中
 function addTourLabel(lb){
   L.marker(lb.at, { interactive:false, pane:"tourPane", keyboard:false,
-    icon:L.divIcon({ className:"", iconSize:null, iconAnchor:[0,0], html:`<div class="tour-label">${esc(lb.text)}</div>` }) }).addTo(tour.layer);
+    icon:L.divIcon({ className:"", iconSize:null, iconAnchor:[0,0],
+      html:`<div class="tour-label"${ALIGN[lb.align] ? ` style="transform:${ALIGN[lb.align]}"` : ""}>${esc(lb.text)}</div>` }) }).addTo(tour.layer);
 }
 function addTourShape(sc, id){
   const f = tour.shapes[id]; if (!f) return;
