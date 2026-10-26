@@ -178,8 +178,8 @@ function showScene(i){
       let cands = [base], corners = null;
       if (hasPhoto && mob) cands = [{ ...base, pos:"top", t: MOB_PHOTO_BOTTOM + 12 }];   // スマホ：写真は上部
       else if (hasPhoto){
-        // PCの写真の窓は四隅のどこかに置ける。その横（列）か上下（帯）を除いた所を見せる範囲として、
-        // 見せたい場所を真ん中に置けて、いちばん大きく見せられる組み合わせを選ぶ（東寄りの場所なら写真は左、など）
+        // PCの写真の窓は四隅のどこかに置ける。地図は写真をよけてずらさず、字幕の窓の上の範囲の真ん中に合わせ、
+        // 写真は見せたい場所と重ならない隅（どこも重なるなら、重なりのいちばん小さい隅）へ
         const ph = photoHeight(sc, i), pw = photoWidth(sc), side = (innerWidth - box.offsetWidth) / 2;
         const lowTop = size.y - (box.offsetHeight + 30) - ph;   // 下の写真の窓の上端
         corners = {   // 写真の窓を置ける四隅（画面上の四角。showPhoto の置き方と合わせる）
@@ -188,13 +188,7 @@ function showScene(i){
           tr: [size.x - 12 - pw, 70, size.x - 12, 70 + ph],
           tl: [12, 70, 12 + pw, 70 + ph],
         };
-        cands = [
-          { ...base, pos:"auto" },   // 字幕の窓だけを除いた広い範囲。写真の窓は、見せたい場所と重ならない隅へ
-          { ...base, pos:"br", r: side + pw + 30 }, { ...base, pos:"br", b: size.y - lowTop + 16 },
-          { ...base, pos:"bl", l: side + pw + 30 }, { ...base, pos:"bl", b: size.y - lowTop + 16 },
-          { ...base, pos:"tr", r: 12 + pw + 30 },   { ...base, pos:"tr", t: 70 + ph + 16 },
-          { ...base, pos:"tl", l: 12 + pw + 30 },   { ...base, pos:"tl", t: 70 + ph + 16 },
-        ];
+        cands = [{ ...base, pos:"auto" }];
       }
       const p0 = map.project(b.getNorthWest(), 0), p1 = map.project(b.getSouthEast(), 0);
       // 写真の窓と重ねたくないもの＝この場面で実際に描くもの（指差し・図形・矢印・丸・名札）。無ければ範囲全体
@@ -247,12 +241,11 @@ function showScene(i){
         const r0 = scr(c0), r1 = c1 ? scr(c1) : r0;
         const rect = [Math.min(r0[0], r1[0]), Math.min(r0[1], r1[1]), Math.max(r0[2], r1[2]), Math.max(r0[3], r1[3])];
         let pos = a.pos, score = zFit * 120 - shift;
-        if (pos === "auto"){   // 見せたい範囲と重ならない隅のうち、いちばん離れた隅。どの隅も重なるなら、この案は使わない
+        if (pos === "auto"){   // 見せたい範囲との重なりがいちばん小さい隅（同じなら、いちばん離れた隅）
           const cx = (rect[0] + rect[2]) / 2, cy = (rect[1] + rect[3]) / 2, M = 10;
-          const free = Object.entries(corners).filter(([, q])=> q[2] + M < rect[0] || q[0] - M > rect[2] || q[3] + M < rect[1] || q[1] - M > rect[3])
-            .sort(([, p], [, q])=> Math.hypot((q[0] + q[2]) / 2 - cx, (q[1] + q[3]) / 2 - cy) - Math.hypot((p[0] + p[2]) / 2 - cx, (p[1] + p[3]) / 2 - cy));
-          if (free.length){ pos = free[0][0]; score += 60; }   // 広い範囲で見せられるなら、それを優先
-          else score = -1e9;
+          const over = q=> Math.max(0, Math.min(q[2] + M, rect[2]) - Math.max(q[0] - M, rect[0])) * Math.max(0, Math.min(q[3] + M, rect[3]) - Math.max(q[1] - M, rect[1]));
+          const far = q=> Math.hypot((q[0] + q[2]) / 2 - cx, (q[1] + q[3]) / 2 - cy);
+          pos = Object.entries(corners).sort(([, p], [, q])=> over(p) - over(q) || far(q) - far(p))[0][0];
         }
         return { a: { ...a, pos }, aw, ah, z, c0, c1, shift, score };
       };

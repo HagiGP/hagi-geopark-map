@@ -136,14 +136,14 @@ map.on("moveend", ()=>{   // 広域表示の切り替えなどで見どころが
 // 場面ごとの写真（できるだけ毎場面に出す）。"p:ファイル" ＝産品の写真（img/food）、それ以外＝見どころの写真（img/sites のサイト名）。
 // [写真, 見出し] の配列で、場面の順。null は写真なし。書いていない場面と締めの場面は、産品の写真（あれば）
 const SCENE_PHOTOS = {
-  natsumikan: [["p:natsumikan-2.jpg"], ["堀内伝統的建造物群保存地区", "武家屋敷の残る堀内"], ["菊ヶ浜", "城下町の北の砂浜（菊ヶ浜）"], ["菊ヶ浜", "菊ヶ浜"], ["p:natsumikan.jpg", "萩の夏みかん"]],
-  aji:     [["p:aji.jpg"], ["大平瀬", "海の岩場（大平瀬）"], ["笠山山頂火口", "阿武火山群の笠山"], ["p:aji.jpg"]],
-  wakame:  [["p:wakame.jpg"], ["笠山山頂火口", "笠山"], ["笠山縄状溶岩", "笠山の溶岩の磯"]],
+  natsumikan: [["p:natsumikan-2.jpg"], ["堀内伝統的建造物群保存地区", "武家屋敷の残る堀内"], ["菊ヶ浜", "城下町の北の砂浜（菊ヶ浜）"], ["p:natsumikan.jpg", "萩の夏みかん"], ["p:natsumikan.jpg", "萩の夏みかん"]],
+  aji:     [["p:aji.jpg"], ["p:aji.jpg"], ["笠山山頂火口", "阿武火山群の笠山の山頂火口"], ["p:aji.jpg"]],
+  wakame:  [["p:wakame.jpg"], ["笠山山頂火口", "笠山の山頂火口"], ["笠山縄状溶岩", "笠山の溶岩の磯"]],
   kamaboko:[["p:kamaboko.jpg"], ["菊ヶ浜", "川が運んだ砂の浜（菊ヶ浜）"], ["p:kamaboko.jpg"]],
   sazae:   [["p:sazae.jpg"], ["p:sazae-3.jpg", "海士の素潜り漁"], ["笠山アア溶岩", "笠山の溶岩の磯"], ["p:sazae-2.jpg", "ウニ"]],
-  ika:     [["p:ika.jpg"], ["畳岩（須佐ホルンフェルス）", "海の底にたまった地層（須佐ホルンフェルス）"], ["高山展望台", "高山"], ["海苔石", "高山のふもとの岩場"], ["p:ika.jpg"], ["高山展望台", "高山"], ["p:ika.jpg"]],
-  iriko:   [["p:iriko.jpg"], ["p:iriko.jpg"], ["p:iriko.jpg"], ["高山展望台", "高山"], ["畳岩（須佐ホルンフェルス）", "須佐ホルンフェルス"]],
-  soba:    [["p:soba.jpg"], ["伊良尾山山頂", "伊良尾山"], ["龍鱗郷", "伊良尾山の溶岩（龍鱗郷）"], ["p:soba.jpg"]],
+  ika:     [["p:ika.jpg"], ["p:ika.jpg"], ["p:ika.jpg"], ["p:ika.jpg"], ["p:ika.jpg"], ["高山展望台", "高山の山頂から見た須佐湾"], ["p:ika.jpg"]],
+  iriko:   [["p:iriko.jpg"], ["p:iriko.jpg"], ["p:iriko.jpg"], ["高山展望台", "高山の山頂から見た須佐湾"], ["p:iriko.jpg"]],
+  soba:    [["p:soba.jpg"], ["p:soba.jpg"], ["龍鱗郷", "伊良尾山の溶岩（龍鱗郷）"], ["p:soba.jpg"]],
   sake:    [["p:sake.jpg"], ["伏馬山スコリア丘", "伏馬山"], ["p:sake.jpg"], ["p:sake.jpg"], ["p:sake.jpg"]],
   daikon:  [["p:daikon.jpg"], ["千石台安山岩", "千石台の溶岩"], ["p:daikon.jpg"]],
   ringo:   [["p:ringo.jpg"], ["p:ringo.jpg"], ["p:ringo.jpg"], ["野坂山", "川をせき止めた火山（野坂山）"]],
