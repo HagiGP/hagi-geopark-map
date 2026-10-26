@@ -133,9 +133,22 @@ map.on("moveend", ()=>{   // 広域表示の切り替えなどで見どころが
 });
 
 // 1場面目以外に写真を出す場面：[場面の番号（0始まり）, 写真のファイル名, 写真の説明]
-const PHOTO_AT = {
-  sazae: [[1, "sazae-3.jpg", "海士の素潜り漁"], [2, "sazae-2.jpg", "ウニ"]],
-  natsumikan: [[4, "natsumikan.jpg", "萩の夏みかん"]],   // 冒頭は2枚目（natsumikan-2）
+// 場面ごとの写真（できるだけ毎場面に出す）。"p:ファイル" ＝産品の写真（img/food）、それ以外＝見どころの写真（img/sites のサイト名）。
+// [写真, 見出し] の配列で、場面の順。null は写真なし。書いていない場面と締めの場面は、産品の写真（あれば）
+const SCENE_PHOTOS = {
+  natsumikan: [["p:natsumikan-2.jpg"], ["堀内伝統的建造物群保存地区", "武家屋敷の残る堀内"], ["菊ヶ浜", "城下町の北の砂浜（菊ヶ浜）"], ["菊ヶ浜", "菊ヶ浜"], ["p:natsumikan.jpg", "萩の夏みかん"]],
+  aji:     [["p:aji.jpg"], ["大平瀬", "海の岩場（大平瀬）"], ["笠山山頂火口", "阿武火山群の笠山"], ["p:aji.jpg"]],
+  wakame:  [["p:wakame.jpg"], ["笠山山頂火口", "笠山"], ["笠山縄状溶岩", "笠山の溶岩の磯"]],
+  kamaboko:[["p:kamaboko.jpg"], ["菊ヶ浜", "川が運んだ砂の浜（菊ヶ浜）"], ["p:kamaboko.jpg"]],
+  sazae:   [["p:sazae.jpg"], ["p:sazae-3.jpg", "海士の素潜り漁"], ["笠山アア溶岩", "笠山の溶岩の磯"], ["p:sazae-2.jpg", "ウニ"]],
+  ika:     [["p:ika.jpg"], ["畳岩（須佐ホルンフェルス）", "海の底にたまった地層（須佐ホルンフェルス）"], ["高山展望台", "高山"], ["海苔石", "高山のふもとの岩場"], ["p:ika.jpg"], ["高山展望台", "高山"], ["p:ika.jpg"]],
+  iriko:   [["p:iriko.jpg"], ["p:iriko.jpg"], ["p:iriko.jpg"], ["高山展望台", "高山"], ["畳岩（須佐ホルンフェルス）", "須佐ホルンフェルス"]],
+  soba:    [["p:soba.jpg"], ["伊良尾山山頂", "伊良尾山"], ["龍鱗郷", "伊良尾山の溶岩（龍鱗郷）"], ["p:soba.jpg"]],
+  sake:    [["p:sake.jpg"], ["伏馬山スコリア丘", "伏馬山"], ["p:sake.jpg"], ["p:sake.jpg"], ["p:sake.jpg"]],
+  daikon:  [["p:daikon.jpg"], ["千石台安山岩", "千石台の溶岩"], ["p:daikon.jpg"]],
+  ringo:   [["p:ringo.jpg"], ["p:ringo.jpg"], ["p:ringo.jpg"], ["野坂山", "川をせき止めた火山（野坂山）"]],
+  kome:    [["p:kome.jpg"], ["p:kome.jpg"], ["野坂山", "川をせき止めた火山（野坂山）"], ["p:kome.jpg"], ["p:kome.jpg"]],
+  tofu:    [["佐々並市伝統的建造物群保存地区", "佐々並の町並み"], ["佐々並市伝統的建造物群保存地区", "佐々並"], ["佐々並市伝統的建造物群保存地区", "佐々並"], ["佐々並市伝統的建造物群保存地区", "佐々並"]],
 };
 // ---- 食の解説：解説文を1文ずつ場面にして、「産品 → なぜ → 大地」の順に地図を動かす ----
 // 1場面目＝産地に寄って指差し／2場面目以降＝育てた大地を示す（最後の場面で名札も）
@@ -143,13 +156,19 @@ function startFoodTour(id){
   const it = FOOD.find(x=> x.id === id); if (!it) return;
   const land = (it.shape || []).concat(it.ring || []);
   if (it.scenes){   // 場面を書いてある品：字幕と地図の動き（矢印・名札など）はデータのとおり
-    const out = it.scenes.map(sc=> ({ ...sc, photo:false }));   // 写真は下で決めた場面だけに出す
-    // 産品の写真：1場面目（産品の紹介）に1枚目を出す。PHOTO_AT で、ほかの写真を出す場面を指定できる
+    // 写真：できるだけ毎場面に出す（SCENE_PHOTOS。書いていない場面は産品の写真）
     const fp = f=> `img/food/${encodeURIComponent(f)}${PHOTOV}`;
-    if ((it.photos || []).length && out[0]){ out[0].photo = fp(it.photos[0]); out[0].photoCaption = it.title; }
-    (PHOTO_AT[it.id] || []).forEach(([k, f, cap])=>{ if (out[k] && (it.photos || []).includes(f)){ out[k].photo = fp(f); out[k].photoCaption = cap; } });
+    const own = (it.photos || [])[0];
+    const pick = k=>{
+      const e = (SCENE_PHOTOS[it.id] || [])[k];
+      if (e === null) return { photo:false };
+      if (e) return e[0].startsWith("p:") ? { photo: fp(e[0].slice(2)), photoCaption: e[1] || it.title } : { photo: e[0], photoCaption: e[1] || e[0] };
+      return own ? { photo: fp(own), photoCaption: it.title } : { photo:false };
+    };
+    const out = it.scenes.map((sc, k)=> ({ ...sc, ...pick(k) }));
     // nopoint＝とれる範囲が広い・店がいくつもある品は、締めでも指差ししない
-    if (it.close) out.push({ text: it.close, fit:[it.at].concat(land), shape: it.shape || [], ring: it.ring || [], point: it.nopoint ? null : it.at, label: it.label || [] });
+    if (it.close) out.push({ text: it.close, fit:[it.at].concat(land), shape: it.shape || [], ring: it.ring || [], point: it.nopoint ? null : it.at, label: it.label || [],
+                             ...(own ? { photo: fp(own), photoCaption: it.title } : pick(0)) });   // 産品の写真が無ければ1場面目と同じ写真
     beginTour({ name: it.title, tour: out }, foodShapes);
     return;
   }
