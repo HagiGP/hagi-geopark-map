@@ -307,7 +307,10 @@ function showScene(i){
     }
   }
   else { tour.target = null; tour.view = null; }
-  hidePhoto(); showFigure(sc);
+  // 次の場面も同じ写真なら、消さずに出したままにする（出たり消えたりをくり返さない）
+  const cur = document.getElementById("tourPhoto"), nextPh = scenePhoto(sc);
+  if (!(cur && nextPh && cur.dataset.src === nextPh.src && !(mob && !mobPhotoImgH()))) hidePhoto();
+  showFigure(sc);
   const t0 = Date.now();
   const draw = ()=>{
     if (!tour || tour.i !== i) return;
@@ -358,25 +361,34 @@ function showFigure(sc){
   img.style.maxHeight = Math.max(160, innerHeight - 64 - fb - 40) + "px";
   document.body.appendChild(w);
 }
+// PC：場面ごとに選んだ隅（showScene の見せる範囲の選び方と合わせる）。下の隅は字幕の窓の上、上の隅はヘッダーの下
+function placePhoto(w){
+  const pos = tour.photoPos || "br", boxEl = document.getElementById("tourBox");
+  const side = Math.max(12, (innerWidth - boxEl.offsetWidth) / 2);
+  w.style.top = w.style.bottom = w.style.left = w.style.right = "";
+  if (pos[0] === "b") w.style.bottom = (boxEl.offsetHeight + 30) + "px"; else w.style.top = "70px";
+  if (pos[1] === "l"){ w.style.left = (pos[0] === "b" ? side : 12) + "px"; w.style.right = "auto"; }
+  else w.style.right = (pos[0] === "b" ? side : 12) + "px";
+}
 function showPhoto(sc, i){
   const ph = scenePhoto(sc); if (!ph) return;
   if (isMobile() && !mobPhotoImgH()) return;   // 画面の低いスマホ：地図を優先して写真は出さない
+  const cur = document.getElementById("tourPhoto");
+  if (cur && cur.dataset.src === ph.src){   // 前の場面と同じ写真：出したまま（見出しと、PCは置く隅だけ合わせる）
+    const fc = cur.querySelector("figcaption"); if (fc && ph.caption) fc.textContent = ph.caption;
+    if (!isMobile()) placePhoto(cur);
+    return;
+  }
   const img = new Image();
   img.onload = ()=>{
     if (!tour || tour.i !== i) return;
     hidePhoto();
     const w = document.createElement("figure"); w.id = "tourPhoto"; if (ph.diagram) w.className = "diagram";
     w.innerHTML = `<img alt="">`+(ph.caption ? `<figcaption></figcaption>` : "");
-    w.querySelector("img").src = ph.src;
+    w.querySelector("img").src = ph.src; w.dataset.src = ph.src;
     if (ph.caption) w.querySelector("figcaption").textContent = ph.caption;
     if (isMobile()){ w.classList.add("top"); w.style.setProperty("--mph", mobPhotoImgH() + "px"); }   // スマホ：上部に写真（タップで大きく）。地図は下の残りで、必要ならスライドして見せる
-    else {   // PC：場面ごとに選んだ隅（showScene の見せる範囲の選び方と合わせる）。下の隅は字幕の窓の上、上の隅はヘッダーの下
-      const pos = tour.photoPos || "br", boxEl = document.getElementById("tourBox");
-      const side = Math.max(12, (innerWidth - boxEl.offsetWidth) / 2);
-      if (pos[0] === "b") w.style.bottom = (boxEl.offsetHeight + 30) + "px"; else w.style.top = "70px";
-      if (pos[1] === "l"){ w.style.left = (pos[0] === "b" ? side : 12) + "px"; w.style.right = "auto"; }
-      else w.style.right = (pos[0] === "b" ? side : 12) + "px";
-    }
+    else placePhoto(w);
     w.onclick = e=>{ e.stopPropagation(); w.classList.toggle("big"); };   // タップで拡大／戻す
     L.DomEvent.disableClickPropagation(w);
     document.body.appendChild(w);

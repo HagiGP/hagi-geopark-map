@@ -25,12 +25,13 @@ Promise.all([
   gj.features.forEach(f=> foodShapes[f.properties.id] = f);
   if (foodMode) buildFoodTab();   // 読み込み前にタブが開かれていた場合
   FOOD.forEach(it=>{
-    const two = (it.seal || "").length > 1;   // 2字は縦書きの判子
+    const n = [...(it.seal || "")].length, two = n > 1;   // 2字以上は縦書きの判子（字数に合わせて縦に長く）
+    const h = two ? 14 + n * 16 : 34;
     const m = L.marker(it.at, { pane:"foodPinPane", keyboard:false, title: it.title,
-      icon: L.divIcon({ className:"", iconSize: two ? [30,48] : [34,34],
+      icon: L.divIcon({ className:"", iconSize: two ? [30,h] : [34,34],
         // offset＝同じ場所の判子を画面上で左右にずらして並べる（px）
-        iconAnchor: [(two ? 15 : 17) - (it.offset?.[0] || 0), (two ? 24 : 17) - (it.offset?.[1] || 0)],
-        html:`<div class="food-pin${two ? " two" : ""}" style="--fc:${FOOD_TYPES[it.type] || "#666"}"><span>${esc(it.seal || it.icon)}</span></div>` }) });
+        iconAnchor: [(two ? 15 : 17) - (it.offset?.[0] || 0), h / 2 - (it.offset?.[1] || 0)],
+        html:`<div class="food-pin${two ? " two" : ""}" style="--fc:${FOOD_TYPES[it.type] || "#666"};${two ? `height:${h}px` : ""}"><span>${esc(it.seal || it.icon)}</span></div>` }) });
     m.on("click", ()=>{ if (openTab !== "food") showTab("food", { pan:false }); openFood(it.id); });
     it.pin = m; m.addTo(foodPins);
   });
@@ -59,10 +60,11 @@ function buildFoodTab(){
       body.innerHTML = (ph ? `<div class="food-photos${it.photos.length > 1 ? " multi" : ""}">${ph}</div>` +
                               (it.photos.length > 1 ? `<div class="food-photos-hint">写真 ${it.photos.length}枚（横にスライド）</div>` : "") : "") +
                        `<p>${esc(it.text)}</p>`;
-      const b = document.createElement("button"); b.className = "tour-start";   // 食の解説（字幕で地図を動かしながら）
+      // 食の解説（字幕で地図を動かしながら）。スマホの低いパネルでもすぐ見えるよう、開いた中のいちばん上に
+      const b = document.createElement("button"); b.className = "tour-start";
       b.innerHTML = `<span class="ts-icon">▶</span>地図で解説を見る`;
       b.onclick = e=>{ e.stopPropagation(); startFoodTour(it.id); };
-      body.appendChild(b);
+      body.prepend(b);
       card.append(head, body); sec.appendChild(card);
     });
   });
@@ -73,7 +75,9 @@ function openFood(id){
   const it = FOOD.find(x=> x.id === id); if (!it) return;
   foodOpenId = id;
   document.querySelectorAll(".food-item").forEach(el=> el.classList.toggle("open", el.dataset.id === id));
-  document.querySelector(`.food-item[data-id="${id}"]`)?.scrollIntoView({ behavior:"smooth", block:"nearest" });
+  // 開いた品の見出しと解説ボタンを、パネルのいちばん上に（スマホの低いパネルでも見える）
+  const card = document.querySelector(`.food-item[data-id="${id}"]`), pb = document.querySelector("#panel .panel-body");
+  if (card && pb) pb.scrollTo({ top: pb.scrollTop + card.getBoundingClientRect().top - pb.getBoundingClientRect().top - 6, behavior:"smooth" });
   document.querySelectorAll(".food-pin").forEach(el=> el.classList.remove("on"));
   it.pin?.getElement()?.querySelector(".food-pin")?.classList.add("on");
   foodMarks.clearLayers();
@@ -141,14 +145,21 @@ const SCENE_PHOTOS = {
   wakame:  [["p:wakame.jpg"], ["笠山山頂火口", "笠山の山頂火口"], ["笠山縄状溶岩", "笠山の溶岩の磯"]],
   kamaboko:[["p:kamaboko.jpg"], ["菊ヶ浜", "川が運んだ砂の浜（菊ヶ浜）"], ["p:kamaboko.jpg"]],
   sazae:   [["p:sazae.jpg"], ["p:sazae-3.jpg", "海士の素潜り漁"], ["笠山アア溶岩", "笠山の溶岩の磯"], ["p:sazae-2.jpg", "ウニ"]],
-  ika:     [["p:ika.jpg"], ["p:ika.jpg"], ["p:ika.jpg"], ["p:ika.jpg"], ["p:ika.jpg"], ["高山展望台", "高山の山頂から見た須佐湾"], ["p:ika.jpg"]],
-  iriko:   [["p:iriko.jpg"], ["p:iriko.jpg"], ["p:iriko.jpg"], ["高山展望台", "高山の山頂から見た須佐湾"], ["p:iriko.jpg"]],
-  soba:    [["p:soba.jpg"], ["p:soba.jpg"], ["龍鱗郷", "伊良尾山の溶岩（龍鱗郷）"], ["p:soba.jpg"]],
+  tamanegi:[["p:tamanegi.jpg"], ["阿字雄の滝", "溶岩の柱状節理を流れ落ちる阿字雄の滝"], ["三明戸湧水", "溶岩台地の麓に湧く三明戸湧水"], null, ["p:tamanegi.jpg"]],
+  ika:     [["p:ika.jpg"], ["高山展望台", "高山の山頂から見た須佐の海"], ["高山磁石石", "高山のはんれい岩（高山磁石石）"],
+            null, null, ["久原波止場", "須佐湾の久原波止場"], ["p:ika.jpg"]],
+  iriko:   [["p:iriko.jpg"], null, ["高山磁石石", "高山のはんれい岩（高山磁石石）"], null],
+  mukaku:  [["p:mukaku.jpg"], ["無角和牛宇久放牧場", "田んぼに放牧された無角和牛（宇久放牧場）"], ["西台放牧場", "西台の放牧場"],
+            ["伊良尾山山頂", "伊良尾山の山頂から見た溶岩台地"], ["p:mukaku.jpg"]],
+  soba:    [["p:soba.jpg"], ["イラオ火山灰露頭", "伊良尾山の噴火で降り積もった火山灰の地層"], ["龍鱗郷", "伊良尾山の溶岩が柱状に割れた龍鱗郷"], ["龍の鱗", "ソバ畑の下の溶岩の断面（龍のうろこ）"]],
   sake:    [["p:sake.jpg"], ["伏馬山スコリア丘", "伏馬山"], ["p:sake.jpg"], ["p:sake.jpg"], ["p:sake.jpg"]],
   daikon:  [["p:daikon.jpg"], ["千石台安山岩", "千石台の溶岩"], ["p:daikon.jpg"]],
-  ringo:   [["p:ringo.jpg"], ["p:ringo.jpg"], ["p:ringo.jpg"], ["野坂山", "川をせき止めた火山（野坂山）"]],
-  kome:    [["p:kome.jpg"], ["p:kome.jpg"], ["野坂山", "川をせき止めた火山（野坂山）"], ["p:kome.jpg"], ["p:kome.jpg"]],
-  tofu:    [["佐々並市伝統的建造物群保存地区", "佐々並の町並み"], ["佐々並市伝統的建造物群保存地区", "佐々並"], ["佐々並市伝統的建造物群保存地区", "佐々並"], ["佐々並市伝統的建造物群保存地区", "佐々並"]],
+  ringo:   [["p:ringo.jpg"], ["p:ringo.jpg"], ["船平山展望台", "かつて湖の底だった徳佐盆地（船平山展望台から）"], ["野坂山", "川をせき止めた火山（野坂山）"],
+            ["丁字川出合淵", "湖の水が抜けていった出口（丁字川出合淵）"], ["p:ringo.jpg"]],
+  kome:    [["p:kome.jpg"], null, ["野坂山", "川をせき止めた火山（野坂山）"], ["丁字川出合淵", "湖の水が抜けていった出口（丁字川出合淵）"],
+            ["船平山展望台", "湖の跡の徳佐盆地（船平山展望台から）"]],
+  tofu:    [["佐々並市伝統的建造物群保存地区", "佐々並の町並み"], ["淵ヶ平", "佐々並カルデラの噴火で積もった凝灰岩（淵ヶ平）"],
+            ["台山展望所", "カルデラの中央にある宿場町・佐々並（台山展望所から）"], null, ["佐々並市伝統的建造物群保存地区", "佐々並の町並み"]],
 };
 // ---- 食の解説：解説文を1文ずつ場面にして、「産品 → なぜ → 大地」の順に地図を動かす ----
 // 1場面目＝産地に寄って指差し／2場面目以降＝育てた大地を示す（最後の場面で名札も）
