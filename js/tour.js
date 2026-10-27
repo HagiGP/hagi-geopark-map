@@ -171,7 +171,14 @@ function tourTarget(name){
 // 全体が入る倍率がこれより低い（引きすぎ）ときだけ、ここまで寄せてスライドする。スマホは画面が小さく、同じ倍率でも見える範囲が狭いので低め
 const panComfortZoom = ()=> isMobile() ? 10.4 : 11;
 const PAN_MAX_ZOOM = 1;   // そのとき、全体が入る倍率から最大どれだけ寄せるか
-const MOB_PHOTO_BOTTOM = 52 + 8 + 196;   // スマホの写真の窓（上部）の下端（ヘッダー＋余白＋写真の窓の高さ。CSSと合わせる）
+const MOB_PHOTO_TOP = 52 + 8, MOB_PHOTO_FRAME = 46;   // スマホの写真の窓（上部）：ヘッダー＋余白の下に、写真＋枠・見出し（CSSと合わせる）
+const MOB_MAP_MIN = 300;   // スマホで写真を出しても、地図にこれだけの高さは残す
+// スマホの写真の高さ：画面が低い端末では写真を縮め、それでも地図が狭くなるなら写真を出さない（0）
+function mobPhotoImgH(){
+  const box = document.getElementById("tourBox"), room = innerHeight - MOB_PHOTO_TOP - MOB_PHOTO_FRAME - 12 - ((box ? box.offsetHeight : 160) + 36);
+  const h = Math.min(150, room - MOB_MAP_MIN);
+  return h >= 70 ? Math.round(h) : 0;
+}
 const labelsOf = sc=> (isMobile() && sc.mlabel) || sc.label || [];   // 名札（スマホは mlabel があればそちら：寄せた範囲の中に置き直したもの）
 const follows = sc=> sc.followLine || (isMobile() && sc.mfollowLine);   // カメラが矢印を追う場面か
 
@@ -201,12 +208,12 @@ function showScene(i){
     fit.forEach(n=>{ const t = tourTarget(n); if (t) b.extend(t); });
     if (!follows(sc) && !(mob && sc.mfit)) labelsOf(sc).filter(lb=> !lb.nofit).forEach(lb=> b.extend(lb.at));   // 名札も画面に入れる（矢印を追う場面・スマホ用の範囲・nofit の名札は除く）
     if (b.isValid()){
-      const hasPhoto = tour.photoOk[i], size = map.getSize();
+      const hasPhoto = tour.photoOk[i] && (!mob || mobPhotoImgH() > 0), size = map.getSize();
       // 「見せる範囲」＝画面から、字幕の窓（下）・写真の窓・名札が切れないぶん（左右）を除いた所
       const padB = box.offsetHeight + (mob ? 36 : 44);   // 字幕の窓＋名札・矢じりが窓にかからないぶん
       const base = { pos:"", t: mob ? 64 : 80, l: mob ? 44 : (sc.padL || 50), r: mob ? 44 : 40, b: padB };
       let cands = [base], corners = null;
-      if (hasPhoto && mob) cands = [{ ...base, pos:"top", t: MOB_PHOTO_BOTTOM + 12 }];   // スマホ：写真は上部
+      if (hasPhoto && mob) cands = [{ ...base, pos:"top", t: MOB_PHOTO_TOP + mobPhotoImgH() + MOB_PHOTO_FRAME + 12 }];   // スマホ：写真は上部
       else if (hasPhoto){
         // PCの写真の窓は四隅のどこかに置ける。地図は写真をよけてずらさず、字幕の窓の上の範囲の真ん中に合わせ、
         // 写真は見せたい場所と重ならない隅（どこも重なるなら、重なりのいちばん小さい隅）へ
@@ -353,6 +360,7 @@ function showFigure(sc){
 }
 function showPhoto(sc, i){
   const ph = scenePhoto(sc); if (!ph) return;
+  if (isMobile() && !mobPhotoImgH()) return;   // 画面の低いスマホ：地図を優先して写真は出さない
   const img = new Image();
   img.onload = ()=>{
     if (!tour || tour.i !== i) return;
@@ -361,7 +369,7 @@ function showPhoto(sc, i){
     w.innerHTML = `<img alt="">`+(ph.caption ? `<figcaption></figcaption>` : "");
     w.querySelector("img").src = ph.src;
     if (ph.caption) w.querySelector("figcaption").textContent = ph.caption;
-    if (isMobile()) w.classList.add("top");   // スマホ：上部に写真（タップで大きく）。地図は下の残りで、必要ならスライドして見せる
+    if (isMobile()){ w.classList.add("top"); w.style.setProperty("--mph", mobPhotoImgH() + "px"); }   // スマホ：上部に写真（タップで大きく）。地図は下の残りで、必要ならスライドして見せる
     else {   // PC：場面ごとに選んだ隅（showScene の見せる範囲の選び方と合わせる）。下の隅は字幕の窓の上、上の隅はヘッダーの下
       const pos = tour.photoPos || "br", boxEl = document.getElementById("tourBox");
       const side = Math.max(12, (innerWidth - boxEl.offsetWidth) / 2);

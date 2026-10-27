@@ -474,9 +474,9 @@ body.touring .gp-range { stroke: #fff; stroke-width: 3; fill-opacity: 0; filter:
 @media (max-width: 760px) {
   #tourBox { bottom: 10px; padding: 10px 14px 8px; }
   #tourBox .tb-text { font-size: 16px; }
-  /* スマホの写真＝上部（ヘッダーの下）に横いっぱい。高さはJSの MOB_PHOTO_BOTTOM と合わせる。タップで画面の中央に大きく */
+  /* スマホの写真＝上部（ヘッダーの下）に横いっぱい。高さはJSの mobPhotoImgH（画面の低い端末では縮める）。タップで画面の中央に大きく */
   #tourPhoto.top { top: calc(var(--bar-h) + 8px); left: 8px; right: 8px; width: auto; animation: none; }
-  #tourPhoto.top img { height: 150px; max-height: none; object-fit: cover; }
+  #tourPhoto.top img { height: var(--mph, 150px); max-height: none; object-fit: cover; }
   #tourPhoto.top.diagram img { object-fit: contain; background: #fff; }
   #tourPhoto.top figcaption { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   #tourPhoto.top.big { top: 50%; left: 12px; right: 12px; transform: translateY(-50%); }
