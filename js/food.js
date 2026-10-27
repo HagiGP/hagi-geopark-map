@@ -138,11 +138,11 @@ map.on("moveend", ()=>{   // 広域表示の切り替えなどで見どころが
 
 // 1場面目以外に写真を出す場面：[場面の番号（0始まり）, 写真のファイル名, 写真の説明]
 // 場面ごとの写真（できるだけ毎場面に出す）。"p:ファイル" ＝産品の写真（img/food）、それ以外＝見どころの写真（img/sites のサイト名）。
-// [写真, 見出し] の配列で、場面の順。null は写真なし。書いていない場面と締めの場面は、産品の写真（あれば）
+// [写真, 見出し, 見せる位置] の配列で、場面の順。null は写真なし。書いていない場面と締めの場面は、産品の写真（あれば）
 const SCENE_PHOTOS = {
   natsumikan: [["p:natsumikan-2.jpg"], ["堀内伝統的建造物群保存地区", "武家屋敷の残る堀内"], ["菊ヶ浜", "城下町の北の砂浜（菊ヶ浜）"], ["p:natsumikan.jpg", "萩の夏みかん"], ["p:natsumikan.jpg", "萩の夏みかん"]],
   aji:     [["p:aji.jpg"], ["笠山山頂展望台「鳶ノ巣」", "笠山山頂から見た萩の島々（これも阿武火山群の火山）"], ["笠山山頂火口", "阿武火山群の笠山の山頂火口"], null],
-  wakame:  [["p:wakame.jpg"], ["笠山山頂火口", "笠山の山頂火口"], ["笠山縄状溶岩", "笠山の溶岩の磯"]],
+  wakame:  [["p:wakame.jpg"], ["p:wakame-hoshi.jpg", "ワカメを干す、萩の春の風物詩"], ["笠山山頂火口", "笠山の山頂火口"], ["笠山縄状溶岩", "笠山の溶岩の磯"]],
   kamaboko:[["p:kamaboko.jpg"], ["菊ヶ浜", "川が運んだ砂の浜（菊ヶ浜）"], ["p:kamaboko.jpg"]],
   sazae:   [["p:sazae.jpg"], ["p:sazae-3.jpg", "海士の素潜り漁"], ["笠山アア溶岩", "笠山の溶岩の磯"], ["p:sazae-2.jpg", "ウニ"]],
   tamanegi:[["p:tamanegi.jpg"], ["阿字雄の滝", "溶岩の柱状節理を流れ落ちる阿字雄の滝"], ["三明戸湧水", "溶岩台地の麓に湧く三明戸湧水"], null, ["p:tamanegi.jpg"]],
@@ -150,14 +150,13 @@ const SCENE_PHOTOS = {
             null, null, ["久原波止場", "須佐湾の久原波止場"], ["p:ika.jpg"]],
   iriko:   [["p:iriko.jpg"], null, ["高山磁石石", "高山のはんれい岩（高山磁石石）"], null],
   mukaku:  [["p:mukaku.jpg"], ["無角和牛宇久放牧場", "田んぼに放牧された無角和牛（宇久放牧場）"], ["西台放牧場", "西台の放牧場"],
-            ["伊良尾山山頂", "伊良尾山の山頂から見た溶岩台地"], ["p:mukaku.jpg"]],
+            ["伊良尾山山頂", "伊良尾山の山頂から見た溶岩台地"], ["西台放牧場", "西台の放牧場"]],
   soba:    [["p:soba.jpg"], ["イラオ火山灰露頭", "伊良尾山の噴火で降り積もった火山灰の地層"], ["龍鱗郷", "伊良尾山の溶岩が柱状に割れた龍鱗郷"], ["龍の鱗", "ソバ畑の下の溶岩の断面（龍のうろこ）"]],
-  sake:    [["p:sake.jpg"], ["伏馬山スコリア丘", "伏馬山"], ["p:sake.jpg"], ["p:sake.jpg"], ["p:sake.jpg"]],
-  daikon:  [["p:daikon.jpg"], ["千石台安山岩", "千石台の溶岩"], ["p:daikon.jpg"]],
-  ringo:   [["p:ringo.jpg"], ["p:ringo.jpg"], ["船平山展望台", "かつて湖の底だった徳佐盆地（船平山展望台から）"], ["野坂山", "川をせき止めた火山（野坂山）"],
-            ["丁字川出合淵", "湖の水が抜けていった出口（丁字川出合淵）"], ["p:ringo.jpg"]],
-  kome:    [["p:kome.jpg"], null, ["野坂山", "川をせき止めた火山（野坂山）"], ["丁字川出合淵", "湖の水が抜けていった出口（丁字川出合淵）"],
-            ["船平山展望台", "湖の跡の徳佐盆地（船平山展望台から）"]],
+  sake:    [["p:sake.jpg"], ["伏馬山スコリア丘", "伏馬山", "center 20%"], ["伏馬山ネムの丘キャンプ場", "伏馬山から見た、溶岩流の平らな土地"], ["p:sake.jpg"], ["p:sake.jpg"]],
+  daikon:  [["p:daikon.jpg"], ["千石台安山岩", "千石台の溶岩"], ["p:daikon-hatake.jpg", "千石台の大根畑"]],
+  ringo:   [["p:ringo.jpg"], ["p:ringo.jpg"], ["船平山展望台", "かつて湖の底だった徳佐盆地（船平山展望台から）"], ["p:ringo.jpg"]],
+  kome:    [["p:kome.jpg"], ["野坂山", "川をせき止めた火山（野坂山）"], ["船平山展望台", "湖の跡の徳佐盆地（船平山展望台から）"], ["p:kome.jpg"]],
+  momo:    [["p:momo.jpg"], null, null, ["p:nashi.jpg", "平山台の梨"], ["p:kuri.jpg", "平山台の栗"], ["p:budou.jpg", "平山台のぶどう"]],
   tofu:    [["佐々並市伝統的建造物群保存地区", "佐々並の町並み"], ["淵ヶ平", "佐々並カルデラの噴火で積もった凝灰岩（淵ヶ平）"],
             ["台山展望所", "カルデラの中央にある宿場町・佐々並（台山展望所から）"], null, ["佐々並市伝統的建造物群保存地区", "佐々並の町並み"]],
 };
@@ -173,7 +172,8 @@ function startFoodTour(id){
     const pick = k=>{
       const e = (SCENE_PHOTOS[it.id] || [])[k];
       if (e === null) return { photo:false };
-      if (e) return e[0].startsWith("p:") ? { photo: fp(e[0].slice(2)), photoCaption: e[1] || it.title } : { photo: e[0], photoCaption: e[1] || e[0] };
+      // 3つ目＝写真の見せる位置（横長の窓で切れるとき。例："center 20%"＝上寄り）
+      if (e) return { ...(e[0].startsWith("p:") ? { photo: fp(e[0].slice(2)), photoCaption: e[1] || it.title } : { photo: e[0], photoCaption: e[1] || e[0] }), photoFocus: e[2] || "" };
       return own ? { photo: fp(own), photoCaption: it.title } : { photo:false };
     };
     const out = it.scenes.map((sc, k)=> ({ ...sc, ...pick(k) }));

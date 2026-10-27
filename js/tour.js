@@ -339,7 +339,7 @@ function scenePhoto(sc){
   if (sc.photo === false) return null;
   const p = sc.photo || (typeof sc.point === "string" ? sc.point : null); if (!p) return null;
   const isPath = /[\/.]/.test(p) && /\.(jpe?g|png|webp|svg)(\?.*)?$/i.test(p);   // 末尾の ?p=… （写真の版）も許す
-  return { src: isPath ? p : photoSrc(p), caption: sc.photoCaption || (isPath ? "" : p), diagram: /^img\/tour\//.test(p) };   // img/tour/ の図（模式図）は切り取らず全体を見せる
+  return { src: isPath ? p : photoSrc(p), caption: sc.photoCaption || (isPath ? "" : p), diagram: /^img\/tour\//.test(p), focus: sc.photoFocus || "" };   // img/tour/ の図（模式図）は切り取らず全体を見せる
 }
 const photoWidth = sc=> scenePhoto(sc)?.diagram ? 380 : 300;   // 模式図は少し大きめ（CSSと合わせる）
 // PCの写真の窓の高さ（CSSと合わせる：枠の内側の幅に縮めた写真。写真は最大220px、模式図は全体＋見出しの行）
@@ -386,6 +386,7 @@ function showPhoto(sc, i){
     const w = document.createElement("figure"); w.id = "tourPhoto"; if (ph.diagram) w.className = "diagram";
     w.innerHTML = `<img alt="">`+(ph.caption ? `<figcaption></figcaption>` : "");
     w.querySelector("img").src = ph.src; w.dataset.src = ph.src;
+    if (ph.focus) w.querySelector("img").style.objectPosition = ph.focus;   // photoFocus：横長の窓で切れる写真の見せる位置
     if (ph.caption) w.querySelector("figcaption").textContent = ph.caption;
     if (isMobile()){ w.classList.add("top"); w.style.setProperty("--mph", mobPhotoImgH() + "px"); }   // スマホ：上部に写真（タップで大きく）。地図は下の残りで、必要ならスライドして見せる
     else placePhoto(w);
