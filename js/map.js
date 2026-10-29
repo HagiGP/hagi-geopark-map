@@ -328,7 +328,7 @@ function pointPopup(o){
 function sanitizeName(s){ return String(s).replace(/[\\/:*?"<>|]/g, "_").trim(); }
 function photoFile(name){ return sanitizeName(name) + ".jpg"; }
 // 写真を差し替えたら PHOTOV を上げる（サービスワーカーが古い写真を出し続けないように）
-const PHOTOV = "?p=9";
+const PHOTOV = "?p=10";
 function photoSrc(name){ return "img/sites/" + encodeURIComponent(photoFile(name)) + PHOTOV; }
 
 // ディープリンクURL（?site=名前 / ?area=id）＝看板QRの貼り先
@@ -708,7 +708,7 @@ function injectLabelStyles(){
 }
 
 // ---- 読み込み ----
-const DATAV = "?d=227";   // geojson更新時にbump（ブラウザキャッシュ回避）
+const DATAV = "?d=228";   // geojson更新時にbump（ブラウザキャッシュ回避）
 const fetchGj = def => fetch("data/"+def.file+DATAV).then(r=>r.json());
 Promise.all([
   fetch("data/areas.geojson"+DATAV).then(r=>r.json()),
