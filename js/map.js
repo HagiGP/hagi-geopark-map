@@ -296,13 +296,17 @@ function pointPopup(o){
   // 法的保護（国定公園・天然記念物など）：名前のすぐ下に札で（2018年のサイトリストより）
   if (p["法的保護"]) h += `<div class="popup-prot">${p["法的保護"].split(/[、，,]/).map(s=> s.trim()).filter(Boolean).map(s=> `<span>${esc(s)}</span>`).join("")}</div>`;
   if (p["見出し"]) h += `<p class="popup-lead">${esc(p["見出し"])}</p>`;   // 「大地と人のつながり」の見出し
-  if (p.name) h += `<img class="popup-photo" src="${photoSrc(p.name)}" alt="" onerror="this.style.display='none'">`;   // 写真（無ければ出さない）
+  // 写真：見どころと同じ名前の解説板などは、自分の写真（photo）を使う
+  if (p.name) h += `<img class="popup-photo" src="${p.photo ? "img/sites/" + encodeURIComponent(p.photo) + PHOTOV : photoSrc(p.name)}" alt="" onerror="this.style.display='none'">`;   // 写真（無ければ出さない）
   // 経路の行き先：データに「経路緯度」「経路経度」があればそこ（滝の上など、印の場所に車や徒歩で着けない所は、麓の入口などを指定）
   const ll = o.marker.getLatLng();
   const dest = (p["経路緯度"] && p["経路経度"]) ? `${p["経路緯度"]},${p["経路経度"]}` : `${ll.lat},${ll.lng}`;
   const route = `https://www.google.com/maps/dir/?api=1&destination=${dest}`;
   let actions = `<a href="${route}" target="_blank" rel="noopener">${icon("route")}経路</a>`;
-  if (p.pdf) actions += `<a href="${encodeURI(p.pdf)}" target="_blank" rel="noopener">${icon("doc")}PDF</a>`;   // 解説板・案内地図の原稿（data/panel_pdfs.json と同じ）
+  if (p.pdf){   // 2つある看板は「PDF（床地図）」のように、ファイル名から名前を付けて並べる
+    const list = [].concat(p.pdf), nm = f=> decodeURI(f).replace(/^.*\//, "").replace(/\.pdf$/i, "").replace(/_.*$/, "");
+    list.forEach(f=> actions += `<a href="${encodeURI(f)}" target="_blank" rel="noopener">${icon("doc")}PDF${list.length > 1 ? "（" + esc(nm(f)) + "）" : ""}</a>`);
+  }   // 解説板・案内地図の原稿（data/panel_pdfs.json と同じ）
   if (staff && p.name){
     actions += `<button class="popup-qrbtn" data-name="${esc(p.name)}">${icon("qr")}QR</button>`;
     actions += `<button class="popup-photobtn" data-name="${esc(p.name)}">${icon("photo")}写真</button>`;
@@ -324,7 +328,7 @@ function pointPopup(o){
 function sanitizeName(s){ return String(s).replace(/[\\/:*?"<>|]/g, "_").trim(); }
 function photoFile(name){ return sanitizeName(name) + ".jpg"; }
 // 写真を差し替えたら PHOTOV を上げる（サービスワーカーが古い写真を出し続けないように）
-const PHOTOV = "?p=8";
+const PHOTOV = "?p=9";
 function photoSrc(name){ return "img/sites/" + encodeURIComponent(photoFile(name)) + PHOTOV; }
 
 // ディープリンクURL（?site=名前 / ?area=id）＝看板QRの貼り先
@@ -704,7 +708,7 @@ function injectLabelStyles(){
 }
 
 // ---- 読み込み ----
-const DATAV = "?d=226";   // geojson更新時にbump（ブラウザキャッシュ回避）
+const DATAV = "?d=227";   // geojson更新時にbump（ブラウザキャッシュ回避）
 const fetchGj = def => fetch("data/"+def.file+DATAV).then(r=>r.json());
 Promise.all([
   fetch("data/areas.geojson"+DATAV).then(r=>r.json()),

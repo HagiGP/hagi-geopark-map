@@ -36,8 +36,8 @@ const st = { rows:[], kind:"", view: ls.get("hagiDbView", "card"), status:null, 
 (async function load(){
   // 地図の img/sites にある写真の一覧（スプレッドシートの「写真」が空でも、名前と同じ写真があれば出す）。
   // サイトの表と並行して取りに行く（このファイルの終わりまで読み込んでから＝下の関数・定数が使えるように）
-  fetch("data/panel_pdfs.json?p=8").then(r=> r.json()).then(p=>{ st.pdfs = p; if (location.hash) openFromHash(); }).catch(()=>{});   // 解説板の原稿のPDF（名前 → ファイル）
-  const photos = fetch("data/site_photos.json?p=8").then(r=> r.json())   // 写真を足したら一覧を作り直し、?p= を上げる（地図の PHOTOV と同じ番号）
+  fetch("data/panel_pdfs.json?p=9").then(r=> r.json()).then(p=>{ st.pdfs = p; if (location.hash) openFromHash(); }).catch(()=>{});   // 解説板の原稿のPDF（名前 → ファイル）
+  const photos = fetch("data/site_photos.json?p=9").then(r=> r.json())   // 写真を足したら一覧を作り直し、?p= を上げる（地図の PHOTOV と同じ番号）
     .then(p=>{ st.photos = new Set(p.files || []); st.photoV = p.v ? "?p=" + p.v : ""; }).catch(()=>{});
   const data = fetch(DB_URL + "?action=data").then(r=> r.json());
   await photos;
@@ -155,7 +155,7 @@ function patrolTag(r){
 const kindOf = name=> KINDS.find(k=> k.name === name) || { color:"#888" };
 // 写真：スプレッドシートの「写真」の列、空なら名前と同じ写真（生態サイトは場所が分からないよう出さない）
 const sanitizeName = s=> String(s).replace(/[\\/:*?"<>|]/g, "_").trim();   // 地図（map.js）と同じ
-const photoFileOf = r=> r["写真"] || (r.種類 !== "生態サイト" && st.photos.has(sanitizeName(r["名前"] || "") + ".jpg") ? sanitizeName(r["名前"]) + ".jpg" : "");
+const photoFileOf = r=> r["写真"] || (r.種類 === "解説板" && st.photos.has("解説板_" + sanitizeName(r["名前"] || "") + ".jpg") ? "解説板_" + sanitizeName(r["名前"]) + ".jpg" : "") || (r.種類 !== "生態サイト" && st.photos.has(sanitizeName(r["名前"] || "") + ".jpg") ? sanitizeName(r["名前"]) + ".jpg" : "");
 const photoUrl = r=>{ const f = photoFileOf(r); return f ? "img/sites/" + encodeURIComponent(f) + st.photoV : ""; };
 function render(){
   const rows = filtered();
@@ -209,7 +209,10 @@ function openFromHash(){
     const dest = (r["経路緯度"] && r["経路経度"]) ? `${r["経路緯度"]},${r["経路経度"]}` : `${r["緯度"]},${r["経度"]}`;
     acts.push(`<a href="https://www.google.com/maps/dir/?api=1&destination=${dest}" target="_blank" rel="noopener">${icon("route")}経路</a>`);
   }
-  if (st.pdfs[r["名前"]]) acts.push(`<a href="${encodeURI(st.pdfs[r["名前"]])}" target="_blank" rel="noopener">${icon("doc")}PDF</a>`);   // 解説板の原稿
+  if (r.種類 === "解説板" && st.pdfs[r["名前"]]){
+    const list = [].concat(st.pdfs[r["名前"]]), nm = f=> f.replace(/^.*\//, "").replace(/\.pdf$/i, "").replace(/_.*$/, "");
+    list.forEach(f=> acts.push(`<a href="${encodeURI(f)}" target="_blank" rel="noopener">${icon("doc")}PDF${list.length > 1 ? "（" + esc(nm(f)) + "）" : ""}</a>`));
+  }   // 解説板の原稿
   if (acts.length) h += `<div class="acts">${acts.join("")}</div>`;
   if (r["説明"]) h += `<p class="desc">${esc(r["説明"])}</p>`;
   const rel = String(r["関連ジオサイト"] || "").split(/[、，,]/).map(s=> s.trim()).filter(Boolean);
