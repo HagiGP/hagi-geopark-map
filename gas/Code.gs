@@ -27,7 +27,7 @@ function doPost(e) {
   let d;
   try { d = JSON.parse(e.postData.contents); } catch (err) { return json({ ok: false, error: "送信の形式が違います" }); }
   if (!keyOk(d.key)) return json({ ok: false, error: "合言葉が違います" });
-  if (["問題なし", "問題あり"].indexOf(d.state) < 0) return json({ ok: false, error: "状態は「問題なし」か「問題あり」" });
+  if (["問題なし", "問題あり", "対応中", "対応済み"].indexOf(d.state) < 0) return json({ ok: false, error: "状態は「問題なし」「問題あり」「対応中」「対応済み」のどれか" });
   const name = siteName(d.id);
   if (!name) return json({ ok: false, error: "対象IDが見つかりません：" + d.id });
 
@@ -36,7 +36,7 @@ function doPost(e) {
     const sh = logSheet();
     if (d.uid && recentUids(sh).indexOf(String(d.uid)) >= 0) return json({ ok: true, duplicate: true });   // 電波が悪くて同じ記録を2度送ったとき
     let photoUrl = "";
-    if (d.photo && d.state === "問題あり") {
+    if (d.photo && d.state !== "問題なし") {   // 問題・対応の写真
       const m = String(d.photo).match(/^data:(image\/\w+);base64,(.+)$/);
       if (m) {
         const stamp = Utilities.formatDate(new Date(), TZ, "yyyyMMdd-HHmmss");

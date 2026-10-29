@@ -274,6 +274,7 @@ function makeLabel(def, p, clickMarker, smallGeo){
 }
 
 // ---- ポップアップ ----
+const DB_KINDS = ["ジオサイト", "文化サイト", "神社", "展望地", "解説板"];   // サイトデータベースにある種類
 function pointPopup(o){
   const p = o.props;
   let h = "";
@@ -294,6 +295,11 @@ function pointPopup(o){
   if (staff && p.name){
     actions += `<button class="popup-qrbtn" data-name="${esc(p.name)}">🔗 QR</button>`;
     actions += `<button class="popup-photobtn" data-name="${esc(p.name)}">📷 写真</button>`;
+    // データベースのそのサイトの詳細へ（IDが分かればID、ほかは「種類/名前」）
+    if (DB_KINDS.includes(o.cat)){
+      const id = (typeof pt !== "undefined" && pt.byMarker.get(o)) || `${o.cat}/${p.name}`;
+      actions += `<a href="db.html#${encodeURIComponent(id)}" target="_blank" rel="noopener">🗂 データベース</a>`;
+    }
   }
   const pics = [];
   if (p["駐車場"]==="Y")   pics.push(`<span class="picto">🅿️ 駐車場</span>`);
@@ -531,7 +537,7 @@ function placeLabels(){
     if (!layer.hasLayer(o.marker) || !keep(o)) { o.labelEl.style.display = "none"; return; }
     const lp = map.latLngToLayerPoint(o.marker.getLatLng());
     const rad = o.def.msize*PX_MM/2 + o.def.outmm*PX_MM;
-    vis.push({ el:o.labelEl, prio:labelPrio(o), x:lp.x, y:lp.y, r:rad, side:o.labelSide });
+    vis.push({ el:o.labelEl, prio:labelPrio(o), x:lp.x, y:lp.y, r:rad, side:o.labelSide, site: layer === siteLayer });
   };
   allMarkers.forEach(o => collect(o, siteLayer));
   refMarkers.forEach(o => collect(o, refLayer));
@@ -576,10 +582,12 @@ function placeLabels(){
     if (areaRects.some(q=> rectsOverlap(R,q,2))){ el.style.display = "none"; return; }
     placed.push(R);
   });
-  vis.slice().sort((a,b)=> b.prio-a.prio).forEach((v,i)=>{
+  const ok = R => { if (rectHitsDot(R, null)) return false; for (const q of placed) if (rectsOverlap(R,q,2)) return false; return true; };
+  const lines = [], left = [];
+  // 1回目：マーカーのすぐ近く（右・左・上・下・斜め）
+  vis.slice().sort((a,b)=> b.prio-a.prio).forEach(v=>{
     const own = dots.find(d=> d.x===v.x && d.y===v.y);
     const w=v.w, h=v.h, r=v.r, cx=v.x, cy=v.y;
-    // マーカーのすぐ近く（右・左・上・下・斜め）だけを候補に。どこも置けなければ非表示
     const dx = r+gap+w/2, dy = r+gap+h/2;
     const cand = v.side === "left"
       ? [ [-dx,0], [-dx,-dy], [-dx,dy], [0,-dy], [0,dy], [dx,0], [dx,-dy], [dx,dy] ]   // 左優先
@@ -591,11 +599,45 @@ function placeLabels(){
       let bad=false; for (const q of placed){ if (rectsOverlap(R,q,2)){ bad=true; break; } }
       if (!bad){ chosen = R; break; }
     }
-    if (!chosen){ v.el.style.display = "none"; return; }
+    if (!chosen){ left.push(v); return; }
     v.el.style.left = chosen.left + "px";
     v.el.style.top  = chosen.top  + "px";
     placed.push(chosen);
   });
+  // 2回目：見どころが密集して近くに置けない名前は、少し離れた空いている所に置き、引き出し線で結ぶ（山名・公共施設は隠す）
+  left.forEach(v=>{
+    let chosen = null;
+    if (v.site && !touringNow){
+      const w=v.w, h=v.h;
+      search: for (const d of [34, 52, 72, 96, 124]){
+        for (let k = 0; k < 16; k++){
+          const a = (k % 2 ? -1 : 1) * Math.ceil(k / 2) * Math.PI / 8;   // 右から、上下へ交互に広げる
+          for (const sgn of [1, -1]){
+            const ang = sgn > 0 ? a : Math.PI - a;
+            const px = v.x + Math.cos(ang) * d, py = v.y + Math.sin(ang) * d;
+            const R = { left: px - (Math.cos(ang) >= 0 ? 0 : w), top: py - h/2, right: px + (Math.cos(ang) >= 0 ? w : 0), bottom: py + h/2 };
+            if (ok(R)){ chosen = R; break search; }
+          }
+        }
+      }
+    }
+    if (!chosen){ v.el.style.display = "none"; return; }
+    v.el.style.left = chosen.left + "px";
+    v.el.style.top  = chosen.top  + "px";
+    placed.push(chosen);
+    // 線：丸の縁から、名前の枠のいちばん近い点まで
+    const ex = Math.min(Math.max(v.x, chosen.left), chosen.right), ey = Math.min(Math.max(v.y, chosen.top), chosen.bottom);
+    const L0 = Math.hypot(ex - v.x, ey - v.y) || 1, sx = v.x + (ex - v.x) / L0 * (v.r + 1), sy = v.y + (ey - v.y) / L0 * (v.r + 1);
+    lines.push(`M${sx.toFixed(1)},${sy.toFixed(1)}L${ex.toFixed(1)},${ey.toFixed(1)}`);
+  });
+  let svg = document.getElementById("leaderLines");
+  if (!svg){
+    svg = document.createElementNS("http://www.w3.org/2000/svg", "svg"); svg.id = "leaderLines";
+    svg.setAttribute("style", "position:absolute;left:0;top:0;width:1px;height:1px;overflow:visible;pointer-events:none");
+    map.getPane("pane-labels").prepend(svg);
+  }
+  const dp = lines.join("");
+  svg.innerHTML = dp ? `<path d="${dp}" stroke="#fff" stroke-width="3" stroke-linecap="round" fill="none" opacity=".85"/><path d="${dp}" stroke="#555" stroke-width="1.1" fill="none"/>` : "";
   map.getPane("pane-labels").style.visibility = "visible";   // 再配置し終えたら表示
 }
 

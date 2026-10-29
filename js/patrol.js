@@ -99,12 +99,15 @@ function intervalMonths(id){
 }
 // 点検の数え始めの日。まだ記録の無いサイトは、この日に点検したものとして期限を数える（パトロールを始めた日）
 const PATROL_START = new Date("2026-10-24T00:00:00+09:00");
+// 記録の状態。問題あり → 対応中 → 対応済み と進める。最新が「問題あり」「対応中」のあいだは、片付いていない問題として出す
+const OPEN = ["問題あり", "対応中"];
+const stateCls = st=> st === "問題あり" ? "bad" : st === "対応中" ? "work" : "ok";
 function stateOf(id){
   const logs = logsOf(id), last = logs[0] || null;
   const due = new Date(last ? last.time : PATROL_START);
   due.setMonth(due.getMonth() + intervalMonths(id));
   const over = Math.floor((Date.now() - due) / 864e5);
-  return { last, logs, problem: last?.state === "問題あり", overdue: over > 0, overDays: over };
+  return { last, logs, problem: OPEN.includes(last?.state), working: last?.state === "対応中", overdue: over > 0, overDays: over };
 }
 
 // ---- 地図の印 ----
@@ -115,9 +118,9 @@ function syncBadges(){
   pt.byMarker.forEach((id, o)=>{
     const s = stateOf(id);
     if (!s.problem && !s.overdue) return;
-    const cls = s.problem ? "pt-bad" : "pt-old";
+    const cls = s.working ? "pt-work" : s.problem ? "pt-bad" : "pt-old";
     const m = L.marker(o.marker.getLatLng(), { pane:"pane-patrol", keyboard:false, title:o.name,
-      icon: L.divIcon({ className:"", iconSize:[18,18], iconAnchor:[-1,19], html:`<div class="pt-badge ${cls}">${s.problem ? "!" : "⏱"}</div>` }) });
+      icon: L.divIcon({ className:"", iconSize:[18,18], iconAnchor:[-1,19], html:`<div class="pt-badge ${cls}">${s.working ? "対" : s.problem ? "!" : "⏱"}</div>` }) });
     m.on("click", ()=> openSite(o));
     pt.layer.addLayer(m);
   });
@@ -142,11 +145,11 @@ function render(){
   const info = pt.status ? `${fmtDay(new Date(pt.status.fetched))} ${new Date(pt.status.fetched).toTimeString().slice(0,5)} に取得` : "まだ読み込んでいません";
   h += `<div class="pt-sync"><span>${esc(info)}${queue.length ? `・<b>未送信 ${queue.length}件</b>` : ""}</span><button class="pt-reload">↻ 更新</button></div>`;
   if (pt.status){
-    h += `<div class="pt-head pt-head-bad">問題あり（${bad.length}）</div>`;
+    h += `<div class="pt-head pt-head-bad">問題あり・対応中（${bad.length}）</div>`;
     h += bad.length ? `<ul class="pt-list">${bad.map(x=> ptItem(x)).join("")}</ul>` : `<p class="pt-none">ありません</p>`;
     h += `<div class="pt-head pt-head-old">点検切れ（${old.length}）</div>`;
     h += old.length ? `<ul class="pt-list">${old.map(x=> ptItem(x)).join("")}</ul>` : `<p class="pt-none">ありません</p>`;
-    h += `<p class="pt-note">点検の間隔：スプレッドシートの「一覧」シートで変えられます。印：<span class="pt-badge pt-bad sm">!</span> 問題あり <span class="pt-badge pt-old sm">⏱</span> 点検切れ</p>`;
+    h += `<p class="pt-note">点検の間隔：スプレッドシートの「一覧」シートで変えられます。印：<span class="pt-badge pt-bad sm">!</span> 問題あり <span class="pt-badge pt-work sm">対</span> 対応中 <span class="pt-badge pt-old sm">⏱</span> 点検切れ</p>`;
   }
   box.innerHTML = h;
   box.querySelector(".pt-reload").onclick = async ()=>{ await flushQueue(); loadStatus(); };
@@ -162,13 +165,17 @@ function render(){
 }
 function ptItem({ o, id, s }){
   let sub;
-  if (s.problem) sub = `${fmtDay(s.last.time)} ${esc(s.last.who || "")}：${esc((s.last.text || "").split("\n")[0] || "（内容なし）")}`;
+  if (s.problem){   // 対応中なら、もとの問題の内容も
+    const issue = s.logs.find(l=> l.state === "問題あり");
+    sub = (s.working ? `<b class="pt-tag work">対応中</b>` : "") + `${fmtDay(s.last.time)} ${esc(s.last.who || "")}：` +
+          esc((s.last.text || issue?.text || "").split("\n")[0] || "（内容なし）");
+  }
   else sub = `${s.overDays}日超過（${s.last ? "最終 " + fmtDay(s.last.time) : "未点検"}）`;
   const dot = `<span class="poi-dot" style="background:${SITE_CATS[o.cat].fill}"></span>`;
   return `<li class="pt-item" data-id="${esc(id)}">${dot}<span class="pt-name">${esc(o.name)}<small>${sub}${s.last?.pending ? "・未送信" : ""}</small></span></li>`;
 }
 
-// ---- 詳細の点検の欄：「駐車場・現地解説」の行のすぐ下に、最新の記録だけ。過去の記録はデータベースで ----
+// ---- 詳細の点検の欄：解説文のすぐ下に、最新の記録だけ。過去の記録はデータベースで ----
 function decorateSite(o){
   const id = pt.byMarker.get(o); if (!id) return;
   const box = document.getElementById("siteDetail");
@@ -178,20 +185,23 @@ function decorateSite(o){
   if (!pt.status && !ls.get(LS.queue, []).some(q=> q.id === id)) h += `<p class="pt-none">状態はまだ読み込んでいません（パトロールのタブで合言葉を入れてください）</p>`;
   else if (!s.last) h += `<p class="pt-none">まだ記録がありません</p>`;
   else { const l = s.last;
-    h += `<ul class="pt-log"><li class="${l.state === "問題あり" ? "bad" : "ok"}"><b>${fmtDay(l.time)}</b> ${esc(l.who || "")} <span class="pt-state">${esc(l.state)}</span>${l.pending ? `<span class="pt-pend">未送信</span>` : ""}`+
+    h += `<ul class="pt-log"><li class="${stateCls(l.state)}"><b>${fmtDay(l.time)}</b> ${esc(l.who || "")} <span class="pt-state">${esc(l.state)}</span>${l.pending ? `<span class="pt-pend">未送信</span>` : ""}`+
       (l.text ? `<div class="pt-text">${esc(l.text)}</div>` : "")+
       (l.photo && /^https?:/.test(l.photo) ? `<a href="${esc(l.photo)}" target="_blank" rel="noopener">📷 写真</a>` : "")+`</li></ul>`;
+    if (s.working){ const issue = s.logs.find(x=> x.state === "問題あり");   // 対応中：もとの問題も添える
+      if (issue) h += `<p class="pt-issue">もとの問題（${fmtDay(issue.time)}）：${esc((issue.text || "").split("\n")[0])}</p>`; }
     if (s.logs.length > 1) h += `<a class="pt-more-link" href="db.html#${encodeURIComponent(id)}" target="_blank" rel="noopener">過去の記録（${s.logs.length - 1}件）をデータベースで見る ›</a>`;
   }
   h += `<button class="pt-record">状態を記録する</button></div>`;
-  const row = box.querySelector(".popup-actions");
-  if (row) row.insertAdjacentHTML("afterend", h); else box.insertAdjacentHTML("beforeend", h);
+  const at = box.querySelector(".popup-desc") || box.querySelector(".popup-actions");
+  if (at) at.insertAdjacentHTML("afterend", h); else box.insertAdjacentHTML("beforeend", h);
   box.querySelector(".pt-record").onclick = ()=> recordForm(o, id);
 }
 
 // ---- 記録の入力 ----
 function recordForm(o, id){
   const old = document.querySelector(".qr-modal"); if (old) old.remove();
+  const cur = stateOf(id), open = cur.problem;
   const who = ls.get(LS.who, ""), key = ls.get(LS.key, "");
   const names = [...new Set([...(pt.status?.recorders || []), who].filter(Boolean))];
   const m = document.createElement("div"); m.className = "qr-modal";
@@ -201,9 +211,11 @@ function recordForm(o, id){
     `<div class="qr-ttl">状態を記録（${esc(id)}）</div><div class="qr-name">${esc(o.name)}</div>`+
     (key ? "" : `<label class="pt-f">合言葉<input type="password" class="pt-key" autocomplete="off"></label>`)+
     `<label class="pt-f">記録者<input class="pt-who" list="ptWhoList" value="${esc(who)}" placeholder="名前"><datalist id="ptWhoList">${names.map(n=> `<option value="${esc(n)}">`).join("")}</datalist></label>`+
+    (open ? `<p class="pt-openmsg">片付いていない問題があります（${esc(cur.last.state)}）</p>` : "")+
     `<div class="pt-states"><button data-v="問題なし" class="ok">問題なし</button><button data-v="問題あり" class="bad">問題あり</button></div>`+
+    (open ? `<div class="pt-states"><button data-v="対応中" class="work">対応中</button><button data-v="対応済み" class="done">対応済み</button></div>` : "")+
     `<div class="pt-more" hidden>`+
-      `<label class="pt-f">内容<textarea class="pt-text-in" rows="4" placeholder="どんな問題か（落石・倒木・看板の破損など）"></textarea></label>`+
+      `<label class="pt-f"><span class="pt-text-lbl">内容</span><textarea class="pt-text-in" rows="4"></textarea></label>`+
       `<label class="ph-drop pt-photo"><span>写真を添える（任意）</span><input type="file" accept="image/*" hidden></label>`+
     `</div>`+
     `<div class="qr-actions"><button class="ph-save" disabled>記録する</button></div>`+
@@ -217,7 +229,10 @@ function recordForm(o, id){
   m.querySelectorAll(".pt-states button").forEach(b=> b.onclick = ()=>{
     state = b.dataset.v;
     m.querySelectorAll(".pt-states button").forEach(x=> x.classList.toggle("on", x === b));
-    more.hidden = state !== "問題あり"; save.disabled = false;
+    more.hidden = state === "問題なし"; save.disabled = false;
+    m.querySelector(".pt-text-lbl").textContent = state === "問題あり" ? "内容" : "対応の内容（任意）";
+    m.querySelector(".pt-text-in").placeholder = state === "問題あり" ? "どんな問題か（落石・倒木・看板の破損など）"
+      : state === "対応中" ? "連絡先・予定など（例：○○課に連絡、11月に撤去予定）" : "どう片付いたか（例：倒木を撤去、看板を張り替え）";
   });
   const drop = m.querySelector(".pt-photo"), input = drop.querySelector("input");
   input.addEventListener("change", ()=>{
@@ -231,11 +246,11 @@ function recordForm(o, id){
   save.onclick = async ()=>{
     const k = m.querySelector(".pt-key"); if (k){ if (!k.value.trim()){ toast("合言葉を入れてください"); return; } ls.set(LS.key, k.value.trim()); }
     const name = m.querySelector(".pt-who").value.trim(); if (!name){ toast("記録者を入れてください"); return; }
-    const content = state === "問題あり" ? m.querySelector(".pt-text-in").value.trim() : "";
+    const content = state !== "問題なし" ? m.querySelector(".pt-text-in").value.trim() : "";
     if (state === "問題あり" && !content){ toast("問題の内容を書いてください"); return; }
     ls.set(LS.who, name);
     const q = ls.get(LS.queue, []);
-    q.push({ id, recorder:name, state, content, photo: state === "問題あり" ? photo : "", time: new Date().toISOString(),
+    q.push({ id, recorder:name, state, content, photo: state !== "問題なし" ? photo : "", time: new Date().toISOString(),
              uid: Date.now().toString(36) + Math.random().toString(36).slice(2, 8) });
     if (!ls.set(LS.queue, q)){ q[q.length - 1].photo = ""; ls.set(LS.queue, q); toast("端末の容量が足りないため、写真は保存できませんでした"); }
     close();

@@ -771,3 +771,13 @@ body.no-labels .leaflet-pane.leaflet-pane-patrol-pane, body.no-labels [class*="p
 .pt-photo { height: 110px; }
 .pt-more-link { display: block; margin: 2px 0 8px; font-size: 13px; color: #15507a; text-decoration: none; }
 .pt-more-link:hover { text-decoration: underline; }
+/* 対応状況（対応中＝紫、対応済み＝緑系の記録） */
+.pt-badge.pt-work { background: #7b4fa3; font-size: 10px; }
+.pt-log li.work { border-left-color: #7b4fa3; background: #f5f0fa; }
+.pt-log li.work .pt-state { color: #6a3d92; }
+.pt-states + .pt-states { margin-top: -4px; }
+.pt-states button.work.on { border-color: #7b4fa3; background: #7b4fa3; color: #fff; }
+.pt-states button.done.on { border-color: #2e7d4f; background: #2e7d4f; color: #fff; }
+.pt-tag.work { display: inline-block; background: #7b4fa3; color: #fff; font-size: 10px; padding: 0 5px; border-radius: 3px; margin-right: 4px; font-weight: 700; }
+.pt-issue { margin: 2px 0 6px; font-size: 12px; color: #6a3d92; }
+.pt-openmsg { margin: 4px 0 6px; font-size: 13px; color: #c0392b; font-weight: 700; }

@@ -131,11 +131,11 @@ function patrolOf(r){
   const iv = st.status.intervals.find(x=> x["対象"] === "ジオサイト" && x["ランク"] === rank);
   const last = logs[0], due = last ? parseTime(last["日時"]) : new Date(PATROL_START);
   due.setMonth(due.getMonth() + (iv ? Number(iv["月"]) : 12));
-  return { logs, last, problem: last?.["状態"] === "問題あり", overdue: Date.now() > due };
+  return { logs, last, problem: ["問題あり", "対応中"].includes(last?.["状態"]), working: last?.["状態"] === "対応中", overdue: Date.now() > due };
 }
 function patrolTag(r){
   const p = patrolOf(r); if (!p) return "";
-  if (p.problem) return `<span class="ptag bad">問題あり ${fmtDay(parseTime(p.last["日時"]))}</span>`;
+  if (p.problem) return `<span class="ptag ${p.working ? "work" : "bad"}">${p.working ? "対応中" : "問題あり"} ${fmtDay(parseTime(p.last["日時"]))}</span>`;
   if (!p.last) return `<span class="ptag ${p.overdue ? "old" : "none"}">${p.overdue ? "点検切れ（未点検）" : "未点検"}</span>`;
   return `<span class="ptag ${p.overdue ? "old" : "ok"}">${p.overdue ? "点検切れ" : "問題なし"} ${fmtDay(parseTime(p.last["日時"]))}</span>`;
 }
@@ -181,7 +181,9 @@ document.addEventListener("keydown", e=>{ if (e.key === "Escape") closeDetail();
 function closeDetail(){ if (location.hash) history.replaceState(null, "", location.pathname + location.search); $("#detail").hidden = true; }
 function openFromHash(){
   const id = decodeURIComponent(location.hash.slice(1));
-  const r = st.rows.find(x=> x.ID === id) || st.rows.find(x=> x["管理番号"] === id);   // 管理番号（#BY-G001）でも開ける
+  const [kd, nm] = id.includes("/") ? [id.slice(0, id.indexOf("/")), id.slice(id.indexOf("/") + 1)] : [];
+  const r = st.rows.find(x=> x.ID === id) || st.rows.find(x=> x["管理番号"] === id)   // 管理番号（#BY-G001）でも開ける
+         || (kd && st.rows.find(x=> x.種類 === kd && x["名前"] === nm));   // 地図の運営版から：#種類/名前
   if (!r){ $("#detail").hidden = true; return; }
   const k = kindOf(r.種類), ph = photoUrl(r), hasLL = r["緯度"] !== "" && r["経度"] !== "" && r["緯度"] != null;
   let h = `<div class="dk" style="--kc:${k.color}"><span>${esc(r.種類)}</span><code>${esc(r["管理番号"] ? r["管理番号"] + "（" + r.ID + "）" : r.ID)}</code></div>`;
@@ -191,7 +193,7 @@ function openFromHash(){
   if (r["見出し"]) h += `<p class="lead">${esc(r["見出し"])}</p>`;
   if (ph) h += `<img class="dphoto" src="${ph}" alt="" onerror="this.remove()">`;
   const acts = [];
-  if (r["地図に出す"] === "Y" && r.種類 !== "生態サイト") acts.push(`<a href="./?site=${encodeURIComponent(r["名前"])}">🗺 地図で見る</a>`);
+  if (r["地図に出す"] === "Y" && r.種類 !== "生態サイト") acts.push(`<a href="./?site=${encodeURIComponent(r["名前"])}${st.status ? "&all=1" : ""}">🗺 地図で見る</a>`);
   if (hasLL && r.種類 !== "生態サイト"){
     const dest = (r["経路緯度"] && r["経路経度"]) ? `${r["経路緯度"]},${r["経路経度"]}` : `${r["緯度"]},${r["経度"]}`;
     acts.push(`<a href="https://www.google.com/maps/dir/?api=1&destination=${dest}" target="_blank" rel="noopener">🧭 経路</a>`);
@@ -211,7 +213,7 @@ function openFromHash(){
   const p = patrolOf(r);
   if (p){
     h += `<div class="sub">点検の記録</div>`;
-    h += p.logs.length ? `<ul class="plog">${p.logs.map(l=> `<li class="${l["状態"] === "問題あり" ? "bad" : "ok"}"><b>${esc(String(l["日時"]).slice(0, 10))}</b> ${esc(l["記録者"])} <span>${esc(l["状態"])}</span>`+
+    h += p.logs.length ? `<ul class="plog">${p.logs.map(l=> `<li class="${l["状態"] === "問題あり" ? "bad" : l["状態"] === "対応中" ? "work" : "ok"}"><b>${esc(String(l["日時"]).slice(0, 10))}</b> ${esc(l["記録者"])} <span>${esc(l["状態"])}</span>`+
       (l["内容"] ? `<div>${esc(l["内容"])}</div>` : "") + (l["写真"] ? `<a href="${esc(l["写真"])}" target="_blank" rel="noopener">📷 写真</a>` : "") + `</li>`).join("")}</ul>`
       : `<p class="note">まだ記録がありません</p>`;
   }

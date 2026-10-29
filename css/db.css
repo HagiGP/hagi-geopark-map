@@ -113,3 +113,6 @@ p.why { margin: 8px 0 2px; }
   #detail { padding: 0; align-items: stretch; }
   .dt-card { border-radius: 0; max-width: none; }
 }
+.ptag.work { background: #7b4fa3; }
+.plog li.work { border-left-color: #7b4fa3; background: #f5f0fa; }
+.plog li.work span { color: #6a3d92; }
