@@ -33,7 +33,7 @@ function initPatrol(){
 
   // 詳細を開いたら、点検の欄を足す（map.js の openSite のあとに）
   const baseOpenSite = openSite;
-  openSite = function(o, opts){ baseOpenSite(o, opts); decorateSite(o); };
+  openSite = function(o, opts){ baseOpenSite(o, opts); pt.openSite = o; decorateSite(o); };
 
   window.addEventListener("online", ()=>{ flushQueue(); loadStatus(); });
   // 地図の印が出そろってから、スプレッドシートのIDと結びつける
@@ -124,7 +124,9 @@ function syncBadges(){
 }
 
 // ---- パトロールのタブ ----
+function redecorate(){ if (pt.openSite && openTab === "site") decorateSite(pt.openSite); }
 function render(){
+  redecorate();
   syncBadges();
   const box = document.getElementById("patrolBox"); if (!box) return;
   const key = ls.get(LS.key, ""), queue = ls.get(LS.queue, []);
@@ -166,20 +168,24 @@ function ptItem({ o, id, s }){
   return `<li class="pt-item" data-id="${esc(id)}">${dot}<span class="pt-name">${esc(o.name)}<small>${sub}${s.last?.pending ? "・未送信" : ""}</small></span></li>`;
 }
 
-// ---- 詳細の点検の欄 ----
+// ---- 詳細の点検の欄：「駐車場・現地解説」の行のすぐ下に、最新の記録だけ。過去の記録はデータベースで ----
 function decorateSite(o){
   const id = pt.byMarker.get(o); if (!id) return;
   const box = document.getElementById("siteDetail");
+  box.querySelector(".pt-site")?.remove();
   const s = stateOf(id);
   let h = `<div class="pt-site"><div class="pt-site-head">点検<span class="pt-id">${esc(id)}・間隔${intervalMonths(id)}か月</span></div>`;
   if (!pt.status && !ls.get(LS.queue, []).some(q=> q.id === id)) h += `<p class="pt-none">状態はまだ読み込んでいません（パトロールのタブで合言葉を入れてください）</p>`;
   else if (!s.last) h += `<p class="pt-none">まだ記録がありません</p>`;
-  else h += `<ul class="pt-log">${s.logs.slice(0, 5).map(l=>
-      `<li class="${l.state === "問題あり" ? "bad" : "ok"}"><b>${fmtDay(l.time)}</b> ${esc(l.who || "")} <span class="pt-state">${esc(l.state)}</span>${l.pending ? `<span class="pt-pend">未送信</span>` : ""}`+
+  else { const l = s.last;
+    h += `<ul class="pt-log"><li class="${l.state === "問題あり" ? "bad" : "ok"}"><b>${fmtDay(l.time)}</b> ${esc(l.who || "")} <span class="pt-state">${esc(l.state)}</span>${l.pending ? `<span class="pt-pend">未送信</span>` : ""}`+
       (l.text ? `<div class="pt-text">${esc(l.text)}</div>` : "")+
-      (l.photo && /^https?:/.test(l.photo) ? `<a href="${esc(l.photo)}" target="_blank" rel="noopener">📷 写真</a>` : "")+`</li>`).join("")}</ul>`;
+      (l.photo && /^https?:/.test(l.photo) ? `<a href="${esc(l.photo)}" target="_blank" rel="noopener">📷 写真</a>` : "")+`</li></ul>`;
+    if (s.logs.length > 1) h += `<a class="pt-more-link" href="db.html#${encodeURIComponent(id)}" target="_blank" rel="noopener">過去の記録（${s.logs.length - 1}件）をデータベースで見る ›</a>`;
+  }
   h += `<button class="pt-record">状態を記録する</button></div>`;
-  box.insertAdjacentHTML("beforeend", h);
+  const row = box.querySelector(".popup-actions");
+  if (row) row.insertAdjacentHTML("afterend", h); else box.insertAdjacentHTML("beforeend", h);
   box.querySelector(".pt-record").onclick = ()=> recordForm(o, id);
 }
 

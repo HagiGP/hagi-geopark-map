@@ -211,7 +211,7 @@ function openFromHash(){
   const p = patrolOf(r);
   if (p){
     h += `<div class="sub">点検の記録</div>`;
-    h += p.logs.length ? `<ul class="plog">${p.logs.slice(0, 10).map(l=> `<li class="${l["状態"] === "問題あり" ? "bad" : "ok"}"><b>${esc(String(l["日時"]).slice(0, 10))}</b> ${esc(l["記録者"])} <span>${esc(l["状態"])}</span>`+
+    h += p.logs.length ? `<ul class="plog">${p.logs.map(l=> `<li class="${l["状態"] === "問題あり" ? "bad" : "ok"}"><b>${esc(String(l["日時"]).slice(0, 10))}</b> ${esc(l["記録者"])} <span>${esc(l["状態"])}</span>`+
       (l["内容"] ? `<div>${esc(l["内容"])}</div>` : "") + (l["写真"] ? `<a href="${esc(l["写真"])}" target="_blank" rel="noopener">📷 写真</a>` : "") + `</li>`).join("")}</ul>`
       : `<p class="note">まだ記録がありません</p>`;
   }
