@@ -116,3 +116,9 @@ p.why { margin: 8px 0 2px; }
 .ptag.work { background: #7b4fa3; }
 .plog li.work { border-left-color: #7b4fa3; background: #f5f0fa; }
 .plog li.work span { color: #6a3d92; }
+
+/* ボタン・札のアイコン（線だけ。文字と同じ色） */
+.ic { width: 15px; height: 15px; flex: none; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; vertical-align: -3px; margin-right: 5px; }
+.acts a { display: inline-flex; align-items: center; background: #fff; color: #1b6a4b; border: 1.5px solid #1b6a4b; }
+.acts a:first-child { background: #1b6a4b; color: #fff; }
+.plog a { display: inline-flex; align-items: center; }

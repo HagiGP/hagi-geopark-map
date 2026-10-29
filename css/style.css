@@ -781,3 +781,21 @@ body.no-labels .leaflet-pane.leaflet-pane-patrol-pane, body.no-labels [class*="p
 .pt-tag.work { display: inline-block; background: #7b4fa3; color: #fff; font-size: 10px; padding: 0 5px; border-radius: 3px; margin-right: 4px; font-weight: 700; }
 .pt-issue { margin: 2px 0 6px; font-size: 12px; color: #6a3d92; }
 .pt-openmsg { margin: 4px 0 6px; font-size: 13px; color: #c0392b; font-weight: 700; }
+
+/* ボタン・札のアイコン（線だけ。文字と同じ色） */
+.ic { width: 15px; height: 15px; flex: none; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; vertical-align: -3px; margin-right: 5px; }
+/* 詳細のボタン：経路だけ塗り、ほかは白地に枠。札（駐車場・現地解説）は控えめに */
+.popup-actions a, .popup-actions .popup-qrbtn, .popup-actions .popup-photobtn {
+  flex: 0 0 auto; display: inline-flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; text-decoration: none; cursor: pointer;
+  padding: 6px 12px; border-radius: 6px; background: #fff; color: #1b6a4b; border: 1.5px solid #1b6a4b; line-height: 1.2; }
+.popup-actions a:first-child { background: #1b6a4b; color: #fff; }
+.popup-actions a:hover, .popup-actions .popup-qrbtn:hover, .popup-actions .popup-photobtn:hover { background: #eef5f1; }
+.popup-actions a:first-child:hover { background: #15583e; }
+.popup-actions .popup-qrbtn, .popup-actions .popup-photobtn { color: #555; border-color: #999; }
+.popup-actions .picto { display: inline-flex; align-items: center; background: none; color: #45524c; font-size: 12.5px; padding: 0 2px; }
+.popup-actions .picto .ic { width: 14px; height: 14px; margin-right: 3px; }
+.ic-p { display: inline-block; width: 15px; height: 15px; margin-right: 4px; border-radius: 3px; background: #2f5fa7; color: #fff; font: 700 11px/15px sans-serif; text-align: center; }
+.popup-dbbtn { display: flex; align-items: center; justify-content: center; margin: 4px 0 12px; padding: 9px 12px; border-radius: 6px;
+  border: 1.5px solid #595857; color: #333; font-size: 13.5px; font-weight: 700; text-decoration: none; background: #fff; }
+.popup-dbbtn:hover { background: #f3f3f2; }
+.pt-log a { display: inline-flex; align-items: center; }

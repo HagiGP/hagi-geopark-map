@@ -273,6 +273,17 @@ function makeLabel(def, p, clickMarker, smallGeo){
   return el;
 }
 
+// ボタン・札のアイコン：線だけの簡単な形（文字と同じ色）
+const ICON = {
+  route: '<path d="M3 11l18-8-8 18-2-8z"/>',                                   // 経路（ナビの矢印）
+  map:   '<path d="M12 21s-7-6.2-7-11a7 7 0 0114 0c0 4.8-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/>',   // 地図（ピン）
+  doc:   '<path d="M6 2h8l5 5v15H6z"/><path d="M14 2v5h5M9 13h7M9 17h7"/>',      // PDF（書類）
+  qr:    '<path d="M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3zM14 14h3v3h-3zM20 14v.01M14 20v.01M20 20h-3"/>',   // QR
+  photo: '<path d="M3 7h4l2-3h6l2 3h4v13H3z"/><circle cx="12" cy="13" r="3.5"/>',   // 写真（カメラ）
+  db:    '<path d="M4 5h16M4 10h16M4 15h16M4 20h10"/>',                          // データベース（一覧）
+  board: '<path d="M4 4h16v10H4zM9 14v7M15 14v7"/>',                             // 現地解説（看板）
+};
+const icon = k=> `<svg class="ic" viewBox="0 0 24 24" aria-hidden="true">${ICON[k]}</svg>`;
 // ---- ポップアップ ----
 const DB_KINDS = ["ジオサイト", "文化サイト", "神社", "展望地", "解説板"];   // サイトデータベースにある種類
 function pointPopup(o){
@@ -290,22 +301,22 @@ function pointPopup(o){
   const ll = o.marker.getLatLng();
   const dest = (p["経路緯度"] && p["経路経度"]) ? `${p["経路緯度"]},${p["経路経度"]}` : `${ll.lat},${ll.lng}`;
   const route = `https://www.google.com/maps/dir/?api=1&destination=${dest}`;
-  let actions = `<a href="${route}" target="_blank" rel="noopener">🧭 経路</a>`;
-  if (p.pdf) actions += `<a href="${encodeURI(p.pdf)}" target="_blank" rel="noopener">📄 PDFで見る</a>`;   // 解説板・案内地図の原稿（data/panel_pdfs.json と同じ）
+  let actions = `<a href="${route}" target="_blank" rel="noopener">${icon("route")}経路</a>`;
+  if (p.pdf) actions += `<a href="${encodeURI(p.pdf)}" target="_blank" rel="noopener">${icon("doc")}PDF</a>`;   // 解説板・案内地図の原稿（data/panel_pdfs.json と同じ）
   if (staff && p.name){
-    actions += `<button class="popup-qrbtn" data-name="${esc(p.name)}">🔗 QR</button>`;
-    actions += `<button class="popup-photobtn" data-name="${esc(p.name)}">📷 写真</button>`;
-    // データベースのそのサイトの詳細へ（IDが分かればID、ほかは「種類/名前」）
-    if (DB_KINDS.includes(o.cat)){
-      const id = (typeof pt !== "undefined" && pt.byMarker.get(o)) || `${o.cat}/${p.name}`;
-      actions += `<a href="db.html#${encodeURIComponent(id)}" target="_blank" rel="noopener">🗂 データベース</a>`;
-    }
+    actions += `<button class="popup-qrbtn" data-name="${esc(p.name)}">${icon("qr")}QR</button>`;
+    actions += `<button class="popup-photobtn" data-name="${esc(p.name)}">${icon("photo")}写真</button>`;
   }
   const pics = [];
-  if (p["駐車場"]==="Y")   pics.push(`<span class="picto">🅿️ 駐車場</span>`);
-  if (p["現地解説"]==="Y") pics.push(`<span class="picto">🪧 現地解説</span>`);
+  if (p["駐車場"]==="Y")   pics.push(`<span class="picto"><b class="ic-p">P</b>駐車場</span>`);
+  if (p["現地解説"]==="Y") pics.push(`<span class="picto">${icon("board")}現地解説</span>`);
   h += `<div class="popup-actions">${actions}${pics.join("")}</div>`;
   if (p["説明"]) h += `<p class="popup-desc">${esc(p["説明"])}</p>`;
+  // 運営版：データベースのそのサイトの詳細へ（IDが分かればID、ほかは「種類/名前」）。解説の下に横長のボタンで
+  if (staff && p.name && DB_KINDS.includes(o.cat)){
+    const id = (typeof pt !== "undefined" && pt.byMarker.get(o)) || `${o.cat}/${p.name}`;
+    h += `<a class="popup-dbbtn" href="db.html#${encodeURIComponent(id)}" target="_blank" rel="noopener">${icon("db")}データベースで詳しく見る</a>`;
+  }
   return h;
 }
 

@@ -187,13 +187,13 @@ function decorateSite(o){
   else { const l = s.last;
     h += `<ul class="pt-log"><li class="${stateCls(l.state)}"><b>${fmtDay(l.time)}</b> ${esc(l.who || "")} <span class="pt-state">${esc(l.state)}</span>${l.pending ? `<span class="pt-pend">未送信</span>` : ""}`+
       (l.text ? `<div class="pt-text">${esc(l.text)}</div>` : "")+
-      (l.photo && /^https?:/.test(l.photo) ? `<a href="${esc(l.photo)}" target="_blank" rel="noopener">📷 写真</a>` : "")+`</li></ul>`;
+      (l.photo && /^https?:/.test(l.photo) ? `<a href="${esc(l.photo)}" target="_blank" rel="noopener">${icon("photo")}写真</a>` : "")+`</li></ul>`;
     if (s.working){ const issue = s.logs.find(x=> x.state === "問題あり");   // 対応中：もとの問題も添える
       if (issue) h += `<p class="pt-issue">もとの問題（${fmtDay(issue.time)}）：${esc((issue.text || "").split("\n")[0])}</p>`; }
     if (s.logs.length > 1) h += `<a class="pt-more-link" href="db.html#${encodeURIComponent(id)}" target="_blank" rel="noopener">過去の記録（${s.logs.length - 1}件）をデータベースで見る ›</a>`;
   }
   h += `<button class="pt-record">状態を記録する</button></div>`;
-  const at = box.querySelector(".popup-desc") || box.querySelector(".popup-actions");
+  const at = box.querySelector(".popup-dbbtn") || box.querySelector(".popup-desc") || box.querySelector(".popup-actions");
   if (at) at.insertAdjacentHTML("afterend", h); else box.insertAdjacentHTML("beforeend", h);
   box.querySelector(".pt-record").onclick = ()=> recordForm(o, id);
 }

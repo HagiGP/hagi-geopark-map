@@ -11,6 +11,17 @@ const KINDS = [   // 種類の並び・色（地図の印と同じ色）
   { name:"展望地",     color:"#1f78b4" },
   { name:"解説板",     color:"#b5121b" },
 ];
+// ボタン・札のアイコン：線だけの簡単な形（文字と同じ色）
+const ICON = {
+  route: '<path d="M3 11l18-8-8 18-2-8z"/>',                                   // 経路（ナビの矢印）
+  map:   '<path d="M12 21s-7-6.2-7-11a7 7 0 0114 0c0 4.8-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/>',   // 地図（ピン）
+  doc:   '<path d="M6 2h8l5 5v15H6z"/><path d="M14 2v5h5M9 13h7M9 17h7"/>',      // PDF（書類）
+  qr:    '<path d="M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3zM14 14h3v3h-3zM20 14v.01M14 20v.01M20 20h-3"/>',   // QR
+  photo: '<path d="M3 7h4l2-3h6l2 3h4v13H3z"/><circle cx="12" cy="13" r="3.5"/>',   // 写真（カメラ）
+  db:    '<path d="M4 5h16M4 10h16M4 15h16M4 20h10"/>',                          // データベース（一覧）
+  board: '<path d="M4 4h16v10H4zM9 14v7M15 14v7"/>',                             // 現地解説（看板）
+};
+const icon = k=> `<svg class="ic" viewBox="0 0 24 24" aria-hidden="true">${ICON[k]}</svg>`;
 const SHOW_FIELDS = ["地区", "地域紹介", "ランク", "保全対象", "主要", "祭神", "由緒", "例祭日", "文化財指定", "駐車場", "現地解説",
                      "関連ジオサイト", "関連サイト", "設置者・管理者", "設置年"];   // 詳細の表に出す項目（空欄は出さない）
 const ls = {
@@ -193,12 +204,12 @@ function openFromHash(){
   if (r["見出し"]) h += `<p class="lead">${esc(r["見出し"])}</p>`;
   if (ph) h += `<img class="dphoto" src="${ph}" alt="" onerror="this.remove()">`;
   const acts = [];
-  if (r["地図に出す"] === "Y" && r.種類 !== "生態サイト") acts.push(`<a href="./?site=${encodeURIComponent(r["名前"])}${st.status ? "&all=1" : ""}">🗺 地図で見る</a>`);
+  if (r["地図に出す"] === "Y" && r.種類 !== "生態サイト") acts.push(`<a href="./?site=${encodeURIComponent(r["名前"])}${st.status ? "&all=1" : ""}">${icon("map")}地図で見る</a>`);
   if (hasLL && r.種類 !== "生態サイト"){
     const dest = (r["経路緯度"] && r["経路経度"]) ? `${r["経路緯度"]},${r["経路経度"]}` : `${r["緯度"]},${r["経度"]}`;
-    acts.push(`<a href="https://www.google.com/maps/dir/?api=1&destination=${dest}" target="_blank" rel="noopener">🧭 経路</a>`);
+    acts.push(`<a href="https://www.google.com/maps/dir/?api=1&destination=${dest}" target="_blank" rel="noopener">${icon("route")}経路</a>`);
   }
-  if (st.pdfs[r["名前"]]) acts.push(`<a href="${encodeURI(st.pdfs[r["名前"]])}" target="_blank" rel="noopener">📄 PDFで見る</a>`);   // 解説板の原稿
+  if (st.pdfs[r["名前"]]) acts.push(`<a href="${encodeURI(st.pdfs[r["名前"]])}" target="_blank" rel="noopener">${icon("doc")}PDF</a>`);   // 解説板の原稿
   if (acts.length) h += `<div class="acts">${acts.join("")}</div>`;
   if (r["説明"]) h += `<p class="desc">${esc(r["説明"])}</p>`;
   const rel = String(r["関連ジオサイト"] || "").split(/[、，,]/).map(s=> s.trim()).filter(Boolean);
@@ -214,7 +225,7 @@ function openFromHash(){
   if (p){
     h += `<div class="sub">点検の記録</div>`;
     h += p.logs.length ? `<ul class="plog">${p.logs.map(l=> `<li class="${l["状態"] === "問題あり" ? "bad" : l["状態"] === "対応中" ? "work" : "ok"}"><b>${esc(String(l["日時"]).slice(0, 10))}</b> ${esc(l["記録者"])} <span>${esc(l["状態"])}</span>`+
-      (l["内容"] ? `<div>${esc(l["内容"])}</div>` : "") + (l["写真"] ? `<a href="${esc(l["写真"])}" target="_blank" rel="noopener">📷 写真</a>` : "") + `</li>`).join("")}</ul>`
+      (l["内容"] ? `<div>${esc(l["内容"])}</div>` : "") + (l["写真"] ? `<a href="${esc(l["写真"])}" target="_blank" rel="noopener">${icon("photo")}写真</a>` : "") + `</li>`).join("")}</ul>`
       : `<p class="note">まだ記録がありません</p>`;
   }
   // 関連するジオサイト：同じ地質区分（地質体）のジオサイト。いくつか訪ねると、その地質体の全体像がわかる
