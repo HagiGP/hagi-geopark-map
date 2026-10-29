@@ -216,7 +216,7 @@ const SITE_CATS = {
   // 案内地図＝床地図等の案内板。サイト種別として解説板と同等（拠点施設とは別枠）。一般は常時表示
   "案内地図": { file:"kanban.geojson",     key:"kan",  fill:"#2b8525", outline:"#ffffff", outmm:0.4, msize:2.4, lbl:"#2b8525", desc:false, buf:"#ffffff", bufmm:0.8, pt:11, bold:true,  minZoom:11.7, prio:6, z:6, always:true },
   // 解説板＝サイト種別（一般は常時表示・トグルなし。運営のみトグル）
-  "解説板":   { file:"kaisetsu.geojson",   key:"kai",  fill:"#e31a1c", outline:"#fff980", outmm:0.4, msize:3.0, lbl:"#e31a1c", desc:false, buf:"#fff980", bufmm:0.8, pt:11, bold:true,  minZoom:15.6, prio:7, z:7, always:true },
+  "解説板":   { file:"kaisetsu.geojson",   key:"kai",  fill:"#e31a1c", outline:"#fff980", outmm:0.4, msize:3.0, lbl:"#e31a1c", desc:false, buf:"#fff980", bufmm:0.8, pt:11, bold:true,  minZoom:11.7, prio:7, z:7, always:true },
   // 神社＝サイト種別。マーカー/ラベル/優先度は文化サイト同等（茶#714B34）。主要(名前あり)=一般表示／その他=運営のみ
   "神社":     { file:"shrines.geojson",    key:"shrine",fill:"#714B34", outline:"#ffffff", outmm:0.4, msize:3.0, lbl:"#714B34", desc:false, buf:"#ffffff", bufmm:0.8, pt:10, bold:true,  minZoom:13.3, prio:2, z:3 },
 };
