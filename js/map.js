@@ -274,11 +274,7 @@ function makeLabel(def, p, clickMarker, smallGeo){
   if (clickMarker){
     el.style.pointerEvents = "auto";
     el.style.cursor = "pointer";
-    el.addEventListener("click", e=>{
-      e.stopPropagation();
-      if (el.classList.contains("clustered")) map.flyTo(clickMarker.getLatLng(), Math.min(map.getMaxZoom(), map.getZoom() + 2));   // 「ほかN」：寄って広げる
-      else clickMarker.fire("click");
-    });
+    el.addEventListener("click", e=>{ e.stopPropagation(); clickMarker.fire("click"); });
   }
   map.getPane("pane-labels").appendChild(el);
   return el;
@@ -609,24 +605,38 @@ function placeLabels(){
     placed.push(R);
   });
   const ok = R => { if (rectHitsDot(R, null)) return false; for (const q of placed) if (rectsOverlap(R,q,2)) return false; return true; };
-  // 密集した所（笠山など）：見どころの名前が4つ以上、画面で34px以内に集まっていたら、ランクのいちばん高い名前に「ほかN」を付けて1つだけ。
-  // ほかは印だけ（名前をタップすると寄る）。寄って広がれば、ふつうに名前が出る
-  vis.forEach(v=>{ v.el.classList.remove("clustered"); v.el.querySelector(".lc")?.remove(); v.hideByCluster = false; });
+  const lines = [], left = [];
+  // 密集した所（笠山など）：見どころの名前が4つ以上、画面で34px以内に集まっていたら、名前を横にずらして縦に並べ、引き出し線で結ぶ。
+  // 並べる側は、印の少ない側（笠山なら海の側）。並べられなければ、ふつうの置き方にまかせる
+  const lineTo = (v, R)=>{
+    const ex = Math.min(Math.max(v.x, R.left), R.right), ey = Math.min(Math.max(v.y, R.top), R.bottom);
+    const L0 = Math.hypot(ex - v.x, ey - v.y) || 1, sx = v.x + (ex - v.x) / L0 * (v.r + 1), sy = v.y + (ey - v.y) / L0 * (v.r + 1);
+    lines.push(`M${sx.toFixed(1)},${sy.toFixed(1)}L${ex.toFixed(1)},${ey.toFixed(1)}`);
+  };
+  vis.forEach(v=>{ v.doneByCluster = false; });
   if (!touringNow){
     const sites = vis.filter(v=> v.site).sort((a,b)=> b.prio - a.prio), used = new Set();
     sites.forEach(v=>{
       if (used.has(v)) return;
       const grp = sites.filter(w=> !used.has(w) && Math.hypot(w.x - v.x, w.y - v.y) < 34);
       if (grp.length < 4) return;
-      grp.forEach(w=>{ used.add(w); if (w !== v){ w.hideByCluster = true; w.el.style.display = "none"; } });
-      v.el.classList.add("clustered");
-      v.el.insertAdjacentHTML("beforeend", `<span class="lc">ほか${grp.length - 1}</span>`);
-      v.w = v.el.offsetWidth;
+      grp.forEach(w=> used.add(w));
+      const xs = grp.map(w=> w.x), cy = grp.reduce((t, w)=> t + w.y, 0) / grp.length;
+      const near = side=> dots.filter(d=> Math.abs(d.y - cy) < 120 && (side > 0 ? d.x > Math.max(...xs) + 8 && d.x < Math.max(...xs) + 220 : d.x < Math.min(...xs) - 8 && d.x > Math.min(...xs) - 220)).length;
+      const sides = near(-1) <= near(1) ? [-1, 1] : [1, -1];
+      const col = grp.slice().sort((a, b)=> a.y - b.y), H = col.reduce((t, w)=> t + w.h + 2, 0);
+      for (const sd of sides) for (const D of [36, 60, 90, 125]){
+        const x0 = sd > 0 ? Math.max(...xs) + D : Math.min(...xs) - D;
+        let y = cy - H / 2;
+        const rs = col.map(w=>{ const R = sd > 0 ? { left:x0, right:x0 + w.w } : { left:x0 - w.w, right:x0 }; R.top = y; R.bottom = y + w.h; y += w.h + 2; return R; });
+        if (!rs.every(ok)) continue;
+        col.forEach((w, n)=>{ const R = rs[n]; w.el.style.left = R.left + "px"; w.el.style.top = R.top + "px"; placed.push(R); lineTo(w, R); w.doneByCluster = true; });
+        return;
+      }
     });
   }
-  const lines = [], left = [];
   // 1回目：マーカーのすぐ近く（右・左・上・下・斜め）
-  vis.filter(v=> !v.hideByCluster).sort((a,b)=> b.prio-a.prio).forEach(v=>{
+  vis.filter(v=> !v.doneByCluster).sort((a,b)=> b.prio-a.prio).forEach(v=>{
     const own = dots.find(d=> d.x===v.x && d.y===v.y);
     const w=v.w, h=v.h, r=v.r, cx=v.x, cy=v.y;
     const dx = r+gap+w/2, dy = r+gap+h/2;

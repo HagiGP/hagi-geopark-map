@@ -822,7 +822,5 @@ body.tour-norange .gp-range { display: none; }
 .area-card-body .stage-sites { border: 2px solid var(--ac, #ddd); border-radius: 6px; }
 .area-card-body .stage-sites .site-area-head { background: #fff; color: color-mix(in srgb, var(--ac) 70%, #2e2624); }
 .area-card-body .stage-sites .site-area-head::after { color: color-mix(in srgb, var(--ac) 70%, #2e2624); }
-/* 密集した所の名前「○○ ほかN」（タップで寄る） */
-.poi-label .lc { margin-left: 4px; padding: 0 5px; border-radius: 8px; background: #2e2624; color: #fff; font-size: 11px; font-weight: 700; text-shadow: none; vertical-align: 1px; }
 svg.site-dot.picto { width: 16px; height: 16px; margin: 0 5px 0 0; vertical-align: -3px; }
 .lp-legend svg.site-dot.picto { width: 18px; height: 18px; margin: 0 6px 0 0; }
