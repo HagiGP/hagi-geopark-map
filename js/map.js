@@ -938,6 +938,9 @@ function buildControls(){
     ]));
     map.getContainer().appendChild(bar);
     L.DomEvent.disableClickPropagation(bar); L.DomEvent.disableScrollPropagation(bar);
+    // 出典の白い帯（画面幅で1〜2行になる）のすぐ上に、少しすき間を空けて置く
+    const sit = ()=>{ const a = document.querySelector(".leaflet-control-attribution"); if (a && a.offsetHeight) bar.style.bottom = (a.offsetHeight + 6) + "px"; };
+    sit(); addEventListener("resize", sit); setTimeout(sit, 800);
   }
   document.querySelectorAll(".lp-cat").forEach(cb=>{
     cb.addEventListener("change", e=>{ catOn[e.target.dataset.cat]=e.target.checked; refresh(); });
