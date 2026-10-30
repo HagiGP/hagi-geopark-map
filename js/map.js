@@ -708,7 +708,7 @@ function injectLabelStyles(){
 }
 
 // ---- 読み込み ----
-const DATAV = "?d=228";   // geojson更新時にbump（ブラウザキャッシュ回避）
+const DATAV = "?d=231";   // geojson更新時にbump（ブラウザキャッシュ回避）
 const fetchGj = def => fetch("data/"+def.file+DATAV).then(r=>r.json());
 Promise.all([
   fetch("data/areas.geojson"+DATAV).then(r=>r.json()),
@@ -719,7 +719,7 @@ Promise.all([
 ]).then(([areaGj, sites, refs, placesGj, areaPolyGj])=>{
   injectLabelStyles();
   if (areaPolyGj) rangeLayer = L.geoJSON(areaPolyGj, { interactive:false,
-    style:{ color:"#c0392b", weight:2.5, opacity:.9, fillColor:"#1b6a4b", fillOpacity:.12, className:"gp-range" } });   // 解説中は白い線（CSS）
+    style:{ color:"#c30d23", weight:2.5, opacity:.9, fillColor:"#1b6a4b", fillOpacity:.12, className:"gp-range" } });   // ロゴの赤。解説中は太く（CSS）
   // 広域モードで範囲の中央に置く萩ジオパークのロゴ（タップで範囲へズームイン）
   rangeLogo = L.marker(MAINLAND_BOUNDS.getCenter(), { interactive:true, keyboard:false, zIndexOffset:700,
     icon: L.divIcon({ className:"", iconSize:[58,58], iconAnchor:[29,29],

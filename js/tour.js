@@ -217,19 +217,19 @@ function showScene(i){
       else if (hasPhoto){
         // PCの写真の窓は四隅のどこかに置ける。地図は写真をよけてずらさず、字幕の窓の上の範囲の真ん中に合わせ、
         // 写真は見せたい場所と重ならない隅（どこも重なるなら、重なりのいちばん小さい隅）へ
-        const ph = photoHeight(sc, i), pw = photoWidth(sc), side = (innerWidth - box.offsetWidth) / 2;
+        const ph = photoHeight(sc, i), pw = photoWidth(sc), side = Math.max(PC_PHOTO.m(), (innerWidth - box.offsetWidth) / 2), m = PC_PHOTO.m(), top = PC_PHOTO.top();
         const lowTop = size.y - (box.offsetHeight + 30) - ph;   // 下の写真の窓の上端
-        corners = {   // 写真の窓を置ける四隅（画面上の四角。showPhoto の置き方と合わせる）
-          br: [size.x - Math.max(12, side) - pw, lowTop, size.x - Math.max(12, side), lowTop + ph],
-          bl: [Math.max(12, side), lowTop, Math.max(12, side) + pw, lowTop + ph],
-          tr: [size.x - 12 - pw, 70, size.x - 12, 70 + ph],
-          tl: [12, 70, 12 + pw, 70 + ph],
+        corners = {   // 写真の窓を置ける四隅（画面上の四角。placePhoto の置き方と合わせる）
+          br: [size.x - side - pw, lowTop, size.x - side, lowTop + ph],
+          bl: [side, lowTop, side + pw, lowTop + ph],
+          tr: [size.x - m - pw, top, size.x - m, top + ph],
+          tl: [m, top, m + pw, top + ph],
         };
-        cands = [{ ...base, pos:"auto" }];
-        if (sc.photoAt){   // photoAt：写真の窓をこの隅に置き、地図はその横（左右の隅なら列）を除いた範囲に合わせる
-          const p = sc.photoAt, w = (p[0] === "b" ? side : 12) + pw + 30;
-          cands = [{ ...base, pos:p, ...(p[1] === "l" ? { l: w } : { r: w }) }];
-        }
+        // 地図はそのまま写真の窓を重ねる案と、写真の窓の列を地図からよける案（四隅それぞれ）を比べ、
+        // 見せたい所が写真に隠れず、いちばん大きく見せられるものを選ぶ
+        const col = p=> ({ ...base, pos:p, ...(p[1] === "l" ? { l: (p[0] === "b" ? side : m) + pw + 30 } : { r: (p[0] === "b" ? side : m) + pw + 30 }) });
+        cands = [{ ...base, pos:"auto" }, ...["tl", "tr", "bl", "br"].map(col)];
+        if (sc.photoAt) cands = [col(sc.photoAt)];   // photoAt：写真の窓をこの隅に置き、地図はその横（列）を除いた範囲に合わせる
       }
       const p0 = map.project(b.getNorthWest(), 0), p1 = map.project(b.getSouthEast(), 0);
       // 写真の窓と重ねたくないもの＝この場面で実際に描くもの（指差し・図形・矢印・丸・名札）。無ければ範囲全体
@@ -283,11 +283,14 @@ function showScene(i){
         const r0 = scr(c0), r1 = c1 ? scr(c1) : r0;
         const rect = [Math.min(r0[0], r1[0]), Math.min(r0[1], r1[1]), Math.max(r0[2], r1[2]), Math.max(r0[3], r1[3])];
         let pos = a.pos, score = zFit * 120 - shift;
-        if (pos === "auto"){   // 見せたい範囲との重なりがいちばん小さい隅（同じなら、いちばん離れた隅）
+        if (corners){
           const cx = (rect[0] + rect[2]) / 2, cy = (rect[1] + rect[3]) / 2, M = 10;
           const over = q=> Math.max(0, Math.min(q[2] + M, rect[2]) - Math.max(q[0] - M, rect[0])) * Math.max(0, Math.min(q[3] + M, rect[3]) - Math.max(q[1] - M, rect[1]));
           const far = q=> Math.hypot((q[0] + q[2]) / 2 - cx, (q[1] + q[3]) / 2 - cy);
-          pos = Object.entries(corners).sort(([, p], [, q])=> over(p) - over(q) || far(q) - far(p))[0][0];
+          // auto：見せたい範囲との重なりがいちばん小さい隅（同じなら、いちばん離れた隅）
+          if (pos === "auto") pos = Object.entries(corners).sort(([, p], [, q])=> over(p) - over(q) || far(q) - far(p))[0][0];
+          const ov = over(corners[pos]);
+          if (ov > 0) score -= 300 + ov / 40;   // 見せたい所が写真に隠れる案は大きく減点
         }
         return { a: { ...a, pos }, aw, ah, z, c0, c1, shift, score };
       };
@@ -341,11 +344,15 @@ function scenePhoto(sc){
   const isPath = /[\/.]/.test(p) && /\.(jpe?g|png|webp|svg)(\?.*)?$/i.test(p);   // 末尾の ?p=… （写真の版）も許す
   return { src: isPath ? p : photoSrc(p), caption: sc.photoCaption || (isPath ? "" : p), diagram: /^img\/tour\//.test(p), focus: sc.photoFocus || "" };   // img/tour/ の図（模式図）は切り取らず全体を見せる
 }
-const photoWidth = sc=> scenePhoto(sc)?.diagram ? 380 : 300;   // 模式図は少し大きめ（CSSと合わせる）
-// PCの写真の窓の高さ（CSSと合わせる：枠の内側の幅に縮めた写真。写真は最大220px、模式図は全体＋見出しの行）
+// PCの写真の窓：画面の大きさに合わせて大きく（幅は画面の約3分の1、300〜760px。写真の高さは画面の半分まで）。端からの余白も画面に合わせる
+const clampN = (v, lo, hi)=> Math.min(hi, Math.max(lo, v));
+const PC_PHOTO = { w: ()=> Math.round(clampN(innerWidth * 0.33, 300, 760)), maxH: ()=> Math.round(clampN(innerHeight * 0.5, 220, 560)),
+                   m: ()=> Math.round(clampN(innerWidth * 0.02, 12, 36)), top: ()=> 58 + Math.round(clampN(innerWidth * 0.02, 12, 36)) };
+const photoWidth = sc=> scenePhoto(sc)?.diagram ? Math.min(900, Math.round(PC_PHOTO.w() * 1.2)) : PC_PHOTO.w();   // 模式図は少し大きめ
+// PCの写真の窓の高さ（枠の内側の幅に縮めた写真。写真は PC_PHOTO.maxH まで、模式図は全体＋見出しの行）
 function photoHeight(sc, i){
   const ph = scenePhoto(sc), [w, h] = tour.photoSize[i] || [4, 3], inner = photoWidth(sc) - 16;
-  const imgH = ph?.diagram ? inner * h / w : Math.min(220, inner * h / w);
+  const imgH = ph?.diagram ? inner * h / w : Math.min(PC_PHOTO.maxH(), inner * h / w);
   return imgH + 14 + (ph?.caption ? 24 : 0);
 }
 function hidePhoto(){ document.querySelectorAll("#tourPhoto").forEach(el=> el.remove()); }
@@ -363,12 +370,14 @@ function showFigure(sc){
 }
 // PC：場面ごとに選んだ隅（showScene の見せる範囲の選び方と合わせる）。下の隅は字幕の窓の上、上の隅はヘッダーの下
 function placePhoto(w){
-  const pos = tour.photoPos || "br", boxEl = document.getElementById("tourBox");
-  const side = Math.max(12, (innerWidth - boxEl.offsetWidth) / 2);
+  const pos = tour.photoPos || "br", boxEl = document.getElementById("tourBox"), m = PC_PHOTO.m();
+  const side = Math.max(m, (innerWidth - boxEl.offsetWidth) / 2);
   w.style.top = w.style.bottom = w.style.left = w.style.right = "";
-  if (pos[0] === "b") w.style.bottom = (boxEl.offsetHeight + 30) + "px"; else w.style.top = "70px";
-  if (pos[1] === "l"){ w.style.left = (pos[0] === "b" ? side : 12) + "px"; w.style.right = "auto"; }
-  else w.style.right = (pos[0] === "b" ? side : 12) + "px";
+  w.style.width = (w.classList.contains("diagram") ? Math.min(900, Math.round(PC_PHOTO.w() * 1.2)) : PC_PHOTO.w()) + "px";
+  const img = w.querySelector("img"); if (img && !w.classList.contains("diagram")) img.style.maxHeight = PC_PHOTO.maxH() + "px";
+  if (pos[0] === "b") w.style.bottom = (boxEl.offsetHeight + 30) + "px"; else w.style.top = PC_PHOTO.top() + "px";
+  if (pos[1] === "l"){ w.style.left = (pos[0] === "b" ? side : m) + "px"; w.style.right = "auto"; }
+  else w.style.right = (pos[0] === "b" ? side : m) + "px";
 }
 function showPhoto(sc, i){
   const ph = scenePhoto(sc); if (!ph) return;
