@@ -801,5 +801,8 @@ body.no-labels .leaflet-pane.leaflet-pane-patrol-pane, body.no-labels [class*="p
 .pt-log a { display: inline-flex; align-items: center; }
 /* 解説で示す見どころ：ふだんの地図と同じ印と名前が、ふわっと現れる */
 .tour-site, .tour-site-label { animation: tourSiteIn .5s ease-out both; }
+.tour-site svg { transform: scale(1.5); transform-origin: center; }   /* ふだんの地図より大きく（tour.js の SITE_SCALE と合わせる） */
+.tour-site-label .ln { font-size: 16px !important; }
 .tour-site-label { position: absolute; left: 0; top: 0; pointer-events: none; }
 @keyframes tourSiteIn { from { opacity: 0; transform-origin: center; } to { opacity: 1; } }
+body.tour-norange .gp-range { display: none; }

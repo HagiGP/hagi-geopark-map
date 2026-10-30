@@ -108,7 +108,7 @@ function beginTour(a, shapes){
 
 function endTour(){
   if (!tour) return;
-  stopTyping();
+  stopTyping(); document.body.classList.remove("tour-norange");
   tour.layer.remove(); tour.keepLayer.remove();
   Object.values(tour.keep).forEach(g=> g._dead = true);
   document.getElementById("tourBox")?.remove();
@@ -184,6 +184,7 @@ const follows = sc=> sc.followLine || (isMobile() && sc.mfollowLine);   // カ�
 
 function showScene(i){
   const sc = tour.scenes[i]; tour.i = i;
+  document.body.classList.toggle("tour-norange", !!sc.noRange);   // noRange：範囲の線を出さない場面
   if (tourGSI !== !!sc.gsi){ tourGSI = !!sc.gsi; refresh(); }   // gsi:true の場面は陰影・植生を出さず地理院地図だけ
   // 地理院地図の場面は、日本海全体なども見せられるよう、ふだんの最小倍率・表示範囲の制限をゆるめる
   if (sc.gsi){ map.setMaxBounds(null); map.setMinZoom(5); }
@@ -441,18 +442,20 @@ function drawSceneMarks(sc){
     return best;
   };
   tour.siteMarks = [];
-  const siteMark = (o, delay = 0)=>{
+  const siteMark = (o, delay = 0, opt = {})=>{
     const ll = o.marker.getLatLng(); tour.siteMarks.push(ll);
     const icon = o.def && SITE_CATS[o.cat] ? markerIcon(o.cat, o.rank) : o.marker.options.icon;
     L.marker(ll, { interactive:false, pane:"tourPane", keyboard:false, icon:L.divIcon({ ...icon.options,
       html:`<div class="tour-site" style="animation-delay:${delay}s">${icon.options.html}</div>` }) }).addTo(tour.layer);
     if (named.has(o.name)) return; named.add(o.name);
     // 名前：丸の右（ふだんの地図と同じ）。先に置いた名前と重なるなら左、それも重なるなら下へずらす
-    const px = map.latLngToContainerPoint(ll), r = (o.def?.msize || 3) * PX_MM / 2 + 4, w = 14 * [...o.name].length + 6, h = 18;
+    // 印と名前は、ふだんの地図より大きく（SITE_SCALE 倍・名前は16px）
+    const px = map.latLngToContainerPoint(ll), r = (o.def?.msize || 3) * PX_MM / 2 * SITE_SCALE + 4, w = 16 * [...o.name].length + 6, h = 21;
     const fits = b=> !boxes.some(q=> b[0] < q[2] && b[2] > q[0] && b[1] < q[3] && b[3] > q[1]);
     let side = "r", dy = 0, b = [px.x + r, px.y - h / 2, px.x + r + w, px.y + h / 2];
     if (!fits(b)){ const bl = [px.x - r - w, px.y - h / 2, px.x - r, px.y + h / 2]; if (fits(bl)){ side = "l"; b = bl; } }
     while (!fits(b) && dy < 80){ dy += h; b = [b[0], b[1] + h, b[2], b[3] + h]; }
+    if (!fits(b) && opt.crowd) return;   // たくさん出す場面（allSites）で置き場所が無い名前は、印だけ
     boxes.push(b);
     const key = isGeoSmall(o) ? "geosm" : (o.def?.key || "geo");
     L.marker(ll, { interactive:false, pane:"tourPane", keyboard:false, icon:L.divIcon({ className:"", iconSize:null, iconAnchor:[0,0],
@@ -473,6 +476,9 @@ function drawSceneMarks(sc){
     L.marker(ll, { interactive:false, pane:"tourPane", keyboard:false,
       icon:L.divIcon({ className:"", iconSize:[RING,RING], iconAnchor:[RING/2,RING/2], html:`<div class="tour-ring"></div>` }) }).addTo(tour.layer);
   });
+  // allSites：その種類の見どころをすべて、印と名前で（例："ジオサイト"）。名前は置ける所だけ（ランクの高い順に）
+  if (sc.allSites) allMarkers.filter(o=> o.cat === sc.allSites && map.getBounds().pad(0.2).contains(o.marker.getLatLng()))
+    .sort((a, b)=> labelPrio(b) - labelPrio(a)).forEach((o, k)=> siteMark(o, (k * 0.02).toFixed(2), { crowd:true }));
   // 点滅（解説の最後など）：見どころは、ふだんの印と名前がひとつずつ現れる。見どころでない所は黄色い丸
   (sc.blink||[]).forEach((n, k)=>{
     const d = (k * 0.15).toFixed(2), o = siteOf(n); if (o) return siteMark(o, d);
@@ -490,6 +496,7 @@ function drawSceneMarks(sc){
   });
   labelsOf(sc).filter(lb=> !lb.step).forEach(addTourLabel);   // 地名ラベル（例：{"text":"須佐湾","at":[34.628,131.594]}）
 }
+const SITE_SCALE = 1.5;   // 解説で示す見どころの印の大きさ（ふだんの地図の何倍か。CSS の .tour-site と合わせる）
 const ALIGN = { right:"translate(-100%,-50%)", left:"translate(0,-50%)" };   // 既定は at が名札の真ん中
 function addTourLabel(lb){
   if ((tour.siteMarks || []).some(ll=> ll.distanceTo(lb.at) < 250)) return;   // 見どころの印と名前を出した所には、名札を重ねない
