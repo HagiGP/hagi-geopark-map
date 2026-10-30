@@ -308,7 +308,9 @@ function pointPopup(o){
   if (p["法的保護"]) h += `<div class="popup-prot">${p["法的保護"].split(/[、，,]/).map(s=> s.trim()).filter(Boolean).map(s=> `<span>${esc(s)}</span>`).join("")}</div>`;
   if (p["見出し"]) h += `<p class="popup-lead">${esc(p["見出し"])}</p>`;   // 「大地と人のつながり」の見出し
   // 写真：見どころと同じ名前の解説板などは、自分の写真（photo）を使う
-  if (p.name) h += `<img class="popup-photo" src="${p.photo ? "img/sites/" + encodeURIComponent(p.photo) + PHOTOV : photoSrc(p.name)}" alt="" onerror="this.style.display='none'">`;   // 写真（無ければ出さない）
+  // 看板（解説板・案内地図・床地図など）は、切り取らずに画像の全体を見せる
+  const whole = o.cat === "解説板" || o.cat === "案内地図" || p.pdf;
+  if (p.name) h += `<img class="popup-photo${whole ? " whole" : ""}" src="${p.photo ? "img/sites/" + encodeURIComponent(p.photo) + PHOTOV : photoSrc(p.name)}" alt="" onerror="this.style.display='none'">`;   // 写真（無ければ出さない）
   // 経路の行き先：データに「経路緯度」「経路経度」があればそこ（滝の上など、印の場所に車や徒歩で着けない所は、麓の入口などを指定）
   const ll = o.marker.getLatLng();
   const dest = (p["経路緯度"] && p["経路経度"]) ? `${p["経路緯度"]},${p["経路経度"]}` : `${ll.lat},${ll.lng}`;
