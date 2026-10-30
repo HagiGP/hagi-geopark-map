@@ -824,3 +824,11 @@ body.tour-norange .gp-range { display: none; }
 .area-card-body .stage-sites .site-area-head::after { color: color-mix(in srgb, var(--ac) 70%, #2e2624); }
 svg.site-dot.picto { width: 16px; height: 16px; margin: 0 5px 0 0; vertical-align: -3px; }
 .lp-legend svg.site-dot.picto { width: 18px; height: 18px; margin: 0 6px 0 0; }
+/* 密集した所（引いた縮尺）の「＋N」（タップで寄る） */
+.poi-label .lc { margin-left: 4px; padding: 0 6px; border-radius: 8px; background: #2e2624; color: #fff; font-size: 11px; font-weight: 700; text-shadow: none; vertical-align: 1px; }
+/* 展示看板のタブ */
+.sign-region { margin: 14px 8px 4px; padding: 4px 10px; border-radius: 4px; background: var(--ac, #2e2624); color: var(--act, #fff); font-family: var(--heavy); font-weight: 900; font-size: calc(13px + 1pt); }
+.sign-list .poi-item { flex-wrap: wrap; }
+.sign-pdf { margin-left: auto; display: inline-flex; align-items: center; padding: 3px 8px; border: 1.5px solid #1b6a4b; border-radius: 5px; color: #1b6a4b; font-size: 12px; font-weight: 700; text-decoration: none; background: #fff; }
+.sign-pdf + .sign-pdf { margin-left: 6px; }
+.sign-pdf .ic { width: 13px; height: 13px; margin-right: 3px; }

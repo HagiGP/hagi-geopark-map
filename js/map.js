@@ -274,7 +274,11 @@ function makeLabel(def, p, clickMarker, smallGeo){
   if (clickMarker){
     el.style.pointerEvents = "auto";
     el.style.cursor = "pointer";
-    el.addEventListener("click", e=>{ e.stopPropagation(); clickMarker.fire("click"); });
+    el.addEventListener("click", e=>{
+      e.stopPropagation();
+      if (el.classList.contains("clustered")) map.flyTo(clickMarker.getLatLng(), Math.max(14, Math.min(map.getMaxZoom(), map.getZoom() + 2)));   // 「＋N」：寄って広げる
+      else clickMarker.fire("click");
+    });
   }
   map.getPane("pane-labels").appendChild(el);
   return el;
@@ -613,8 +617,22 @@ function placeLabels(){
     const L0 = Math.hypot(ex - v.x, ey - v.y) || 1, sx = v.x + (ex - v.x) / L0 * (v.r + 1), sy = v.y + (ey - v.y) / L0 * (v.r + 1);
     lines.push(`M${sx.toFixed(1)},${sy.toFixed(1)}L${ex.toFixed(1)},${ey.toFixed(1)}`);
   };
-  vis.forEach(v=>{ v.doneByCluster = false; });
-  if (!touringNow){
+  vis.forEach(v=>{ v.doneByCluster = false; v.hideByCluster = false; v.el.classList.remove("clustered"); v.el.querySelector(".lc")?.remove(); });
+  // 引いた縮尺（サイトをタップしたときの倍率14より引き）：いちばんランクの高い名前に「＋N」を付けて1つだけ（タップで寄る）
+  if (!touringNow && map.getZoom() < 14){
+    const sites = vis.filter(v=> v.site).sort((a,b)=> b.prio - a.prio), used = new Set();
+    sites.forEach(v=>{
+      if (used.has(v)) return;
+      const grp = sites.filter(w=> !used.has(w) && Math.hypot(w.x - v.x, w.y - v.y) < 34);
+      if (grp.length < 4) return;
+      grp.forEach(w=>{ used.add(w); if (w !== v){ w.hideByCluster = true; w.el.style.display = "none"; } });
+      v.el.classList.add("clustered");
+      v.el.insertAdjacentHTML("beforeend", `<span class="lc">＋${grp.length - 1}</span>`);
+      v.w = v.el.offsetWidth;
+    });
+  }
+  // 寄った縮尺：名前を横にずらして縦に並べ、引き出し線で結ぶ
+  else if (!touringNow){
     const sites = vis.filter(v=> v.site).sort((a,b)=> b.prio - a.prio), used = new Set();
     sites.forEach(v=>{
       if (used.has(v)) return;
@@ -636,7 +654,7 @@ function placeLabels(){
     });
   }
   // 1回目：マーカーのすぐ近く（右・左・上・下・斜め）
-  vis.filter(v=> !v.doneByCluster).sort((a,b)=> b.prio-a.prio).forEach(v=>{
+  vis.filter(v=> !v.doneByCluster && !v.hideByCluster).sort((a,b)=> b.prio-a.prio).forEach(v=>{
     const own = dots.find(d=> d.x===v.x && d.y===v.y);
     const w=v.w, h=v.h, r=v.r, cx=v.x, cy=v.y;
     const dx = r+gap+w/2, dy = r+gap+h/2;
@@ -1129,10 +1147,34 @@ function makePoiItem(o){
   const li = document.createElement("li"); li.className="poi-item"; li.dataset.name=o.name;
   const rank = (staff && o.rank) ? `<span class="poi-rank rank-${o.rank}">${esc(o.rank)}</span>` : "";
   const dist = myLatLng ? `<span class="poi-dist">${fmtDist(myLatLng.distanceTo(o.marker.getLatLng()))}</span>` : "";
-  li.innerHTML = `${rank}<span class="poi-dot" style="background:${SITE_CATS[o.cat].fill}"></span><span class="poi-name">${esc(o.name)}</span>${dist}`;
+  const dot = SITE_CATS[o.cat].picto ? pictoDot(SITE_CATS[o.cat], 15) : `<span class="poi-dot" style="background:${SITE_CATS[o.cat].fill}"></span>`;   // 展望地・看板は絵入りの印
+  li.innerHTML = `${rank}${dot}<span class="poi-name">${esc(o.name)}</span>${dist}`;
   // そのサイトが地図に現れる倍率（QGIS縮尺依存の表示開始）まで寄せる。解説板など高倍率のものも必ず表示＋ポップアップ
   li.onclick = ()=> flyToSite(o);
   return li;
+}
+// 「展示看板」のタブ：解説看板と案内地図を地域ごとに。タップでその場所へ、原稿のPDFがあればボタン
+function buildSignTab(){
+  const box = document.getElementById("signList"); if (!box || !allMarkers.length) return;
+  const signs = allMarkers.filter(o=> o.cat === "解説板" || o.cat === "案内地図" || o.props.pdf);   // 拠点施設の床地図など、看板のPDFがある所も
+  const regionOf = o=> AREAS.find(a=> a.bounds?.contains(o.marker.getLatLng()))?.id || "";
+  const groups = [...AREAS.map(a=> ({ id:a.id, name:a.name, color:a.color })), { id:"", name:"そのほかの地域", color:"#2e2624" }];
+  box.innerHTML = `<p class="list-intro">萩ジオパークの中にある解説看板と案内地図です。名前をタップすると地図でその場所へ。PDFで看板の原稿を見ることもできます。</p>`;
+  groups.forEach(g=>{
+    const items = signs.filter(o=> regionOf(o) === g.id).sort((a, b)=> (a.cat === b.cat ? 0 : a.cat === "解説板" ? -1 : 1) || a.name.localeCompare(b.name, "ja"));
+    if (!items.length) return;
+    const h = document.createElement("div"); h.className = "sign-region"; h.style.setProperty("--ac", g.color); h.style.setProperty("--act", textOn(g.color)); h.textContent = g.name; box.appendChild(h);
+    const ul = document.createElement("ul"); ul.className = "site-list sign-list";
+    items.forEach(o=>{
+      const li = makePoiItem(o);
+      [].concat(o.props.pdf || []).forEach(f=>{
+        const a = document.createElement("a"); a.className = "sign-pdf"; a.href = encodeURI(f); a.target = "_blank"; a.rel = "noopener";
+        a.innerHTML = `${icon("doc")}PDF`; a.onclick = e=> e.stopPropagation(); li.appendChild(a);
+      });
+      ul.appendChild(li);
+    });
+    box.appendChild(ul);
+  });
 }
 // エリア説明の項目（areas.geojson のキー → 見出し）。改行で段落を分けられる
 const AREA_STORY = [
@@ -1306,7 +1348,7 @@ function openAreaCard(id){
 }
 
 // ---- メニュー（ドック）とパネルの開閉 ----
-const TAB_TITLES = { areas:"地域紹介", food:"食と大地", legend:"凡例", site:"見どころ" };
+const TAB_TITLES = { areas:"地域紹介", food:"食と大地", signs:"展示看板", legend:"凡例", site:"見どころ" };
 const isMobile = ()=> window.matchMedia("(max-width: 760px)").matches;      // 解説の写真の窓の配置など
 const isPortrait = ()=> window.matchMedia("(orientation: portrait)").matches;   // メニューの配置（縦長＝下・横長＝左）
 let openTab = null;
@@ -1346,6 +1388,7 @@ function showTab(name, { pan = true } = {}){
   panel.querySelector(".panel-body").scrollTop = 0;
   if (name !== "site") selRing.remove();
   if (typeof setFoodMode === "function") setFoodMode(name === "food");   // 食と大地＝地図を産地の印に切り替える
+  if (name === "signs") buildSignTab();
   if (AREAS.length) requestAnimationFrame(positionAreaLabels);   // パネルに隠れない所へエリアの札を寄せ直す
 }
 function closeTab({ pan = true } = {}){

@@ -24,7 +24,7 @@
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@700;900&display=swap" />
   <!-- 食と大地の判子の筆文字（使う字だけ） -->
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Yuji+Syuku&display=swap&text=%E4%B8%B9%E5%A4%A7%E5%B8%83%E5%B9%B2%E6%9E%97%E6%9E%9C%E6%9F%91%E6%A0%B9%E6%A1%83%E6%AA%8E%E7%83%8F%E7%85%AE%E7%89%9B%E7%8E%89%E7%B1%B3%E8%85%90%E8%8B%A5%E8%8C%84%E8%91%B1%E8%92%B2%E8%95%83%E8%95%8E%E8%B1%86%E8%B3%8A%E9%85%92%E9%89%BE%E9%9B%B2%E9%AF%B5%E9%BA%A6" />
-  <link rel="stylesheet" href="css/style.css?v=448" />
+  <link rel="stylesheet" href="css/style.css?v=450" />
 </head>
 <body>
   <header id="appbar">
@@ -39,6 +39,7 @@
   <nav id="dock" aria-label="メニュー">
     <button class="dock-btn" data-tab="areas" aria-controls="panel"><span>地域</span><span>紹介</span></button>
     <button class="dock-btn" data-tab="food" aria-controls="panel"><span>食と</span><span>大地</span></button>
+    <button class="dock-btn" data-tab="signs" aria-controls="panel"><span>展示</span><span>看板</span></button>
     <button class="dock-btn one" data-tab="legend" aria-controls="panel"><span>凡例</span></button>
   </nav>
   <aside id="panel" aria-hidden="true">
@@ -52,6 +53,7 @@
       </section>
       <section class="tab" data-tab="site"><div id="siteDetail"></div></section>
       <section class="tab" data-tab="food"><p class="loading">読み込み中…</p></section>
+      <section class="tab" data-tab="signs"><div id="signList"><p class="loading">読み込み中…</p></div></section>
       <section class="tab" data-tab="legend">
         <div id="legendBox"></div>
         <p class="credit">
@@ -68,11 +70,11 @@
   <div id="map"></div>
 
   <script src="js/qrcode.min.js?v=58"></script>
-  <script src="js/map.js?v=448"></script>
-  <script src="js/tour.js?v=448"></script>
-  <script src="js/food.js?v=448"></script>
-  <script src="js/patrol.js?v=448"></script>
-  <script src="js/links.js?v=448"></script>
+  <script src="js/map.js?v=450"></script>
+  <script src="js/tour.js?v=450"></script>
+  <script src="js/food.js?v=450"></script>
+  <script src="js/patrol.js?v=450"></script>
+  <script src="js/links.js?v=450"></script>
   <script>
     if ("serviceWorker" in navigator) {
       window.addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(()=>{}));
