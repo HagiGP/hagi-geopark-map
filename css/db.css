@@ -1,7 +1,7 @@
 /* 萩ジオパーク サイトデータベース（db.html） */
 * { box-sizing: border-box; }
 :root {
-  --brand-red: #c30d23; --sumi: #595857; --line: #e4e4e0; --bg: #f6f6f4;
+  --brand-red: #c30d23; --sumi: #2e2624; --line: #e4e4e0; --bg: #f6f6f4;
   --heavy: "Noto Sans JP", "Hiragino Kaku Gothic ProN", "Yu Gothic", Meiryo, sans-serif;
 }
 html, body { margin: 0; background: var(--bg); color: #222; font-family: "Hiragino Kaku Gothic ProN", "Yu Gothic", Meiryo, sans-serif; }

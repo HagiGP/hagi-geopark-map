@@ -223,7 +223,7 @@ const SITE_CATS = {
 // 地図の目印＝参照表示（山名・公共施設のみ）。見た目もQGIS通り（山=小さい白丸黒縁, 公共施設=小さい濃灰丸）
 const REF_CATS = {
   "山名":     { file:"yama.geojson",       key:"yama", fill:"#ffffff", outline:"#000000", outmm:0.2, msize:2.4, lbl:"#ffffff", desc:false, buf:"#000000", bufmm:0.4, pt:10, bold:true,  minZoom:11.3, prio:1, z:1, shape:"triangle" },
-  "公共施設": { file:"facilities.geojson", key:"fac",  fill:"#ffffff", outline:"#595857", outmm:0.4, msize:1.4, lbl:"#ffffff", desc:false, buf:"#595857", bufmm:0.8, pt:10, bold:false, minZoom:13.3, prio:1, z:2 },
+  "公共施設": { file:"facilities.geojson", key:"fac",  fill:"#ffffff", outline:"#2e2624", outmm:0.4, msize:1.4, lbl:"#ffffff", desc:false, buf:"#2e2624", bufmm:0.8, pt:10, bold:false, minZoom:13.3, prio:1, z:2 },
 };
 
 // 丸マーカー（QGIS: circle）。径・塗り・縁色・縁幅をmmからpx換算して反映
@@ -708,7 +708,7 @@ function injectLabelStyles(){
 }
 
 // ---- 読み込み ----
-const DATAV = "?d=241";   // geojson更新時にbump（ブラウザキャッシュ回避）
+const DATAV = "?d=242";   // geojson更新時にbump（ブラウザキャッシュ回避）
 const fetchGj = def => fetch("data/"+def.file+DATAV).then(r=>r.json());
 Promise.all([
   fetch("data/areas.geojson"+DATAV).then(r=>r.json()),
@@ -1137,16 +1137,21 @@ function appendSiteList(body, a){
 // 地域紹介：4エリアのカード（テーマ・リード文・解説ボタン・視点・見どころ一覧）。現在地があれば近い順にも並べられる
 // 大地の成り立ちの解説（古い順。場面は data/tour_stages.geojson、色は塗りと点滅の色）
 const STAGE_TOURS = [
-  { id:"st1", name:"南の海から来た大地",           color:"#3b78c4", age:"約3億5千万〜2億6千万年前",
+  { id:"st1", name:"南の海から来た大地",           color:"#6fb8e7", age:"約3億5千万〜2億6千万年前",
     lead:"萩の大地の土台は、はるか南の海から来ました。サンゴ礁の石灰岩や深海の地層が、プレートの動きで大陸の縁に付け加わった大地です。" },
-  { id:"st2", name:"大陸のマグマが生んだ大地",     color:"#d0507a", age:"約1億年前",
+  { id:"st2", name:"大陸のマグマが生んだ大地",     color:"#d9a28e", age:"約1億年前",
     lead:"日本海がまだなかったころ、大陸の東の端で巨大な噴火がくり返されました。萩の大地の大部分は、このころのマグマの活動でできています。" },
-  { id:"st3", name:"日本海のマグマが生んだ大地",   color:"#7b4bb7", age:"約2000万〜800万年前",
+  { id:"st3", name:"日本海のマグマが生んだ大地",   color:"#ab4a71", age:"約2000万〜800万年前",
     lead:"日本列島が大陸から離れ、日本海が広がっていったころ。須佐の高山や見島に、そのころの海の底の地層とマグマの跡が残っています。" },
-  { id:"st4", name:"萩・阿武のマグマが生んだ大地", color:"#f08a1c", age:"約200万年前〜",
+  { id:"st4", name:"萩・阿武のマグマが生んだ大地", color:"#dc5534", age:"約200万年前〜",
     lead:"萩の大地をつくった、いちばん新しいマグマの活動。1回だけ噴火する小さな火山が50か所以上集まった、単成火山群「阿武火山群」です。" },
 ];
 // 「大地」のタブ：大地の成り立ちの解説（古い順に4本）。地域紹介と同じ形のカード（見出し＝名前と年代、開くと説明・解説のボタン・ジオサイト一覧）
+// 色の上にのせる文字の色：明るい色（黄・水色・薄橙）には墨色、それ以外は白
+function textOn(c){
+  const n = parseInt(String(c).slice(1), 16), r = n >> 16 & 255, gr = n >> 8 & 255, b = n & 255;
+  return (0.299 * r + 0.587 * gr + 0.114 * b) > 160 ? "#2e2624" : "#fff";
+}
 function buildStageTab(){
   TAB_TITLES.earth = "大地の成り立ち";
   const btn = document.createElement("button");
@@ -1158,7 +1163,7 @@ function buildStageTab(){
   const sec = document.createElement("section"); sec.className = "tab"; sec.dataset.tab = "earth";
   sec.innerHTML = `<p class="stage-lead">萩の大地は、時代の異なる4つの出来事でできています。古い順にたどってみよう。</p>` +
     STAGE_TOURS.map(s=> `<div class="area-card" data-st="${s.id}">`+
-      `<div class="area-card-head" style="--ac:${s.color}"><b>${esc(s.name)}</b><span>${esc(s.age)}</span></div>`+
+      `<div class="area-card-head" style="--ac:${s.color};--act:${textOn(s.color)}"><b>${esc(s.name)}</b><span>${esc(s.age)}</span></div>`+
       `<div class="area-card-body"><p class="area-lead">${esc(s.lead)}</p>`+
       `<button class="tour-start"><span class="ts-icon">▶</span>地図で解説を見る</button></div></div>`).join("");
   sec.querySelectorAll(".area-card").forEach(card=>{
@@ -1173,7 +1178,7 @@ function fillStageSites(sec){
   sec.dataset.filled = "1";
   loadStages().then(d=> d.tours.forEach(t=>{
     const card = sec.querySelector(`.area-card[data-st="${t.id}"]`); if (!card) return;
-    const wrap = document.createElement("div"); wrap.className = "site-area"; wrap.style.setProperty("--ac", STAGE_TOURS.find(s=> s.id === t.id)?.color);
+    const wrap = document.createElement("div"); wrap.className = "site-area stage-sites"; wrap.style.setProperty("--ac", STAGE_TOURS.find(s=> s.id === t.id)?.color);   // 大地の「ジオサイト一覧」は白地に色の縁取り
     const head = document.createElement("div"); head.className = "site-area-head"; head.textContent = "ジオサイト一覧";
     head.onclick = ()=> wrap.classList.toggle("open");   // 長いので最初はたたんでおく
     const box = document.createElement("div"); box.className = "site-area-body";
@@ -1215,7 +1220,7 @@ function buildAreaGuide(){
     const card = document.createElement("div"); card.className="area-card"; card.dataset.id=a.id;
     if (openCards.includes(a.id)) card.classList.add("open");
     const head = document.createElement("div"); head.className="area-card-head";
-    head.style.setProperty("--ac", a.color);
+    head.style.setProperty("--ac", a.color); head.style.setProperty("--act", textOn(a.color));
     head.innerHTML = `<b>${esc(a.name)}</b><span>${esc(a.theme)}</span>`;
     head.onclick = ()=> card.classList.contains("open") ? card.classList.remove("open") : enterArea(a.id);   // 開いていればたたむ
     card.appendChild(head);

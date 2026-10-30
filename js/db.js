@@ -76,7 +76,7 @@ function fillSelect(sel, values, label){
 function prots(r){ return String(r["法的保護"] || "").split(/[、，,]/).map(s=> s.trim()).filter(Boolean); }
 function buildFilters(){
   const kinds = $("#kinds");
-  kinds.innerHTML = [{ name:"", label:"すべて", color:"#595857" }, ...KINDS].map(k=>{
+  kinds.innerHTML = [{ name:"", label:"すべて", color:"#2e2624" }, ...KINDS].map(k=>{
     const n = k.name ? st.rows.filter(r=> r.種類 === k.name).length : st.rows.length;
     return `<button data-k="${esc(k.name)}" style="--kc:${k.color}" class="${k.name === st.kind ? "on" : ""}">${esc(k.label || k.name)}<small>${n}</small></button>`;
   }).join("");

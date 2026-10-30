@@ -7,7 +7,7 @@ html, body { margin: 0; padding: 0; height: 100%; font-family: "Hiragino Kaku Go
   --panel-w: 306px;     /* PC（横長）のパネルの幅 */
   --accent: #1b6a4b;      /* 地図の情報色（地質・植生・拠点）。ブランド赤とは別 */
   --brand-red: #c30d23;   /* 萩ジオパーク公式ロゴの赤 */
-  --sumi: #595857;        /* 墨色（メニューのアイコン） */
+  --sumi: #2e2624;        /* 墨色（メニューのアイコン） */
   --heavy: "Noto Sans JP", "Hiragino Kaku Gothic ProN", "Yu Gothic", Meiryo, sans-serif;   /* 見出し・項目名の太い文字 */
 }
 
@@ -17,7 +17,7 @@ html, body { margin: 0; padding: 0; height: 100%; font-family: "Hiragino Kaku Go
   display: flex; align-items: center; gap: 10px; padding: 0 12px;
   box-shadow: 0 1px 4px rgba(0,0,0,.3);
 }
-body.staff #appbar { background: #595857; }   /* 運営モード＝墨色でひと目で分かるように */
+body.staff #appbar { background: #2e2624; }   /* 運営モード＝墨色でひと目で分かるように */
 #appbar h1 { font-family: var(--heavy); font-size: 21px; margin: 0; font-weight: 900; letter-spacing: .04em; white-space: nowrap; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
 /* ロゴ＝白丸チップの上にフルカラーで載せる（赤帯に同化させない）。長押しで運営モード */
 #brand {
@@ -99,10 +99,10 @@ body.staff #appbar { background: #595857; }   /* 運営モード＝墨色でひ�
   display: flex; flex-direction: column; gap: 1px;
 }
 /* カードの見出しは、それぞれの色で塗る（地域紹介・大地） */
-.area-card-head { background: var(--ac, #1b6a4b); background: color-mix(in srgb, var(--ac, #1b6a4b) 70%, #4a4540); color: #fff; }   /* 色はくすませて落ち着いたトーンに */
+.area-card-head { background: var(--ac, #1b6a4b); color: var(--act, #fff); }   /* 地域・大地のメインカラーそのまま。文字は明るい色なら墨色、ほかは白 */
 .area-card-head:hover { filter: brightness(1.08); }
-.area-card-head span { color: rgba(255,255,255,.9) !important; }
-.area-card-head::after { content: "▸"; color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,.35); font-size: 24px; line-height: 1; position: absolute; right: 12px; top: 50%; transform: translateY(-50%); transition: transform .15s; }
+.area-card-head span { color: var(--act, #fff) !important; opacity: .9; }
+.area-card-head::after { content: "▸"; color: var(--act, #fff); font-size: 24px; line-height: 1; position: absolute; right: 12px; top: 50%; transform: translateY(-50%); transition: transform .15s; }
 .area-card.open .area-card-head::after { transform: translateY(-50%) rotate(90deg); }
 .area-card-head { padding-right: 40px; }
 .area-card-head b { font-size: 13.5px; }
@@ -748,7 +748,7 @@ body.no-labels .leaflet-pane.leaflet-pane-patrol-pane, body.no-labels [class*="p
 .pt-name small { display: block; font-size: 11.5px; font-weight: 400; color: #666; margin-top: 1px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .pt-none { font-size: 12.5px; color: #888; margin: 4px 8px; }
 .pt-note { font-size: 11.5px; color: #888; margin: 14px 6px 0; line-height: 1.7; }
-.pt-site { margin: 10px 0 12px; border-top: 2px solid #595857; border-bottom: 1px solid #ddd; padding: 8px 0 10px; }
+.pt-site { margin: 10px 0 12px; border-top: 2px solid #2e2624; border-bottom: 1px solid #ddd; padding: 8px 0 10px; }
 .pt-site-head { font: 900 14px var(--heavy); display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 4px; }
 .pt-id { font: 400 11px sans-serif; color: #888; }
 .pt-log { list-style: none; margin: 0 0 8px; padding: 0; font-size: 12.5px; }
@@ -796,7 +796,7 @@ body.no-labels .leaflet-pane.leaflet-pane-patrol-pane, body.no-labels [class*="p
 .popup-actions .picto .ic { width: 14px; height: 14px; margin-right: 3px; }
 .ic-p { display: inline-block; width: 15px; height: 15px; margin-right: 4px; border-radius: 3px; background: #2f5fa7; color: #fff; font: 700 11px/15px sans-serif; text-align: center; }
 .popup-dbbtn { display: flex; align-items: center; justify-content: center; margin: 4px 0 12px; padding: 9px 12px; border-radius: 6px;
-  border: 1.5px solid #595857; color: #333; font-size: 13.5px; font-weight: 700; text-decoration: none; background: #fff; }
+  border: 1.5px solid #2e2624; color: #333; font-size: 13.5px; font-weight: 700; text-decoration: none; background: #fff; }
 .popup-dbbtn:hover { background: #f3f3f2; }
 .pt-log a { display: inline-flex; align-items: center; }
 /* 解説で示す見どころ：ふだんの地図と同じ印と名前が、ふわっと現れる */
@@ -818,3 +818,7 @@ body.tour-norange .gp-range { display: none; }
   #tourPhoto.top .tp-cell { aspect-ratio: auto; height: 100%; }
   #tourPhoto.top .tp-cell span { font-size: 10.5px; padding: 1px 4px; }
 }
+/* 大地の「ジオサイト一覧」：白地に、その大地の色で縁取り */
+.area-card-body .stage-sites { border: 2px solid var(--ac, #ddd); border-radius: 6px; }
+.area-card-body .stage-sites .site-area-head { background: #fff; color: color-mix(in srgb, var(--ac) 70%, #2e2624); }
+.area-card-body .stage-sites .site-area-head::after { color: color-mix(in srgb, var(--ac) 70%, #2e2624); }
