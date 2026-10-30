@@ -211,12 +211,12 @@ function rankColor(r){ return r==="AA"?"#d6453c":r==="A"?"#e8893b":r==="B"?"#4c9
 const SITE_CATS = {
   "ジオサイト": { file:"geosites.geojson", key:"geo",  fill:"#e31a1c", outline:"#ffffff", outmm:0.4, msize:3.0, lbl:"#333333", desc:true,  buf:"#ffffff", bufmm:1.0, pt:11, bold:true, minZoom:11.7, prio:7,  z:4, ranked:true },
   "文化サイト": { file:"cultural.geojson", key:"cul",  fill:"#d78800", outline:"#ffffff", outmm:0.4, msize:3.0, lbl:"#333333", desc:false, buf:"#ffffff", bufmm:0.8, pt:10, bold:true, minZoom:12.3, prio:2,  z:3, always:true },
-  "展望地":     { file:"viewpoint.geojson",key:"view", fill:"#1f78b4", outline:"#ffffff", outmm:0.4, msize:3.0, lbl:"#1f78b4", desc:true,  buf:"#ffffff", bufmm:0.8, pt:11, bold:true, minZoom:11.0, prio:9,  z:5, ranked:true },
+  "展望地":     { file:"viewpoint.geojson",key:"view", fill:"#1f78b4", outline:"#ffffff", outmm:0.4, msize:4.6, picto:"view", lbl:"#1f78b4", desc:true,  buf:"#ffffff", bufmm:0.8, pt:11, bold:true, minZoom:11.0, prio:9,  z:5, ranked:true },
   "拠点施設":   { file:"hubs.geojson",     key:"hub",  fill:"#2b8525", outline:"#fff980", outmm:0.4, msize:3.0, lbl:"#2b8525", desc:true,  buf:"#fff980", bufmm:0.6, pt:11, bold:true, minZoom:11.0, prio:10, z:8, hub:true },
   // 案内地図＝床地図等の案内板。サイト種別として解説板と同等（拠点施設とは別枠）。一般は常時表示
-  "案内地図": { file:"kanban.geojson",     key:"kan",  fill:"#2b8525", outline:"#ffffff", outmm:0.4, msize:2.4, lbl:"#2b8525", desc:false, buf:"#ffffff", bufmm:0.8, pt:11, bold:true,  minZoom:11.7, prio:6, z:6, always:true },
+  "案内地図": { file:"kanban.geojson",     key:"kan",  fill:"#2b8525", outline:"#ffffff", outmm:0.4, msize:4.6, picto:"map", lbl:"#2b8525", desc:false, buf:"#ffffff", bufmm:0.8, pt:11, bold:true,  minZoom:11.7, prio:6, z:6, always:true },
   // 解説板＝サイト種別（一般は常時表示・トグルなし。運営のみトグル）
-  "解説板":   { file:"kaisetsu.geojson",   key:"kai",  fill:"#e31a1c", outline:"#fff980", outmm:0.4, msize:3.0, lbl:"#e31a1c", desc:false, buf:"#fff980", bufmm:0.8, pt:11, bold:true,  minZoom:11.7, prio:7, z:7, always:true },
+  "解説板":   { file:"kaisetsu.geojson",   key:"kai",  fill:"#e31a1c", outline:"#fff980", outmm:0.4, msize:4.6, picto:"board", lbl:"#e31a1c", desc:false, buf:"#fff980", bufmm:0.8, pt:11, bold:true,  minZoom:11.7, prio:7, z:7, always:true },
   // 神社＝サイト種別。マーカー/ラベル/優先度は文化サイト同等（茶#714B34）。主要(名前あり)=一般表示／その他=運営のみ
   "神社":     { file:"shrines.geojson",    key:"shrine",fill:"#714B34", outline:"#ffffff", outmm:0.4, msize:3.0, lbl:"#714B34", desc:false, buf:"#ffffff", bufmm:0.8, pt:10, bold:true,  minZoom:13.3, prio:2, z:3 },
 };
@@ -228,6 +228,13 @@ const REF_CATS = {
 
 // 丸マーカー（QGIS: circle）。径・塗り・縁色・縁幅をmmからpx換算して反映
 const PX_MM = 96/25.4;                 // 1mm→px
+// 印の中の絵（24×24の線画。白で描く）：展望地＝双眼鏡、解説板＝看板、案内地図＝広げた地図
+const PICTO = {
+  view:  '<circle cx="7" cy="15" r="3.6"/><circle cx="17" cy="15" r="3.6"/><path d="M4.2 12.5 6.5 6h3l1 6.5M19.8 12.5 17.5 6h-3l-1 6.5M10.6 13.5h2.8"/>',
+  board: '<path d="M4 4.5h16v9.5H4zM8.5 14v6M15.5 14v6M7.5 8h9M7.5 11h6"/>',
+  map:   '<path d="M3.5 6.5 9 4.5l6 2 5.5-2v13l-5.5 2-6-2-5.5 2zM9 4.5v13M15 6.5v13"/>',
+};
+const pictoSvg = (k, c, size)=> `<g transform="translate(${(c - size / 2).toFixed(2)},${(c - size / 2).toFixed(2)}) scale(${(size / 24).toFixed(3)})" fill="none" stroke="#fff" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">${PICTO[k]}</g>`;
 function dotIcon(def, aa){
   const d = def.msize * PX_MM;          // 径(px)
   const sw = def.outmm * PX_MM;         // 縁幅(px)
@@ -236,7 +243,7 @@ function dotIcon(def, aa){
   const shapeSvg = def.shape === "triangle"
     ? `<polygon points="${c},${(c-r).toFixed(2)} ${(c-r*0.866).toFixed(2)},${(c+r*0.5).toFixed(2)} ${(c+r*0.866).toFixed(2)},${(c+r*0.5).toFixed(2)}" `+
       `fill="${def.fill}" stroke="${stroke}" stroke-width="${sw}" stroke-linejoin="round"/>`
-    : `<circle cx="${c}" cy="${c}" r="${r}" fill="${def.fill}" stroke="${stroke}" stroke-width="${sw}"/>`;
+    : `<circle cx="${c}" cy="${c}" r="${r}" fill="${def.fill}" stroke="${stroke}" stroke-width="${sw}"/>` + (def.picto ? pictoSvg(def.picto, c, d * 0.72) : "");
   const html =
     `<svg width="${box}" height="${box}" viewBox="0 0 ${box} ${box}" style="display:block;overflow:visible">`+
     `${shapeSvg}</svg>`;
@@ -267,7 +274,11 @@ function makeLabel(def, p, clickMarker, smallGeo){
   if (clickMarker){
     el.style.pointerEvents = "auto";
     el.style.cursor = "pointer";
-    el.addEventListener("click", e=>{ e.stopPropagation(); clickMarker.fire("click"); });
+    el.addEventListener("click", e=>{
+      e.stopPropagation();
+      if (el.classList.contains("clustered")) map.flyTo(clickMarker.getLatLng(), Math.min(map.getMaxZoom(), map.getZoom() + 2));   // 「ほかN」：寄って広げる
+      else clickMarker.fire("click");
+    });
   }
   map.getPane("pane-labels").appendChild(el);
   return el;
@@ -598,9 +609,24 @@ function placeLabels(){
     placed.push(R);
   });
   const ok = R => { if (rectHitsDot(R, null)) return false; for (const q of placed) if (rectsOverlap(R,q,2)) return false; return true; };
+  // 密集した所（笠山など）：見どころの名前が4つ以上、画面で34px以内に集まっていたら、ランクのいちばん高い名前に「ほかN」を付けて1つだけ。
+  // ほかは印だけ（名前をタップすると寄る）。寄って広がれば、ふつうに名前が出る
+  vis.forEach(v=>{ v.el.classList.remove("clustered"); v.el.querySelector(".lc")?.remove(); v.hideByCluster = false; });
+  if (!touringNow){
+    const sites = vis.filter(v=> v.site).sort((a,b)=> b.prio - a.prio), used = new Set();
+    sites.forEach(v=>{
+      if (used.has(v)) return;
+      const grp = sites.filter(w=> !used.has(w) && Math.hypot(w.x - v.x, w.y - v.y) < 34);
+      if (grp.length < 4) return;
+      grp.forEach(w=>{ used.add(w); if (w !== v){ w.hideByCluster = true; w.el.style.display = "none"; } });
+      v.el.classList.add("clustered");
+      v.el.insertAdjacentHTML("beforeend", `<span class="lc">ほか${grp.length - 1}</span>`);
+      v.w = v.el.offsetWidth;
+    });
+  }
   const lines = [], left = [];
   // 1回目：マーカーのすぐ近く（右・左・上・下・斜め）
-  vis.slice().sort((a,b)=> b.prio-a.prio).forEach(v=>{
+  vis.filter(v=> !v.hideByCluster).sort((a,b)=> b.prio-a.prio).forEach(v=>{
     const own = dots.find(d=> d.x===v.x && d.y===v.y);
     const w=v.w, h=v.h, r=v.r, cx=v.x, cy=v.y;
     const dx = r+gap+w/2, dy = r+gap+h/2;
@@ -880,7 +906,7 @@ function resetView(){
 function siteLegendRows(){
   return SITE_GROUPS.map(g=>{
     const d = SITE_CATS[g.cats[0]];
-    return `<div class="row"><span class="dot" style="background:${d.fill};box-shadow:0 0 0 1.5px ${d.outline||'#fff'}"></span>`+
+    return `<div class="row">${d.picto ? pictoDot(d, 18) : `<span class="dot" style="background:${d.fill};box-shadow:0 0 0 1.5px ${d.outline||'#fff'}"></span>`}`+
            `<span>${esc(g.label)}${g.desc ? `<small class="lg-desc">${esc(g.desc)}</small>` : ""}</span></div>`;
   }).join("");
 }
@@ -1080,7 +1106,13 @@ function siteTextStyle(o){
 // 地図上の印と同じ見た目（種類の色＋縁取り色）の小さな丸
 function siteDot(o){
   const d = SITE_CATS[o.cat] || {};
+  if (d.picto) return pictoDot(d);
   return `<span class="site-dot" style="background:${d.fill};box-shadow:0 0 0 1.5px ${d.outline || "#fff"},0 0 0 2.5px rgba(0,0,0,.28)"></span>`;
+}
+// 絵の入った小さな丸（一覧・凡例用）
+function pictoDot(d, size = 16){
+  const c = size / 2;
+  return `<svg class="site-dot picto" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}"><circle cx="${c}" cy="${c}" r="${c - 1}" fill="${d.fill}" stroke="${d.outline || "#fff"}" stroke-width="1.2"/>${pictoSvg(d.picto, c, size * 0.72)}</svg>`;
 }
 // 一覧の1項目（距離はGPS取得後のみ表示）
 function makePoiItem(o){
