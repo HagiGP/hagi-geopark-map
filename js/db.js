@@ -37,7 +37,7 @@ const st = { rows:[], kind:"", view: ls.get("hagiDbView", "card"), status:null, 
   // 地図の img/sites にある写真の一覧（スプレッドシートの「写真」が空でも、名前と同じ写真があれば出す）。
   // サイトの表と並行して取りに行く（このファイルの終わりまで読み込んでから＝下の関数・定数が使えるように）
   fetch("data/panel_pdfs.json?p=11").then(r=> r.json()).then(p=>{ st.pdfs = p; if (location.hash) openFromHash(); }).catch(()=>{});   // 解説板の原稿のPDF（名前 → ファイル）
-  const photos = fetch("data/site_photos.json?p=11").then(r=> r.json())   // 写真を足したら一覧を作り直し、?p= を上げる（地図の PHOTOV と同じ番号）
+  const photos = fetch("data/site_photos.json?p=12").then(r=> r.json())   // 写真を足したら一覧を作り直し、?p= を上げる（地図の PHOTOV と同じ番号）
     .then(p=>{ st.photos = new Set(p.files || []); st.photoV = p.v ? "?p=" + p.v : ""; }).catch(()=>{});
   const data = fetch(DB_URL + "?action=data").then(r=> r.json());
   await photos;
@@ -204,7 +204,7 @@ function openFromHash(){
   if (r["見出し"]) h += `<p class="lead">${esc(r["見出し"])}</p>`;
   if (ph) h += `<img class="dphoto" src="${ph}" alt="" onerror="this.remove()">`;
   const acts = [];
-  if (r["地図に出す"] === "Y" && r.種類 !== "生態サイト") acts.push(`<a href="./?site=${encodeURIComponent(r["名前"])}${st.status ? "&all=1" : ""}">${icon("map")}地図で見る</a>`);
+  if (r["地図に出す"] === "Y" && r.種類 !== "生態サイト") acts.push(`<a href="./?site=${encodeURIComponent(r["名前"])}&cat=${encodeURIComponent(r.種類)}${hasLL ? `&ll=${r["緯度"]},${r["経度"]}` : ""}${st.status ? "&all=1" : ""}">${icon("map")}地図で見る</a>`);   // 種類と位置も渡す（同じ名前のものと取り違えない）
   if (hasLL && r.種類 !== "生態サイト"){
     const dest = (r["経路緯度"] && r["経路経度"]) ? `${r["経路緯度"]},${r["経路経度"]}` : `${r["緯度"]},${r["経度"]}`;
     acts.push(`<a href="https://www.google.com/maps/dir/?api=1&destination=${dest}" target="_blank" rel="noopener">${icon("route")}経路</a>`);

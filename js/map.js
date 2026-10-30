@@ -339,7 +339,7 @@ function pointPopup(o){
 function sanitizeName(s){ return String(s).replace(/[\\/:*?"<>|]/g, "_").trim(); }
 function photoFile(name){ return sanitizeName(name) + ".jpg"; }
 // 写真を差し替えたら PHOTOV を上げる（サービスワーカーが古い写真を出し続けないように）
-const PHOTOV = "?p=11";
+const PHOTOV = "?p=12";
 function photoSrc(name){ return "img/sites/" + encodeURIComponent(photoFile(name)) + PHOTOV; }
 
 // ディープリンクURL（?site=名前 / ?area=id）＝看板QRの貼り先
@@ -477,7 +477,12 @@ function openDeepLink(){
   if (tourId && areaById[tourId]){ startTour(tourId); return; }   // ?tour=ryu ＝解説から始める（講演・授業用）
   if (areaId && areaById[areaId]){ enterArea(areaId); return; }
   if (siteName){
-    const o = allMarkers.find(x=> x.name === siteName);
+    // &cat=種類&ll=緯度,経度 があれば、その種類の、その位置にいちばん近い同じ名前の印（同じ名前の看板・見どころがあるため）
+    const cat = params.get("cat"), ll = (params.get("ll") || "").split(",").map(Number);
+    const cands = allMarkers.filter(x=> x.name === siteName && (!cat || x.cat === cat));
+    const o = ll.length === 2 && !ll.some(isNaN)
+      ? cands.sort((p, q)=> p.marker.getLatLng().distanceTo(ll) - q.marker.getLatLng().distanceTo(ll))[0]
+      : cands[0] || allMarkers.find(x=> x.name === siteName);
     if (o){
       const z = Math.min(map.getMaxZoom(), Math.max(15, Math.ceil(o.def.minZoom)));
       const show = ()=>{ refresh(); openSite(o, { pan:false }); };
