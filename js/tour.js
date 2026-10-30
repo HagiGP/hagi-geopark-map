@@ -431,46 +431,68 @@ function drawSceneMarks(sc){
     labelsOf(sc).filter(lb=> lb.step === k + 1).forEach(addTourLabel);
   }, delay + 500 + k * 1500));
   const RING = isMobile() ? 30 : 56;   // 丸の大きさ（CSS の .tour-ring と合わせる。スマホは小さく）
-  // 示したサイトの名前：解説中は地図の文字を消しているので、丸・指差し・点滅の下に名前を出す（名札と同じ名前は出さない）
-  const named = new Set(labelsOf(sc).map(lb=> lb.text)), placed = [];
-  const siteName = (n, dy, delay = 0)=>{
+  // 見どころを示すときは、ふだんの地図と同じ印（色の丸）と名前で出す（解説のあと、地図で「さっきの場所」を探してタップしやすいように）。
+  // サイト名でなく座標のときは、120m以内の見どころがあればその印。無ければ、これまでどおり丸・点滅・指差し
+  const named = new Set(labelsOf(sc).map(lb=> lb.text)), boxes = [];
+  const siteOf = n=>{
+    if (!Array.isArray(n)) return allMarkers.find(x=> x.name === n) || null;
+    const ll = L.latLng(n[0], n[1]); let best = null, bd = 120;
+    allMarkers.forEach(o=>{ if (!SITE_CATS[o.cat] || o.cat === "山名" || o.cat === "公共施設") return; const d = ll.distanceTo(o.marker.getLatLng()); if (d < bd){ bd = d; best = o; } });
+    return best;
+  };
+  tour.siteMarks = [];
+  const siteMark = (o, delay = 0)=>{
+    const ll = o.marker.getLatLng(); tour.siteMarks.push(ll);
+    const icon = o.def && SITE_CATS[o.cat] ? markerIcon(o.cat, o.rank) : o.marker.options.icon;
+    L.marker(ll, { interactive:false, pane:"tourPane", keyboard:false, icon:L.divIcon({ ...icon.options,
+      html:`<div class="tour-site" style="animation-delay:${delay}s">${icon.options.html}</div>` }) }).addTo(tour.layer);
+    if (named.has(o.name)) return; named.add(o.name);
+    // 名前：丸の右（ふだんの地図と同じ）。先に置いた名前と重なるなら左、それも重なるなら下へずらす
+    const px = map.latLngToContainerPoint(ll), r = (o.def?.msize || 3) * PX_MM / 2 + 4, w = 14 * [...o.name].length + 6, h = 18;
+    const fits = b=> !boxes.some(q=> b[0] < q[2] && b[2] > q[0] && b[1] < q[3] && b[3] > q[1]);
+    let side = "r", dy = 0, b = [px.x + r, px.y - h / 2, px.x + r + w, px.y + h / 2];
+    if (!fits(b)){ const bl = [px.x - r - w, px.y - h / 2, px.x - r, px.y + h / 2]; if (fits(bl)){ side = "l"; b = bl; } }
+    while (!fits(b) && dy < 80){ dy += h; b = [b[0], b[1] + h, b[2], b[3] + h]; }
+    boxes.push(b);
+    const key = isGeoSmall(o) ? "geosm" : (o.def?.key || "geo");
+    L.marker(ll, { interactive:false, pane:"tourPane", keyboard:false, icon:L.divIcon({ className:"", iconSize:null, iconAnchor:[0,0],
+      html:`<div class="poi-label tour-site-label lbl-${key}" style="transform:translate(${side === "r" ? r + "px" : `calc(-100% - ${r}px)`},calc(-50% + ${dy}px));animation-delay:${delay}s"><span class="ln">${esc(o.name)}</span></div>` }) }).addTo(tour.layer);
+  };
+  // 見どころでない場所の名前（丸・指差しの下）
+  const placeName = (n, dy, delay = 0)=>{
     if (Array.isArray(n) || named.has(n)) return; named.add(n);
     const ll = allMarkers.find(x=> x.name === n)?.marker.getLatLng(); if (!ll) return;
-    if (labelsOf(sc).some(lb=> ll.distanceTo(lb.at) < 400)) return;   // すぐそばに名札があれば（「堀内地区」など）出さない
-    const px = map.latLngToContainerPoint(ll);
-    if (placed.some(q=> q.distanceTo(px) < 36)) return;   // 画面の上で近すぎる名前（笠山の5か所など）は最初の1つだけ
-    placed.push(px);
+    if (labelsOf(sc).some(lb=> ll.distanceTo(lb.at) < 400)) return;
     L.marker(ll, { interactive:false, pane:"tourPane", keyboard:false,
       icon:L.divIcon({ className:"", iconSize:null, iconAnchor:[0,0],
         html:`<div class="tour-site-name" style="transform:translate(-50%,${dy}px);animation-delay:${delay}s">${esc(n)}</div>` }) }).addTo(tour.layer);
   };
   (sc.ring||[]).forEach(n=>{   // サイト名 or [緯度,経度]
-    const ll = Array.isArray(n) ? L.latLng(n[0], n[1]) : allMarkers.find(x=> x.name === n)?.marker.getLatLng();
-    if (!ll) return;
+    const o = siteOf(n); if (o) return siteMark(o);
+    const ll = Array.isArray(n) ? L.latLng(n[0], n[1]) : null; if (!ll) return;
     L.marker(ll, { interactive:false, pane:"tourPane", keyboard:false,
       icon:L.divIcon({ className:"", iconSize:[RING,RING], iconAnchor:[RING/2,RING/2], html:`<div class="tour-ring"></div>` }) }).addTo(tour.layer);
-    siteName(n, RING / 2 + 2);
   });
-  // 点滅（解説の最後など）：酒蔵の丸と同じ黄色い丸が、ひとつずつ現れて脈打つ
+  // 点滅（解説の最後など）：見どころは、ふだんの印と名前がひとつずつ現れる。見どころでない所は黄色い丸
   (sc.blink||[]).forEach((n, k)=>{
-    const ll = Array.isArray(n) ? L.latLng(n[0], n[1]) : allMarkers.find(x=> x.name === n)?.marker.getLatLng();
-    if (!ll) return;
-    const d = (k * 0.15).toFixed(2);
+    const d = (k * 0.15).toFixed(2), o = siteOf(n); if (o) return siteMark(o, d);
+    const ll = Array.isArray(n) ? L.latLng(n[0], n[1]) : null; if (!ll) return;
     L.marker(ll, { interactive:false, pane:"tourPane", keyboard:false,
       icon:L.divIcon({ className:"", iconSize:[RING,RING], iconAnchor:[RING/2,RING/2], html:`<div class="tour-ring blink" style="animation-delay:${d}s,${d}s"></div>` }) }).addTo(tour.layer);
-    siteName(n, RING / 2 + 2, d);
+  });
+  // point＝1か所（サイト名 or [緯度,経度]）、points＝何か所も。見どころはふだんの印と名前、そうでない所は指差し
+  [].concat(sc.point ? [sc.point] : [], sc.points || []).forEach(p=>{
+    const o = siteOf(p); if (o) return siteMark(o);
+    const ll = Array.isArray(p) ? L.latLng(p[0], p[1]) : null; if (!ll) return;
+    L.marker(ll, { interactive:false, pane:"tourPane", keyboard:false,
+      icon:L.divIcon({ className:"", iconSize:[36,36], iconAnchor:[18,46], html:`<div class="tour-point">${POINTER_SVG}</div>` }) }).addTo(tour.layer);
+    placeName(p, 4);
   });
   labelsOf(sc).filter(lb=> !lb.step).forEach(addTourLabel);   // 地名ラベル（例：{"text":"須佐湾","at":[34.628,131.594]}）
-  // 指差し：point＝1か所（サイト名 or [緯度,経度]）、points＝何か所も（[[緯度,経度], …]）
-  [].concat(sc.point ? [sc.point] : [], sc.points || []).forEach(p=>{
-    const ll = Array.isArray(p) ? L.latLng(p[0], p[1]) : allMarkers.find(x=> x.name === p)?.marker.getLatLng();
-    if (ll) L.marker(ll, { interactive:false, pane:"tourPane", keyboard:false,
-      icon:L.divIcon({ className:"", iconSize:[36,36], iconAnchor:[18,46], html:`<div class="tour-point">${POINTER_SVG}</div>` }) }).addTo(tour.layer);
-    siteName(p, 4);
-  });
 }
 const ALIGN = { right:"translate(-100%,-50%)", left:"translate(0,-50%)" };   // 既定は at が名札の真ん中
 function addTourLabel(lb){
+  if ((tour.siteMarks || []).some(ll=> ll.distanceTo(lb.at) < 250)) return;   // 見どころの印と名前を出した所には、名札を重ねない
   L.marker(lb.at, { interactive:false, pane:"tourPane", keyboard:false,
     icon:L.divIcon({ className:"", iconSize:null, iconAnchor:[0,0],
       html:`<div class="tour-label"${ALIGN[lb.align] ? ` style="transform:${ALIGN[lb.align]}"` : ""}>${esc(lb.text)}</div>` }) }).addTo(tour.layer);

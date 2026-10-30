@@ -661,7 +661,7 @@ body.touring #mapToggles { display: none; }
 /* 「地図で解説を見る」の間（body.touring）も同じく、地図の文字と印を消す（解説の名札・指差しは別の層なので残る） */
 /*   ただし解説の間も山名（▲と名前）だけは残す */
 body.no-labels .poi-label, body.no-labels .place-label, body.no-labels .area-label,
-body.touring .poi-label:not(.lbl-yama), body.touring .place-label, body.touring .area-label { display: none !important; }
+body.touring .poi-label:not(.lbl-yama):not(.tour-site-label), body.touring .place-label, body.touring .area-label { display: none !important; }
 body.no-labels .leaflet-pane[class*="leaflet-pane-cat-"], body.no-labels .leaflet-pane-labels-pane,
 body.no-labels .leaflet-pane-place-pane, body.no-labels .leaflet-pane-arealabel-pane,
 body.touring .leaflet-pane[class*="leaflet-pane-cat-"]:not(.leaflet-pane-cat-yama-pane),
@@ -799,3 +799,7 @@ body.no-labels .leaflet-pane.leaflet-pane-patrol-pane, body.no-labels [class*="p
   border: 1.5px solid #595857; color: #333; font-size: 13.5px; font-weight: 700; text-decoration: none; background: #fff; }
 .popup-dbbtn:hover { background: #f3f3f2; }
 .pt-log a { display: inline-flex; align-items: center; }
+/* 解説で示す見どころ：ふだんの地図と同じ印と名前が、ふわっと現れる */
+.tour-site, .tour-site-label { animation: tourSiteIn .5s ease-out both; }
+.tour-site-label { position: absolute; left: 0; top: 0; pointer-events: none; }
+@keyframes tourSiteIn { from { opacity: 0; transform-origin: center; } to { opacity: 1; } }
