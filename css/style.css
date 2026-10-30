@@ -799,4 +799,3 @@ body.no-labels .leaflet-pane.leaflet-pane-patrol-pane, body.no-labels [class*="p
   border: 1.5px solid #595857; color: #333; font-size: 13.5px; font-weight: 700; text-decoration: none; background: #fff; }
 .popup-dbbtn:hover { background: #f3f3f2; }
 .pt-log a { display: inline-flex; align-items: center; }
-body.touring .range-logo { display: none; }   /* 解説中は範囲の中央のロゴを出さない */
