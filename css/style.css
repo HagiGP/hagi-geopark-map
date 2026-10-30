@@ -667,14 +667,14 @@ body.no-labels .leaflet-pane-place-pane, body.no-labels .leaflet-pane-arealabel-
 body.touring .leaflet-pane[class*="leaflet-pane-cat-"]:not(.leaflet-pane-cat-yama-pane),
 body.touring .leaflet-pane-place-pane, body.touring .leaflet-pane-arealabel-pane { visibility: hidden !important; }
 #mapToggles .mt-grp { flex-wrap: nowrap; }
-/* 読みやすく押しやすい大きさ（指で押せる高さ36px以上）。スマホは画面幅いっぱいまで使い、右下の＋−・現在地ボタンは帯の上へ逃がす */
+/* 読みやすく押しやすい大きさ（指で押せる高さ36px以上）。スマホでは右下の＋−・現在地ボタンを帯の上へ逃がす */
 #mapToggles .mt-chip { min-height: 36px; padding: 6px 7px; gap: 7px; font-size: 13.5px; }
 #mapToggles .mt-sw { width: 36px; height: 20px; border-radius: 10px; }
 #mapToggles .mt-sw i { width: 16px; height: 16px; }
 #mapToggles .mt-chip.on .mt-sw i { transform: translateX(16px); }
 @media (max-width: 500px) {
   #mapToggles { right: 8px; }
-  #mapToggles .mt-grp { gap: 0; padding: 2px 6px; width: 100%; justify-content: space-between; box-sizing: border-box; }
+  #mapToggles .mt-grp { gap: 6px; padding: 2px 8px; }   /* 中身の幅だけ（画面幅いっぱいに引き伸ばさない） */
   #mapToggles .mt-chip { padding: 6px 4px; gap: 6px; font-size: 13px; }
   body:not(.panel-open):not(.touring) .leaflet-bottom.leaflet-right .leaflet-control-zoom { margin-bottom: 50px; }   /* ＋−と現在地ボタンを帯の上へ（出典の文字は下のまま） */
   /* 縮尺：スマホでは出典の文字が画面幅いっぱいになって隠れるので、スイッチの帯の上（左）へ */
