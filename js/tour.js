@@ -320,7 +320,7 @@ function showScene(i){
   else { tour.target = null; tour.view = null; }
   // 次の場面も同じ写真なら、消さずに出したままにする（出たり消えたりをくり返さない）
   const cur = document.getElementById("tourPhoto"), nextPh = scenePhoto(sc);
-  if (!(cur && nextPh && cur.dataset.src === nextPh.src && !(mob && !mobPhotoImgH()))) hidePhoto();
+  if (!(cur && nextPh && cur.dataset.src === nextPh.key && !(mob && !mobPhotoImgH()))) hidePhoto();
   showFigure(sc);
   const t0 = Date.now();
   const draw = ()=>{
@@ -348,9 +348,13 @@ function showScene(i){
 // 省略時は指差し(point)のサイトに写真があれば自動で出す。写真が無ければ何も出さない
 function scenePhoto(sc){
   if (sc.photo === false) return null;
+  // photos：何枚かの写真を並べる（[[写真のパス, 名前], …]）。スマホは横に等分、PCは2枚なら横並び・4枚なら2×2
+  if (sc.photos?.length){ const srcs = sc.photos.map(x=> x[0]);
+    return { src: srcs[0], key: "multi:" + srcs.join("|"), multi: sc.photos, caption: sc.photoCaption || "", diagram:false, focus:"" }; }
   const p = sc.photo || (typeof sc.point === "string" ? sc.point : null); if (!p) return null;
   const isPath = /[\/.]/.test(p) && /\.(jpe?g|png|webp|svg)(\?.*)?$/i.test(p);   // 末尾の ?p=… （写真の版）も許す
-  return { src: isPath ? p : photoSrc(p), caption: sc.photoCaption || (isPath ? "" : p), diagram: /^img\/tour\//.test(p), focus: sc.photoFocus || "" };   // img/tour/ の図（模式図）は切り取らず全体を見せる
+  const src = isPath ? p : photoSrc(p);
+  return { src, key: src, caption: sc.photoCaption || (isPath ? "" : p), diagram: /^img\/tour\//.test(p), focus: sc.photoFocus || "" };   // img/tour/ の図（模式図）は切り取らず全体を見せる
 }
 // PCの写真の窓：画面の大きさに合わせて大きく（幅は画面の約3分の1、300〜760px。写真の高さは画面の半分まで）。端からの余白も画面に合わせる
 const clampN = (v, lo, hi)=> Math.min(hi, Math.max(lo, v));
@@ -360,7 +364,7 @@ const photoWidth = sc=> scenePhoto(sc)?.diagram ? Math.min(900, Math.round(PC_PH
 // PCの写真の窓の高さ（枠の内側の幅に縮めた写真。写真は PC_PHOTO.maxH まで、模式図は全体＋見出しの行）
 function photoHeight(sc, i){
   const ph = scenePhoto(sc), [w, h] = tour.photoSize[i] || [4, 3], inner = photoWidth(sc) - 16;
-  const imgH = ph?.diagram ? inner * h / w : Math.min(PC_PHOTO.maxH(), inner * h / w);
+  const imgH = ph?.multi ? inner * (ph.multi.length === 2 ? 0.5 : 0.7) : ph?.diagram ? inner * h / w : Math.min(PC_PHOTO.maxH(), inner * h / w);
   return imgH + 14 + (ph?.caption ? 24 : 0);
 }
 function hidePhoto(){ document.querySelectorAll("#tourPhoto").forEach(el=> el.remove()); }
@@ -392,7 +396,7 @@ function showPhoto(sc, i){
   const ph = scenePhoto(sc); if (!ph) return;
   if (isMobile() && !mobPhotoImgH()) return;   // 画面の低いスマホ：地図を優先して写真は出さない
   const cur = document.getElementById("tourPhoto");
-  if (cur && cur.dataset.src === ph.src){   // 前の場面と同じ写真：出したまま（見出しと、PCは置く隅だけ合わせる）
+  if (cur && cur.dataset.src === ph.key){   // 前の場面と同じ写真：出したまま（見出しと、PCは置く隅だけ合わせる）
     const fc = cur.querySelector("figcaption"); if (fc && ph.caption) fc.textContent = ph.caption;
     if (!isMobile()) placePhoto(cur);
     return;
@@ -402,9 +406,11 @@ function showPhoto(sc, i){
     if (!tour || tour.i !== i) return;
     hidePhoto();
     const w = document.createElement("figure"); w.id = "tourPhoto"; if (ph.diagram) w.className = "diagram";
-    w.innerHTML = `<img alt="">`+(ph.caption ? `<figcaption></figcaption>` : "");
-    w.querySelector("img").src = ph.src; w.dataset.src = ph.src;
-    if (ph.focus) w.querySelector("img").style.objectPosition = ph.focus;   // photoFocus：横長の窓で切れる写真の見せる位置
+    w.innerHTML = (ph.multi ? `<div class="tp-multi n${ph.multi.length}">${ph.multi.map(([src, nm])=> `<div class="tp-cell"><img alt="" src="${esc(src)}"><span>${esc(nm || "")}</span></div>`).join("")}</div>` : `<img alt="">`)+
+                  (ph.caption ? `<figcaption></figcaption>` : "");
+    if (!ph.multi) w.querySelector("img").src = ph.src;
+    w.dataset.src = ph.key;
+    if (ph.focus && !ph.multi) w.querySelector("img").style.objectPosition = ph.focus;   // photoFocus：横長の窓で切れる写真の見せる位置
     if (ph.caption) w.querySelector("figcaption").textContent = ph.caption;
     if (isMobile()){ w.classList.add("top"); w.style.setProperty("--mph", mobPhotoImgH() + "px"); }   // スマホ：上部に写真（タップで大きく）。地図は下の残りで、必要ならスライドして見せる
     else placePhoto(w);
@@ -455,7 +461,7 @@ function drawSceneMarks(sc){
     const icon = o.def && SITE_CATS[o.cat] ? markerIcon(o.cat, o.rank) : o.marker.options.icon;
     L.marker(ll, { interactive:false, pane:"tourPane", keyboard:false, icon:L.divIcon({ ...icon.options,
       html:`<div class="tour-site" style="animation-delay:${delay}s">${icon.options.html}</div>` }) }).addTo(tour.layer);
-    if (named.has(o.name)) return; named.add(o.name);
+    if (opt.noName || named.has(o.name)) return; named.add(o.name);
     // 名前：丸の右（ふだんの地図と同じ）。先に置いた名前と重なるなら左、それも重なるなら下へずらす
     // 印と名前は、ふだんの地図より大きく（SITE_SCALE 倍・名前は16px）
     const px = map.latLngToContainerPoint(ll), r = (o.def?.msize || 3) * PX_MM / 2 * SITE_SCALE + 4, w = 16 * [...o.name].length + 6, h = 21;
@@ -486,7 +492,7 @@ function drawSceneMarks(sc){
   });
   // allSites：その種類の見どころをすべて、印と名前で（例："ジオサイト"）。名前は置ける所だけ（ランクの高い順に）
   if (sc.allSites) allMarkers.filter(o=> o.cat === sc.allSites && map.getBounds().pad(0.2).contains(o.marker.getLatLng()))
-    .sort((a, b)=> labelPrio(b) - labelPrio(a)).forEach((o, k)=> siteMark(o, (k * 0.02).toFixed(2), { crowd:true }));
+    .sort((a, b)=> labelPrio(b) - labelPrio(a)).forEach((o, k)=> siteMark(o, (k * 0.02).toFixed(2), { crowd:true, noName: sc.siteNames === false }));   // siteNames:false＝印だけ
   // 点滅（解説の最後など）：見どころは、ふだんの印と名前がひとつずつ現れる。見どころでない所は黄色い丸
   (sc.blink||[]).forEach((n, k)=>{
     const d = (k * 0.15).toFixed(2), o = siteOf(n); if (o) return siteMark(o, d);
