@@ -13,7 +13,7 @@
      followLine true なら、line の組ごとに地図がその組の範囲へ移って描く（長い流れを寄りぎみに見せる）。mfollowLine はスマホのときだけ
      mfit スマホ（縦長の狭い画面）のときに寄せる範囲（無ければ fit）
      noPan true なら、収まらなくてもスライドしない（全体が入る倍率のまま）
-     keepInside true なら、陰影図の外をできるだけ出さない。photoAt：PCの写真の窓の隅（"tl" "bl" など）
+     陰影図の外はできるだけ出さない（allowOutside:true の場面は出してよい）。photoAt：PCの写真の窓の隅（"tl" "bl" など）
      padL：PCで地図の左をこの幅(px)空け、見せたい所を右寄りに置く（陰影図の無い東側を画面の外へ）
      syncLines true なら、同じ組の矢印を同じ速さ（同時に着く）で描く
      photo 写真（サイト名 or 画像パス。false で出さない。省略時は point のサイトの写真）
@@ -226,11 +226,9 @@ function showScene(i){
           tr: [size.x - m - pw, top, size.x - m, top + ph],
           tl: [m, top, m + pw, top + ph],
         };
-        // 地図はそのまま写真の窓を重ねる案と、写真の窓の列を地図からよける案（四隅それぞれ）を比べ、
-        // 見せたい所が写真に隠れず、いちばん大きく見せられるものを選ぶ
-        const col = p=> ({ ...base, pos:p, ...(p[1] === "l" ? { l: (p[0] === "b" ? side : m) + pw + 30 } : { r: (p[0] === "b" ? side : m) + pw + 30 }) });
-        cands = [{ ...base, pos:"auto" }, ...["tl", "tr", "bl", "br"].map(col)];
-        if (sc.photoAt) cands = [col(sc.photoAt)];   // photoAt：写真の窓をこの隅に置き、地図はその横（列）を除いた範囲に合わせる
+        // 地図は写真をよけてずらさない（示す所を画面の真ん中に）。写真は隅に重ね、示す所に重なるなら写真の方を小さくする。
+        // photoAt：写真の窓を置く隅を決める（地図はずらさない）
+        cands = [{ ...base, pos: sc.photoAt || "auto" }];
       }
       const p0 = map.project(b.getNorthWest(), 0), p1 = map.project(b.getSouthEast(), 0);
       // 写真の窓と重ねたくないもの＝この場面で実際に描くもの（指差し・図形・矢印・丸・名札）。無ければ範囲全体
@@ -239,7 +237,7 @@ function showScene(i){
         .forEach(n=>{ const t = tourTarget(n); if (t) focus.extend(t); });
       if (!focus.isValid()) focus.extend(b);
       // ある見せる範囲 a で、どの倍率・中心にするか（スライドするなら行き先も）と、その良さ
-      const inside = (tour.keepInside || sc.keepInside) && !sc.gsi;   // 陰影図の外を出さない（概要の解説、keepInside の場面）
+      const inside = !sc.gsi && !sc.allowOutside;   // 陰影図の外は出さない（地理院地図の場面と allowOutside の場面を除く）
       const plan = (a, bump = 0)=>{
         const aw = Math.max(size.x - a.l - a.r, 80), ah = Math.max(size.y - a.t - a.b, 80);
         const zW = Math.log2(aw / Math.max(p1.x - p0.x, 1e-6)), zH = Math.log2(ah / Math.max(p1.y - p0.y, 1e-6));
@@ -284,16 +282,25 @@ function showScene(i){
         const r0 = scr(c0), r1 = c1 ? scr(c1) : r0;
         const rect = [Math.min(r0[0], r1[0]), Math.min(r0[1], r1[1]), Math.max(r0[2], r1[2]), Math.max(r0[3], r1[3])];
         let pos = a.pos, score = zFit * 120 - shift;
+        let scale = 1;
         if (corners){
           const cx = (rect[0] + rect[2]) / 2, cy = (rect[1] + rect[3]) / 2, M = 10;
           const over = q=> Math.max(0, Math.min(q[2] + M, rect[2]) - Math.max(q[0] - M, rect[0])) * Math.max(0, Math.min(q[3] + M, rect[3]) - Math.max(q[1] - M, rect[1]));
           const far = q=> Math.hypot((q[0] + q[2]) / 2 - cx, (q[1] + q[3]) / 2 - cy);
-          // auto：見せたい範囲との重なりがいちばん小さい隅（同じなら、いちばん離れた隅）
-          if (pos === "auto") pos = Object.entries(corners).sort(([, p], [, q])=> over(p) - over(q) || far(q) - far(p))[0][0];
-          const ov = over(corners[pos]);
-          if (ov > 0) score -= 300 + ov / 40;   // 見せたい所が写真に隠れる案は大きく減点
+          // 隅に寄せたまま縮めた写真の窓（左の隅は左端、上の隅は上端をそのままに）
+          const shrink = (k, q, s)=>{ const w = (q[2] - q[0]) * s, h = (q[3] - q[1]) * s;
+            const x0 = k[1] === "l" ? q[0] : q[2] - w, y0 = k[0] === "t" ? q[1] : q[3] - h; return [x0, y0, x0 + w, y0 + h]; };
+          const ks = pos === "auto" ? Object.keys(corners) : [pos];
+          let best = null;
+          for (const s of [1, 0.85, 0.7]){   // 大きい順に、示す所に重ならない隅を探す（小さくしすぎない）
+            const ok = ks.map(k=> [k, shrink(k, corners[k], s)]).filter(([, q])=> over(q) === 0).sort(([, p], [, q])=> far(q) - far(p));
+            if (ok.length){ best = [ok[0][0], s]; break; }
+          }
+          // どの隅も重なる（画面いっぱいに図形がある場面など）：重なりのいちばん小さい隅に、少しだけ小さくして
+          if (!best){ const k = ks.map(k=> [k, over(shrink(k, corners[k], 0.85))]).sort((x, y)=> x[1] - y[1])[0]; best = [k[0], 0.85]; score -= 50; }
+          [pos, scale] = best;
         }
-        return { a: { ...a, pos }, aw, ah, z, c0, c1, shift, score };
+        return { a: { ...a, pos, scale }, aw, ah, z, c0, c1, shift, score };
       };
       let P = cands.map(a=> plan(a)).sort((x, y)=> y.score - x.score)[0];
       // 陰影図の端に近くて真ん中に置けないときは、少し寄せると置けることがある（寄せた分は必要ならスライド）
@@ -302,7 +309,7 @@ function showScene(i){
         if (Q.shift < P.shift * 0.6) P = Q;
       }
       const { z, c0, c1, a:A } = P;
-      tour.photoPos = A.pos;
+      tour.photoPos = A.pos; tour.photoScale = A.scale || 1;
       tour.target = [b, { paddingTopLeft:[A.l, A.t], paddingBottomRight:[A.r, A.b], maxZoom:14 }];
       const dist = c1 ? map.project(c0, z).distanceTo(map.project(c1, z)) : 0;
       if (dist > 60) tour.pan = { to:c1, z, dist };   // ごく小さな動きはスライドしない
@@ -374,8 +381,9 @@ function placePhoto(w){
   const pos = tour.photoPos || "br", boxEl = document.getElementById("tourBox"), m = PC_PHOTO.m();
   const side = Math.max(m, (innerWidth - boxEl.offsetWidth) / 2);
   w.style.top = w.style.bottom = w.style.left = w.style.right = "";
-  w.style.width = (w.classList.contains("diagram") ? Math.min(900, Math.round(PC_PHOTO.w() * 1.2)) : PC_PHOTO.w()) + "px";
-  const img = w.querySelector("img"); if (img && !w.classList.contains("diagram")) img.style.maxHeight = PC_PHOTO.maxH() + "px";
+  const k = tour.photoScale || 1;   // 示す所に重ならないよう縮めた割合（showScene で決める）
+  w.style.width = Math.round((w.classList.contains("diagram") ? Math.min(900, Math.round(PC_PHOTO.w() * 1.2)) : PC_PHOTO.w()) * k) + "px";
+  const img = w.querySelector("img"); if (img && !w.classList.contains("diagram")) img.style.maxHeight = Math.round(PC_PHOTO.maxH() * k) + "px";
   if (pos[0] === "b") w.style.bottom = (boxEl.offsetHeight + 30) + "px"; else w.style.top = PC_PHOTO.top() + "px";
   if (pos[1] === "l"){ w.style.left = (pos[0] === "b" ? side : m) + "px"; w.style.right = "auto"; }
   else w.style.right = (pos[0] === "b" ? side : m) + "px";
@@ -540,7 +548,7 @@ function drawSceneLines(sc, onGroup){
       setTimeout(()=>{
         if (!tour || tour.i !== sceneNo || !b.isValid()) return;
         let { center, zoom } = map._getBoundsCenterZoom(b, opts);
-        if (sc.keepInside) center = keepInsideTiles(center, zoom, true)[0];   // 陰影図の外を出さない
+        if (!sc.gsi && !sc.allowOutside) center = keepInsideTiles(center, zoom, true)[0];   // 陰影図の外を出さない
         map.flyTo(center, zoom, { duration:1.2 });
       }, delay);
       setTimeout(()=>{   // 移動が終わっていなければ（端末が重い等）目的の範囲へ一気に移す
