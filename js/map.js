@@ -227,6 +227,7 @@ const REF_CATS = {
 };
 
 // 丸マーカー（QGIS: circle）。径・塗り・縁色・縁幅をmmからpx換算して反映
+const SHOW_ECO = false;   // 生態学的サイトを運営モードの地図に出すか
 const PX_MM = 96/25.4;                 // 1mm→px
 // 印の中の絵（24×24の線画。白で描く）：展望地＝双眼鏡、解説板＝看板、案内地図＝広げた地図
 const PICTO = {
@@ -973,7 +974,7 @@ function buildControls(){
     }
     body += `<div class="lp-legend">`+   // タブの見出しが「凡例」なので、中の「凡例」見出しと説明文は出さない
       siteLegendRows()+
-      (staff ? `<div class="row"><span class="eco-name lg">生態</span><span>生態学的サイト<small class="lg-desc">運営モードのみ。場所をぼかすため点は打たず、名前を大まかな位置（約1km単位）に表示</small></span></div>` : "")+
+      (staff && SHOW_ECO ? `<div class="row"><span class="eco-name lg">生態</span><span>生態学的サイト<small class="lg-desc">運営モードのみ。場所をぼかすため点は打たず、名前を大まかな位置（約1km単位）に表示</small></span></div>` : "")+
       `<div class="lp-legend-sub">特徴的な地質</div>${geoLegendRows()}`+
       `</div>`;
     div.innerHTML = `<div class="lp-body">${body}</div>`;
@@ -1441,10 +1442,10 @@ L.DomEvent.disableScrollPropagation(document.getElementById("panel"));
 document.getElementById("resetView").onclick = resetView;   // 上部帯「全体」ボタン
 map.on("click", ()=>{ if (isPortrait() && openTab) closeTab(); });   // 縦長：地図をタップしたらパネルを閉じる
 
-// ---- 生態学的サイト（運営モードのときだけ表示） ----
+// ---- 生態学的サイト（今は地図に出さない。ジオサイトなどの名前と重なって見づらいため。出すときは SHOW_ECO を true に） ----
 // 乱獲などを防ぐため、データには正確な位置を載せず、約1km単位に丸めた中心と半径の「大まかな範囲」だけを持つ。
 // ネットで調べても出てこない場所は、データにも入れない（D:\qgis\萩ジオパーク\map_ecological.csv の「地図に出す」＝N）
-if (staff){
+if (staff && SHOW_ECO){
   map.createPane("pane-cat-eco"); map.getPane("pane-cat-eco").style.zIndex = 650;   // 見どころの名前より上（枠が隠れないように）
   fetch("data/ecological.geojson" + DATAV).then(r=> r.json()).then(gj=>{
     const layer = L.layerGroup();
