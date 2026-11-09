@@ -199,6 +199,13 @@ function decorateSite(o){
 }
 
 // ---- 記録の入力 ----
+// 点検した日時の入力欄の値（端末の時刻で "2026-11-09T14:30"）
+const localDT = d=> new Date(d.getTime() - d.getTimezoneOffset() * 6e4).toISOString().slice(0, 16);
+// 入力欄の値 → 送る時刻。空・未来の日時は null（5分の余裕は、フォームを開いてから時刻が進んだ分や端末の時計のずれ）
+function pickedTime(v){
+  const d = v ? new Date(v) : null;
+  return d && !isNaN(d) && d.getTime() <= Date.now() + 5 * 6e4 ? d.toISOString() : null;
+}
 function recordForm(o, id){
   const old = document.querySelector(".qr-modal"); if (old) old.remove();
   const cur = stateOf(id), open = cur.problem;
@@ -211,6 +218,7 @@ function recordForm(o, id){
     `<div class="qr-ttl">状態を記録（${esc(id)}）</div><div class="qr-name">${esc(o.name)}</div>`+
     (key ? "" : `<label class="pt-f">合言葉<input type="password" class="pt-key" autocomplete="off"></label>`)+
     `<label class="pt-f">記録者<input class="pt-who" list="ptWhoList" value="${esc(who)}" placeholder="名前"><datalist id="ptWhoList">${names.map(n=> `<option value="${esc(n)}">`).join("")}</datalist></label>`+
+    `<label class="pt-f">点検した日時<input type="datetime-local" class="pt-when" value="${localDT(new Date())}" max="${localDT(new Date())}"><small class="pt-hint">あとで入力するときは、点検した日時に変えてください</small></label>`+
     (open ? `<p class="pt-openmsg">片付いていない問題があります（${esc(cur.last.state)}）</p>` : "")+
     `<div class="pt-states"><button data-v="問題なし" class="ok">問題なし</button><button data-v="問題あり" class="bad">問題あり</button></div>`+
     (open ? `<div class="pt-states"><button data-v="対応中" class="work">対応中</button><button data-v="対応済み" class="done">対応済み</button></div>` : "")+
@@ -246,11 +254,12 @@ function recordForm(o, id){
   save.onclick = async ()=>{
     const k = m.querySelector(".pt-key"); if (k){ if (!k.value.trim()){ toast("合言葉を入れてください"); return; } ls.set(LS.key, k.value.trim()); }
     const name = m.querySelector(".pt-who").value.trim(); if (!name){ toast("記録者を入れてください"); return; }
+    const when = pickedTime(m.querySelector(".pt-when").value); if (!when){ toast("点検した日時を確かめてください（未来の日時は入れられません）"); return; }
     const content = state !== "問題なし" ? m.querySelector(".pt-text-in").value.trim() : "";
     if (state === "問題あり" && !content){ toast("問題の内容を書いてください"); return; }
     ls.set(LS.who, name);
     const q = ls.get(LS.queue, []);
-    q.push({ id, recorder:name, state, content, photo: state !== "問題なし" ? photo : "", time: new Date().toISOString(),
+    q.push({ id, recorder:name, state, content, photo: state !== "問題なし" ? photo : "", time: when,
              uid: Date.now().toString(36) + Math.random().toString(36).slice(2, 8) });
     if (!ls.set(LS.queue, q)){ q[q.length - 1].photo = ""; ls.set(LS.queue, q); toast("端末の容量が足りないため、写真は保存できませんでした"); }
     close();
