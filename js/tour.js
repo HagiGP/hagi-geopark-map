@@ -172,10 +172,10 @@ function tourTarget(name){
 const panComfortZoom = ()=> isMobile() ? 10.4 : 11;
 const PAN_MAX_ZOOM = 1;   // そのとき、全体が入る倍率から最大どれだけ寄せるか
 const MOB_PHOTO_TOP = 52 + 8, MOB_PHOTO_FRAME = 46;   // スマホの写真の窓（上部）：ヘッダー＋余白の下に、写真＋枠・見出し（CSSと合わせる）
-const MOB_MAP_MIN = 300;   // スマホで写真を出しても、地図にこれだけの高さは残す
+const MOB_MAP_MIN = 200;   // スマホで写真を出しても、地図にこれだけの高さは残す
 // スマホの写真の高さ：画面が低い端末では写真を縮め、それでも地図が狭くなるなら写真を出さない（0）
 function mobPhotoImgH(){
-  const box = document.getElementById("tourBox"), room = innerHeight - MOB_PHOTO_TOP - MOB_PHOTO_FRAME - 12 - ((box ? box.offsetHeight : 160) + 36);
+  const room = innerHeight - MOB_PHOTO_TOP - MOB_PHOTO_FRAME - 12 - (((tour && tour.boxH) || 160) + 36);   // 字幕の窓は文字送りの途中で伸びるので、全文を出したときの高さ（tour.boxH）で決める
   const h = Math.min(150, room - MOB_MAP_MIN);
   return h >= 70 ? Math.round(h) : 0;
 }
@@ -190,6 +190,7 @@ function showScene(i){
   if (sc.gsi){ map.setMaxBounds(null); map.setMinZoom(5); }
   else if (tour.limits){ map.setMinZoom(tour.limits.minZoom); map.setMaxBounds(tour.limits.maxBounds); }
   const box = document.getElementById("tourBox");
+  box.querySelector(".tb-text").textContent = sc.text || ""; tour.boxH = box.offsetHeight;   // 全文を入れて窓の高さを測る（描画前に下の typeText が文字送りへ戻す）
   box.querySelector(".tb-count").textContent = `${i+1}／${tour.scenes.length}`;
   box.querySelector(".tb-prev").style.visibility = i ? "visible" : "hidden";
   box.classList.toggle("last", i === tour.scenes.length-1);
@@ -398,7 +399,7 @@ function showPhoto(sc, i){
   const cur = document.getElementById("tourPhoto");
   if (cur && cur.dataset.src === ph.key){   // 前の場面と同じ写真：出したまま（見出しと、PCは置く隅だけ合わせる）
     const fc = cur.querySelector("figcaption"); if (fc && ph.caption) fc.textContent = ph.caption;
-    if (!isMobile()) placePhoto(cur);
+    if (!isMobile()) placePhoto(cur); else cur.style.setProperty("--mph", mobPhotoImgH() + "px");
     return;
   }
   const img = new Image();
