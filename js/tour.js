@@ -368,7 +368,8 @@ function photoHeight(sc, i){
   const imgH = ph?.multi ? inner * (ph.multi.length === 2 ? 0.5 : 0.7) : ph?.diagram ? inner * h / w : Math.min(PC_PHOTO.maxH(), inner * h / w);
   return imgH + 14 + (ph?.caption ? 24 : 0);
 }
-function hidePhoto(){ document.querySelectorAll("#tourPhoto").forEach(el=> el.remove()); }
+let photoFlip = 0;   // スマホで写真を2枚ずつ切り替えるタイマー
+function hidePhoto(){ clearInterval(photoFlip); document.querySelectorAll("#tourPhoto").forEach(el=> el.remove()); }
 // figure：地図で見せる必要のない場面の図（模式図）を、画面の真ん中に大きく出す（地図は動かさず、うすく暗くする）
 function showFigure(sc){
   document.getElementById("tourFigure")?.remove();
@@ -407,7 +408,11 @@ function showPhoto(sc, i){
     if (!tour || tour.i !== i) return;
     hidePhoto();
     const w = document.createElement("figure"); w.id = "tourPhoto"; if (ph.diagram) w.className = "diagram";
-    w.innerHTML = (ph.multi ? `<div class="tp-multi n${ph.multi.length}">${ph.multi.map(([src, nm])=> `<div class="tp-cell"><img alt="" src="${esc(src)}"><span>${esc(nm || "")}</span></div>`).join("")}</div>` : `<img alt="">`)+
+    const cells = list=> list.map(([src, nm])=> `<div class="tp-cell"><img alt="" src="${esc(src)}"><span>${esc(nm || "")}</span></div>`).join("");
+    const paged = ph.multi && isMobile() && ph.multi.length > 2;   // スマホで3枚以上：2枚ずつ大きく出して、順に切り替える
+    let pages = "";
+    if (paged) for (let k = 0; k < ph.multi.length; k += 2) pages += `<div class="tp-page${k ? "" : " on"}">${cells(ph.multi.slice(k, k + 2))}</div>`;
+    w.innerHTML = (paged ? `<div class="tp-multi paged">${pages}</div>` : ph.multi ? `<div class="tp-multi n${ph.multi.length}">${cells(ph.multi)}</div>` : `<img alt="">`)+
                   (ph.caption ? `<figcaption></figcaption>` : "");
     if (!ph.multi) w.querySelector("img").src = ph.src;
     w.dataset.src = ph.key;
@@ -418,6 +423,12 @@ function showPhoto(sc, i){
     w.onclick = e=>{ e.stopPropagation(); w.classList.toggle("big"); };   // タップで拡大／戻す
     L.DomEvent.disableClickPropagation(w);
     document.body.appendChild(w);
+    if (paged) w.classList.add("paged");
+    if (paged) photoFlip = setInterval(()=>{  // 拡大して全部を見ているあいだは切り替えない
+      if (w.classList.contains("big")) return;
+      const ps = [...w.querySelectorAll(".tp-page")], k = ps.findIndex(p=> p.classList.contains("on"));
+      ps[k].classList.remove("on"); ps[(k + 1) % ps.length].classList.add("on");
+    }, 4000);
   };
   img.src = ph.src;   // 読めなければ（写真未登録）何も出さない
 }
